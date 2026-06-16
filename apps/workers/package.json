@@ -1,0 +1,13 @@
+{
+  "name": "@hotel-paraiso/workers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'Workers placeholder — BullMQ será configurado na Fase 1'",
+    "build": "echo 'Workers placeholder'",
+    "lint": "echo 'ok'",
+    "typecheck": "echo 'ok'",
+    "test": "echo 'ok'"
+  }
+}

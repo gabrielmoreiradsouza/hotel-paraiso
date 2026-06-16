@@ -1,0 +1,13 @@
+{
+  "name": "@hotel-paraiso/cms",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'CMS placeholder — Payload CMS será configurado na Fase 2'",
+    "build": "echo 'CMS placeholder'",
+    "lint": "echo 'ok'",
+    "typecheck": "echo 'ok'",
+    "test": "echo 'ok'"
+  }
+}
