@@ -10,7 +10,7 @@
 | 0002 | Stack técnica (Next.js + Fastify + Prisma)              | aceito    | 2026-06-15 |
 | 0003 | Conclusão Fase 0                                        | proposto  | 2026-06-15 |
 | 0004 | Fastify vs Express vs Hono                              | planejado | —          |
-| 0005 | Payload vs Sanity vs Strapi                             | planejado | —          |
+| 0005 | Payload CMS 3 como CMS do projeto                       | aceito    | 2026-06-16 |
 | 0006 | Easypanel vs Vercel/Railway                             | planejado | —          |
 | 0007 | GTM client-side no MVP (dual tracking preparando s-GTM) | planejado | —          |
 | 0008 | CMS híbrido (operacional Artax + conteúdo Payload)      | planejado | —          |

@@ -4,10 +4,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "echo 'CMS placeholder — Payload CMS será configurado na Fase 2'",
-    "build": "echo 'CMS placeholder'",
-    "lint": "echo 'ok'",
-    "typecheck": "echo 'ok'",
-    "test": "echo 'ok'"
+    "dev": "next dev --port 3003 --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'ok'",
+    "generate:types": "payload generate:types"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "^3.40.0",
+    "@payloadcms/next": "^3.40.0",
+    "@payloadcms/richtext-lexical": "^3.40.0",
+    "next": "^15.4.2",
+    "payload": "^3.40.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sharp": "^0.34.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6"
   }
 }
