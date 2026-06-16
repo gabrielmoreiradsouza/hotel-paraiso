@@ -6,7 +6,10 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        {/* GTM will be injected here when NEXT_PUBLIC_GTM_CONTAINER_ID is set */}
+        {children}
+      </body>
     </html>
   );
 }
