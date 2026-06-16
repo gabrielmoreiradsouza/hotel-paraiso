@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Entidades operacionais (espelham Artax)
+// ============================================
+
+model Room {
+  id               Int       @id // room_type_id da Artax
+  name             String
+  defaultCapacity  Int       @default(2)
+  bedConfiguration Json?
+  artaxLastSyncAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  availability AvailabilitySnapshot[]
+  bookingRooms BookingRoom[]
+
+  @@map("rooms")
+}
+
+model RatePlan {
+  id              Int       @id // da Artax
+  name            String
+  isRefundable    Boolean   @default(true)
+  artaxLastSyncAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  bookingRooms BookingRoom[]
+
+  @@map("rate_plans")
+}
+
+model AvailabilitySnapshot {
+  id        BigInt   @id @default(autoincrement())
+  roomId    Int
+  date      DateTime @db.Date
+  available Boolean
+  price     Decimal? @db.Decimal(10, 2)
+  fetchedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@index([roomId, date])
+  @@index([fetchedAt])
+  @@map("availability_snapshots")
+}
+
+// Booking status: 1=Pré Reserva, 2=Confirmado, 3=Hospedado, 4=Check-out, 5=Cancelado, 6=No Show
+model Booking {
+  id              Int       @id // booking_id da Artax
+  status          Int       @default(1)
+  arrivalDate     DateTime  @db.Date
+  departureDate   DateTime  @db.Date
+  totalAmount     Decimal?  @db.Decimal(10, 2)
+  source          String    @default("website") // website | artax_panel | ota
+  notes           String?
+  guestId         String?
+  sessionId       String?
+  artaxLastSyncAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  guest    Guest?    @relation(fields: [guestId], references: [id])
+  session  Session?  @relation(fields: [sessionId], references: [id])
+  rooms    BookingRoom[]
+  payments Payment[]
+
+  @@index([status])
+  @@index([arrivalDate])
+  @@index([sessionId])
+  @@map("bookings")
+}
+
+model BookingRoom {
+  id         String @id @default(cuid())
+  bookingId  Int
+  roomId     Int
+  ratePlanId Int?
+  adults     Int    @default(1)
+  children   Int    @default(0)
+
+  booking  Booking   @relation(fields: [bookingId], references: [id])
+  room     Room      @relation(fields: [roomId], references: [id])
+  ratePlan RatePlan? @relation(fields: [ratePlanId], references: [id])
+
+  @@map("booking_rooms")
+}
+
+model Guest {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  emailHash    String?  @unique // para lookup sem decriptar
+  phone        String? // criptografado em repouso
+  firstName    String
+  lastName     String?
+  document     String?  @unique // criptografado em repouso
+  documentHash String?  @unique // para lookup sem decriptar
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@map("guests")
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  bookingId       Int
+  amount          Decimal  @db.Decimal(10, 2)
+  paymentMethodId Int
+  installments    Int      @default(1)
+  dueDate         DateTime? @db.Date
+  status          String   @default("pending") // pending | paid | cancelled
+  costCenterId    Int?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@map("payments")
+}
+
+// ============================================
+// Entidades de jornada (analytics)
+// ============================================
+
+model Session {
+  id            String   @id @default(cuid())
+  userPseudoId  String? // GA4-compatible
+  startedAt     DateTime @default(now())
+  lastSeenAt    DateTime @default(now())
+
+  // Atribuição
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmTerm       String?
+  utmContent    String?
+  gclid         String?
+  fbclid        String?
+  referrer      String?
+  landingPage   String?
+
+  // Device
+  userAgent     String?
+  device        String? // mobile | desktop | tablet
+  country       String?
+
+  events   AnalyticsEvent[]
+  bookings Booking[]
+
+  @@index([startedAt])
+  @@map("sessions")
+}
+
+model AnalyticsEvent {
+  id             BigInt   @id @default(autoincrement())
+  sessionId      String
+  eventName      String
+  eventCategory  String   @default("micro") // macro | micro
+  timestamp      DateTime @default(now())
+  pageUrl        String?
+  payload        Json?
+
+  // Tracking sync flags
+  sentToGa4       Boolean @default(false)
+  sentToMetaCapi  Boolean @default(false)
+  sentToGoogleAds Boolean @default(false)
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, timestamp])
+  @@index([eventName, timestamp])
+  @@map("analytics_events")
+}
+
+// ============================================
+// Entidades de sistema e aprendizado
+// ============================================
+
+model EventLog {
+  id            BigInt   @id @default(autoincrement())
+  aggregateType String // booking | guest | room | ...
+  aggregateId   String
+  eventType     String // created | updated | cancelled
+  payload       Json?
+  triggeredBy   String // user | system | webhook | sync
+  occurredAt    DateTime @default(now())
+
+  @@index([aggregateType, aggregateId])
+  @@index([occurredAt])
+  @@map("event_log")
+}
+
+model SyncJob {
+  id             String   @id @default(cuid())
+  type           String // availability | bookings | rooms | rate_plans
+  status         String   @default("pending") // pending | running | completed | failed
+  startedAt      DateTime @default(now())
+  finishedAt     DateTime?
+  itemsProcessed Int      @default(0)
+  itemsFailed    Int      @default(0)
+  errorDetails   Json?
+
+  @@index([type, status])
+  @@map("sync_jobs")
+}
+
+model WebhookDelivery {
+  id             String   @id @default(cuid())
+  source         String   @default("artax")
+  eventType      String
+  payload        Json
+  signatureValid Boolean
+  status         String   @default("pending") // pending | processed | failed
+  receivedAt     DateTime @default(now())
+  processedAt    DateTime?
+  attempts       Int      @default(1)
+
+  @@index([eventType, receivedAt])
+  @@map("webhook_deliveries")
+}
+
+model Incident {
+  id             String   @id @default(cuid())
+  fingerprint    String   @unique // hash do stack
+  title          String
+  description    String?
+  rootCause      String?
+  defensiveRule  String?
+  testCaseRef    String?
+  docRef         String?
+  status         String   @default("open") // open | resolved | ignored
+  occurrences    Int      @default(1)
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  resolvedAt     DateTime?
+
+  @@map("incidents")
+}

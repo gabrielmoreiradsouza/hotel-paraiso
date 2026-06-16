@@ -2,6 +2,7 @@ import './instrument.js';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { env } from './lib/env.js';
+import { artaxWebhookRoutes } from './interface/webhooks/artax-webhook.js';
 
 const app = Fastify({ logger: true });
 
@@ -10,6 +11,8 @@ await app.register(cors);
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
+
+await app.register(artaxWebhookRoutes);
 
 const start = async () => {
   try {
