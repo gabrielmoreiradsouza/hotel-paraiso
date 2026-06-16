@@ -59,6 +59,7 @@ docs/private/
 # Claude local
 .claude/cache/
 .claude/sessions/
+.mcp.json
 
 # Misc
 .cache/
