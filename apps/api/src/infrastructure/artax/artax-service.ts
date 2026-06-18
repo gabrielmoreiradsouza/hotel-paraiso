@@ -35,7 +35,7 @@ export class ArtaxService {
           roomId: room.room_type_id,
           date: new Date(query.arrival_date),
           available: room.available,
-          price: room.price,
+          price: room.price ?? null,
         },
       });
     }
@@ -90,13 +90,13 @@ export class ArtaxService {
         status: booking.status,
         arrivalDate: new Date(booking.arrival_date),
         departureDate: new Date(booking.departure_date),
-        totalAmount: booking.total_amount,
+        totalAmount: booking.total_amount ?? null,
         source: 'artax_panel',
         artaxLastSyncAt: new Date(),
       },
       update: {
         status: booking.status,
-        totalAmount: booking.total_amount,
+        totalAmount: booking.total_amount ?? null,
         artaxLastSyncAt: new Date(),
       },
     });
