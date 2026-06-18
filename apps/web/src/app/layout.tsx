@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header/Header';
+import { Analytics } from '@/components/Analytics/Analytics';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -82,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: 'window.dataLayer=window.dataLayer||[];' }} />
       </head>
       <body>
+        <Analytics />
         <Header />
         {children}
       </body>

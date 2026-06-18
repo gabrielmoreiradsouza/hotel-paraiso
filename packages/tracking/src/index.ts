@@ -66,6 +66,27 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
 
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push(event);
+
+  // Also fire to GA4 gtag if available
+  if (typeof window !== 'undefined' && 'gtag' in window) {
+    const gtag = (window as unknown as Record<string, (...args: unknown[]) => void>)['gtag'];
+    if (gtag) gtag('event', eventName, payload);
+  }
+
+  // Also fire to Meta fbq if available (map to standard events)
+  if (typeof window !== 'undefined' && 'fbq' in window) {
+    const fbq = (window as unknown as Record<string, (...args: unknown[]) => void>)['fbq'];
+    const metaEventMap: Record<string, string> = {
+      search_performed: 'Search',
+      room_selected: 'ViewContent',
+      checkout_started: 'InitiateCheckout',
+      reservation_created: 'Purchase',
+    };
+    const metaEvent = metaEventMap[eventName];
+    if (metaEvent && fbq) {
+      fbq('track', metaEvent, { value: payload['value'], currency: 'BRL' });
+    }
+  }
 }
 
 // === Canonical events ===
