@@ -38,7 +38,7 @@ export function Header() {
             </Link>
           ))}
           <Link
-            href="/#quartos"
+            href="/reservar"
             className="rounded-sm bg-brand-gold px-5 py-2 text-sm font-semibold uppercase tracking-wider text-brand-black transition-colors hover:bg-gold-400"
           >
             Reservar

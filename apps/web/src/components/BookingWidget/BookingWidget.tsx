@@ -1,16 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export function BookingWidget() {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
+  const router = useRouter();
+
+  function handleSearch() {
+    const params = new URLSearchParams();
+    if (checkIn) params.set('checkin', checkIn);
+    if (checkOut) params.set('checkout', checkOut);
+    params.set('guests', String(guests));
+    router.push(`/reservar?${params.toString()}`);
+  }
 
   return (
     <section className="sticky top-0 z-40 border-b border-beige-300 bg-brand-white shadow-md">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-3 sm:flex-row sm:gap-4">
-        {/* Check-in */}
         <div className="flex w-full flex-col sm:w-auto">
           <label className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700">
             Check-in
@@ -23,7 +32,6 @@ export function BookingWidget() {
           />
         </div>
 
-        {/* Check-out */}
         <div className="flex w-full flex-col sm:w-auto">
           <label className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700">
             Check-out
@@ -36,7 +44,6 @@ export function BookingWidget() {
           />
         </div>
 
-        {/* Guests */}
         <div className="flex w-full flex-col sm:w-auto">
           <label className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700">
             Hóspedes
@@ -60,9 +67,9 @@ export function BookingWidget() {
           </div>
         </div>
 
-        {/* CTA */}
         <button
           type="button"
+          onClick={handleSearch}
           className="w-full rounded-sm bg-brand-gold px-8 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 sm:mt-5 sm:w-auto"
         >
           Verificar disponibilidade
