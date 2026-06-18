@@ -8,10 +8,10 @@ export function Hero() {
       {/* Background image */}
       <div className="absolute inset-0">
         <Image
-          src="/brand/logo.png"
-          alt="Hotel e Restaurante Paraíso"
+          src="/images/common/recepcao.jpg"
+          alt="Hotel e Restaurante Paraíso — Recepção"
           fill
-          className="object-contain bg-brand-black p-20 opacity-20"
+          className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-b from-brand-black/60 via-brand-black/40 to-brand-black/80" />

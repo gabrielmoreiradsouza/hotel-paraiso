@@ -7,7 +7,7 @@ const rooms = [
     description:
       'Conforto essencial para uma estadia agradável. Ideal para viajantes corporativos.',
     price: 'A partir de R$ 180',
-    image: '/brand/logo.png', // placeholder — será substituído por foto real do CMS
+    image: '/images/rooms/standard.jpg',
     capacity: '2 adultos',
     amenities: ['Wi-Fi', 'Ar condicionado', 'TV', 'Frigobar'],
   },
@@ -16,7 +16,7 @@ const rooms = [
     name: 'Luxo',
     description: 'Espaço amplo com acabamentos premium e vista privilegiada.',
     price: 'A partir de R$ 280',
-    image: '/brand/logo.png',
+    image: '/images/rooms/luxo.jpg',
     capacity: '2 adultos + 1 criança',
     amenities: ['Wi-Fi', 'Ar condicionado', 'TV 50"', 'Frigobar', 'Cofre'],
   },
@@ -25,7 +25,7 @@ const rooms = [
     name: 'Suíte Master',
     description: 'Nossa melhor acomodação. Hidromassagem, sala de estar e serviço exclusivo.',
     price: 'A partir de R$ 420',
-    image: '/brand/logo.png',
+    image: '/images/rooms/master.jpg',
     capacity: '2 adultos + 2 crianças',
     amenities: ['Wi-Fi', 'Ar condicionado', 'TV 55"', 'Hidromassagem', 'Sala de estar'],
   },
@@ -54,7 +54,7 @@ export function RoomCards() {
                   src={room.image}
                   alt={room.name}
                   fill
-                  className="object-contain p-8 transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 
