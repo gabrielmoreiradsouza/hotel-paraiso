@@ -79,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script dangerouslySetInnerHTML={{ __html: 'window.dataLayer=window.dataLayer||[];' }} />
       </head>
       <body>
         <Header />
