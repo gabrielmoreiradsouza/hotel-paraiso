@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { trackSearchPerformed } from '@hotel-paraiso/tracking';
 
 export function BookingWidget() {
   const [checkIn, setCheckIn] = useState('');
@@ -10,6 +11,7 @@ export function BookingWidget() {
   const router = useRouter();
 
   function handleSearch() {
+    trackSearchPerformed({ checkin: checkIn, checkout: checkOut, guests });
     const params = new URLSearchParams();
     if (checkIn) params.set('checkin', checkIn);
     if (checkOut) params.set('checkout', checkOut);

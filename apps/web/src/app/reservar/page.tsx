@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+  trackRoomSelected,
+  trackCheckoutStarted,
+  trackReservationCreated,
+  trackAvailabilityViewed,
+} from '@hotel-paraiso/tracking';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -45,6 +51,10 @@ function BookingContent() {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [step, setStep] = useState<'search' | 'details' | 'confirmed'>('search');
 
+  useEffect(() => {
+    trackAvailabilityViewed(availableRooms.length);
+  }, []);
+
   // Form for confirmed step
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
@@ -63,6 +73,16 @@ function BookingContent() {
   const selected = availableRooms.find((r) => r.slug === selectedRoom);
 
   function handleSelectRoom(slug: string) {
+    const room = availableRooms.find((r) => r.slug === slug);
+    if (room) {
+      trackRoomSelected({ room_slug: slug, room_name: room.name, price: room.price });
+      trackCheckoutStarted({
+        room_slug: slug,
+        room_name: room.name,
+        value: room.price * nights,
+        nights,
+      });
+    }
     setSelectedRoom(slug);
     setStep('details');
     window.scrollTo(0, 0);
@@ -90,7 +110,17 @@ function BookingContent() {
       });
 
       const data = await response.json();
-      if (data.booking_id) setBookingId(String(data.booking_id));
+      if (data.booking_id) {
+        setBookingId(String(data.booking_id));
+        if (selected) {
+          trackReservationCreated({
+            booking_id: String(data.booking_id),
+            room_name: selected.name,
+            value: selected.price * nights,
+            nights,
+          });
+        }
+      }
     } catch {
       // Even if API fails, show confirmation (we'll process manually)
     }
