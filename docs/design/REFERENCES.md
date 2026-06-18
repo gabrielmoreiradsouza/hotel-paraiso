@@ -133,6 +133,62 @@ Importante: incluir referências do mercado nacional para tom de voz e contexto:
 - **Decolar Hotéis** — UX OTA brasileira, padrões de copy em português
 - **Hurb** — exemplo do que NÃO fazer (pressão excessiva, copy agressivo)
 
+## Tier 3 — Referências validadas pelo cliente (2026-06-18)
+
+### Ouro Minas Hotel (ourominas.com.br)
+
+**Padrões extraídos:**
+
+- Booking widget sticky (acompanha scroll), CTA burgundy (#83002d)
+- Hero fullscreen com galeria de fotos em carrossel
+- Campos: check-in, check-out, hóspedes — row (desktop) / column (mobile)
+- Breakpoints: 767px / 768-1024px / 1025px+
+- Navegação hamburger mobile, horizontal desktop
+
+**Aplicar:** booking widget sticky com CTA dourado, hero fullscreen com fotos do hotel
+
+### Booking.com
+
+**Padrões de conversão:**
+
+- Search widget centralizado no hero com autocomplete
+- Date picker calendário duplo (desktop) / scroll vertical (mobile)
+- Seletor hóspedes com +/- (adultos, crianças, quartos)
+- Urgência: "Resta 1 quarto!", "Reservado 5x nas últimas 24h"
+- Social proof: nota + classificação verbal + quantidade de avaliações
+- Pricing: preço riscado + atual, "por noite", total calculado
+- Bottom bar sticky mobile: preço + CTA
+- Badge "Cancelamento gratuito" em verde
+
+**Aplicar:** date picker duplo, seletor +/-, pricing "por noite" + total, bottom bar mobile
+
+### Airbnb
+
+**Padrões de conversão:**
+
+- Search bar minimalista que expande ao clicar
+- Cards com foto 1:1, carrossel swipeable, heart wishlist
+- Grid de 5 fotos no listing (1 grande + 4 menores)
+- Booking flow 3 steps máximo
+- Login/cadastro DEPOIS da escolha (reduz fricção)
+- Bottom sticky bar: preço + "Reservar"
+
+**Aplicar:** grid 5 fotos no quarto, flow 3 steps, login pós-escolha, cards com carrossel
+
+---
+
+## Síntese — Estrutura do homepage (ordem validada)
+
+1. **Hero** — foto fullscreen + headline + booking widget integrado
+2. **Categorias de quartos** — cards com foto, nome, preço "a partir de"
+3. **Diferenciais** — ícones + texto curto (Wi-Fi, estacionamento, pista, restaurante)
+4. **Galeria** — grid de fotos interativo
+5. **Experiências/Gastronomia** — seção com CTA
+6. **Localização** — mapa + endereço + "como chegar"
+7. **Avaliações** — social proof (quando disponível)
+8. **CTA final** — "Reserve agora" com booking widget repetido
+9. **Footer** — contato, links, redes sociais, políticas
+
 ## TODOs abertos
 
 Ver `references/PENDING.md` para solicitações que precisam de input do cliente.
