@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
+import { Header } from '@/components/Header/Header';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -27,7 +28,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${playfair.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }
