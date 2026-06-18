@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/web/**'
       - 'packages/ui/**'
+      - 'Dockerfile'
       - '.github/workflows/deploy-web.yml'
 
 jobs:
@@ -33,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/web/Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/web:latest

@@ -9,4 +9,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-// trigger rebuild 1781790934

@@ -36,8 +36,7 @@ export function Hero() {
 
         <p className="mx-auto mt-6 max-w-2xl text-lg text-beige-200 sm:text-xl">
           Conforto e sofisticação em Ponte Nova, MG.
-          <br className="hidden sm:block" />
-          Sua experiência começa aqui.
+          <br className="hidden sm:block" /> Sua experiência começa aqui.
         </p>
 
         <a
