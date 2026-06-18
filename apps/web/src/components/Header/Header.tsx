@@ -5,9 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 const navItems = [
+  { label: 'Sobre', href: '/sobre' },
   { label: 'Quartos', href: '/#quartos' },
-  { label: 'Restaurante', href: '/#restaurante' },
-  { label: 'Eventos', href: '/#eventos' },
   { label: 'Galeria', href: '/galeria' },
   { label: 'Contato', href: '/#contato' },
 ];

@@ -207,12 +207,12 @@ export default async function RoomPage({ params }: Props) {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="mt-6 w-full rounded-sm bg-brand-gold py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
+              <Link
+                href={`/reservar?room=${slug}`}
+                className="mt-6 block w-full rounded-sm bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
               >
                 Reservar agora
-              </button>
+              </Link>
 
               <p className="mt-3 text-center text-xs text-beige-600">
                 Cancelamento gratuito até 48h antes
