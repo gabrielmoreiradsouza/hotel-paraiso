@@ -56,14 +56,15 @@ export function Footer() {
               Contato
             </h4>
             <ul className="space-y-2 text-sm">
-              <li>Recepção 24h</li>
-              <li>Ponte Nova, MG</li>
+              <li>(31) 3881-8049</li>
+              <li>R. Pe. José Alvarenga, 50</li>
+              <li>Paraíso — Ponte Nova, MG</li>
               <li>
                 <a
-                  href="mailto:contato@hotelparaiso.com"
+                  href="mailto:hotelrparaiso@gmail.com"
                   className="transition-colors hover:text-brand-gold"
                 >
-                  contato@hotelparaiso.com
+                  hotelrparaiso@gmail.com
                 </a>
               </li>
             </ul>

@@ -45,17 +45,20 @@ const jsonLd = {
   description:
     'Hotel e Restaurante em Ponte Nova, MG. Conforto e sofisticação para viajantes corporativos e famílias.',
   url: 'https://hotelparaiso.moreirads.cloud',
-  telephone: '',
+  telephone: '+55-31-3881-8049',
+  email: 'hotelrparaiso@gmail.com',
   address: {
     '@type': 'PostalAddress',
+    streetAddress: 'Rua Padre José Alvarenga, 50',
     addressLocality: 'Ponte Nova',
     addressRegion: 'MG',
+    postalCode: '35430-303',
     addressCountry: 'BR',
   },
   geo: {
     '@type': 'GeoCoordinates',
-    latitude: -20.41,
-    longitude: -42.9,
+    latitude: -20.4167,
+    longitude: -42.9078,
   },
   starRating: {
     '@type': 'Rating',

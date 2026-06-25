@@ -3,7 +3,7 @@
 import { track } from '@hotel-paraiso/tracking';
 
 export function WhatsAppButton() {
-  const phone = '5531999999999'; // TODO: replace with real hotel number
+  const phone = '553138818049';
   const message = encodeURIComponent('Olá! Gostaria de saber mais sobre o Hotel Paraíso.');
   const url = `https://wa.me/${phone}?text=${message}`;
 
