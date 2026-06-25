@@ -3,6 +3,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header/Header';
 import { Analytics } from '@/components/Analytics/Analytics';
+import { WhatsAppButton } from '@/components/WhatsAppButton/WhatsAppButton';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -86,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Analytics />
         <Header />
         {children}
+        <WhatsAppButton />
       </body>
     </html>
   );
