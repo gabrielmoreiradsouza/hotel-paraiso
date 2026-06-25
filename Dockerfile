@@ -14,6 +14,8 @@ FROM base AS builder
 COPY --from=deps /app/ ./
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-VW178YY861
+ENV NEXT_PUBLIC_META_PIXEL_ID=4310343772554446
 RUN pnpm --filter @hotel-paraiso/web build
 
 # Production
