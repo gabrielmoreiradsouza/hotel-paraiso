@@ -3,24 +3,38 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const WEBHOOK_SECRET = process.env['ARTAX_WEBHOOK_SECRET'] ?? '';
 
-function verifySignature(payload: string, signature: string, secret: string): boolean {
-  if (!secret || !signature) return !secret; // If no secret configured, accept all
-  try {
-    const expected = createHmac('sha256', secret).update(payload).digest('hex');
-    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-  } catch {
-    return false;
+function verifyAuth(request: Request, payload: string): boolean {
+  // If no secret configured, accept all webhooks
+  if (!WEBHOOK_SECRET) return true;
+
+  // Method 1: Bearer token in Authorization header (Artax standard)
+  const authHeader = request.headers.get('authorization') ?? '';
+  if (authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    if (token === WEBHOOK_SECRET) return true;
   }
+
+  // Method 2: HMAC-SHA256 signature in X-Signature header
+  const signature = request.headers.get('x-signature') ?? '';
+  if (signature) {
+    try {
+      const expected = createHmac('sha256', WEBHOOK_SECRET).update(payload).digest('hex');
+      return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
 }
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
-  const signature = request.headers.get('x-signature') ?? '';
 
-  // Validate signature if secret is configured
-  if (WEBHOOK_SECRET && !verifySignature(rawBody, signature, WEBHOOK_SECRET)) {
-    console.warn('[webhook] Invalid signature');
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  // Validate auth
+  if (!verifyAuth(request, rawBody)) {
+    console.warn('[webhook] Unauthorized request');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Parse payload
