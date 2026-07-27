@@ -54,6 +54,32 @@ export async function POST(request: Request) {
 
       if (artaxResponse.ok) {
         const artaxData = await artaxResponse.json();
+
+        // Send confirmation email via Resend (fire and forget)
+        const resendKey = process.env['RESEND_API_KEY'];
+        if (resendKey && guestEmail) {
+          fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'Hotel Paraíso <noreply@moreirads.cloud>',
+              to: [guestEmail],
+              subject: 'Reserva solicitada — Hotel e Restaurante Paraíso',
+              html: `
+                <h1>Olá, ${guestName}!</h1>
+                <p>Sua solicitação de reserva foi recebida com sucesso.</p>
+                <p><strong>Check-in:</strong> ${checkin}</p>
+                <p><strong>Check-out:</strong> ${checkout}</p>
+                <p>Entraremos em contato para confirmar sua reserva.</p>
+                <p>Atenciosamente,<br>Hotel e Restaurante Paraíso<br>(31) 3881-8049</p>
+              `,
+            }),
+          }).catch((err) => console.error('Email error:', err));
+        }
+
         return NextResponse.json({
           success: true,
           booking_id: artaxData.booking_id,
@@ -63,6 +89,31 @@ export async function POST(request: Request) {
 
       // If Artax fails, still accept the reservation (we'll sync later)
       console.error('Artax booking failed:', await artaxResponse.text());
+    }
+
+    // Send confirmation email via Resend (fire and forget) — fallback path
+    const resendKey = process.env['RESEND_API_KEY'];
+    if (resendKey && guestEmail) {
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Hotel Paraíso <noreply@moreirads.cloud>',
+          to: [guestEmail],
+          subject: 'Reserva solicitada — Hotel e Restaurante Paraíso',
+          html: `
+            <h1>Olá, ${guestName}!</h1>
+            <p>Sua solicitação de reserva foi recebida com sucesso.</p>
+            <p><strong>Check-in:</strong> ${checkin}</p>
+            <p><strong>Check-out:</strong> ${checkout}</p>
+            <p>Entraremos em contato para confirmar sua reserva.</p>
+            <p>Atenciosamente,<br>Hotel e Restaurante Paraíso<br>(31) 3881-8049</p>
+          `,
+        }),
+      }).catch((err) => console.error('Email error:', err));
     }
 
     // Fallback: accept reservation locally
