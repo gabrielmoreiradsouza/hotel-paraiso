@@ -48,7 +48,7 @@ export class ArtaxClient {
   }
 
   async getBooking(bookingId: number): Promise<Booking> {
-    return this.get<Booking>(`/bookings/${bookingId}`);
+    return this.get<Booking>(`/booking/${bookingId}`);
   }
 
   async checkAvailability(query: AvailabilityQuery): Promise<AvailabilityResponse> {
@@ -58,24 +58,53 @@ export class ArtaxClient {
     });
     if (query.adults) params.set('adults', String(query.adults));
     if (query.children) params.set('children', String(query.children));
-    return this.get<AvailabilityResponse>(`/availability?${params.toString()}`);
+    return this.get<AvailabilityResponse>(`/rooms/availability?${params.toString()}`);
   }
 
-  async createBooking(input: CreateBookingInput): Promise<Booking> {
-    return this.post<Booking>('/bookings', input);
+  async createBooking(input: CreateBookingInput): Promise<{ booking_id: number }> {
+    // Artax expects: POST /booking/create with specific format
+    // room_units keyed by category ID, guest object (not array)
+    const artaxPayload: Record<string, unknown> = {
+      arrival_date: input.arrival_date,
+      departure_date: input.departure_date,
+      guest: {
+        first_name: input.guests[0]?.name?.split(' ')[0] ?? '',
+        last_name: input.guests[0]?.name?.split(' ').slice(1).join(' ') ?? '',
+        phone: input.guests[0]?.phone ?? '',
+        email: input.guests[0]?.email ?? '',
+        type: 'guest',
+      },
+      room_units: {} as Record<string, unknown>,
+    };
+
+    // Map rooms to Artax format: room_units[category_id] = { adults, kids, guests }
+    for (const room of input.rooms) {
+      (artaxPayload['room_units'] as Record<string, unknown>)[String(room.room_type_id)] = {
+        adults: room.adults,
+        kids: room.children ?? 0,
+        guests: [
+          {
+            first_name: input.guests[0]?.name?.split(' ')[0] ?? '',
+            last_name: input.guests[0]?.name?.split(' ').slice(1).join(' ') ?? '',
+          },
+        ],
+      };
+    }
+
+    return this.post<{ booking_id: number }>('/booking/create', artaxPayload);
   }
 
   async webCheckin(
     bookingId: number,
     data: { holder: Record<string, unknown>; guests?: Record<string, unknown>[] }
   ): Promise<unknown> {
-    return this.post(`/bookings/${bookingId}/checkin`, data);
+    return this.post(`/booking/${bookingId}/web-check-in`, data);
   }
 
   // --- Payments ---
 
   async addPayments(bookingId: number, payments: AddPaymentInput[]): Promise<unknown> {
-    return this.post(`/bookings/${bookingId}/payments`, { payments });
+    return this.post(`/booking/${bookingId}/payments`, { payments });
   }
 
   async getPaymentMethods(type?: 'in' | 'out' | 'both'): Promise<{

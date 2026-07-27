@@ -4,9 +4,16 @@
 >
 > Cada regra tem documento próprio em `docs/defensive-rules/DR-XXX-{slug}.md` e teste em `docs/defensive-rules/tests/`.
 
-## Status: nenhuma regra ativa ainda
+## Regras ativas
 
-O projeto está iniciando. Conforme incidentes surgirem e forem analisados, regras serão adicionadas aqui.
+### DR-001: Proteção contra rate limit destrutivo da Artax
+
+**Origem:** Incidente 2026-06-18 (chave API desabilitada)
+**Status:** ativa
+**Categoria:** infrastructure
+**Resumo:** Rate limiter interno em 50 req/min (real = 100, fatal = 102). Nunca testar em loop contra API real.
+**Implementação:** `packages/artax-client/src/utils/rate-limiter.ts`
+**Documento:** [DR-001-artax-rate-limit.md](DR-001-artax-rate-limit.md)
 
 ## Formato de entrada (template)
 

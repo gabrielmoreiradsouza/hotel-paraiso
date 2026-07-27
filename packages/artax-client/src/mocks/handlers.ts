@@ -10,12 +10,12 @@ import {
 const BASE_URL = 'https://artaxnet.com/pms-api/v1';
 
 export const artaxHandlers = [
-  // GET /availability
-  http.get(`${BASE_URL}/availability`, () => {
+  // GET /rooms/availability (corrected endpoint)
+  http.get(`${BASE_URL}/rooms/availability`, () => {
     return HttpResponse.json({ rooms: MOCK_ROOMS });
   }),
 
-  // GET /bookings
+  // GET /bookings (list)
   http.get(`${BASE_URL}/bookings`, ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
@@ -34,8 +34,8 @@ export const artaxHandlers = [
     });
   }),
 
-  // GET /bookings/:id
-  http.get(`${BASE_URL}/bookings/:id`, ({ params }) => {
+  // GET /booking/:id (singular, corrected)
+  http.get(`${BASE_URL}/booking/:id`, ({ params }) => {
     const booking = MOCK_BOOKINGS.find((b) => b.booking_id === Number(params['id']));
     if (!booking) {
       return HttpResponse.json({ error: 'Not found' }, { status: 404 });
@@ -43,24 +43,19 @@ export const artaxHandlers = [
     return HttpResponse.json(booking);
   }),
 
-  // POST /bookings
-  http.post(`${BASE_URL}/bookings`, async ({ request }) => {
-    const body = (await request.json()) as Record<string, unknown>;
-    const booking = createMockBooking({
-      arrival_date: body['arrival_date'] as string,
-      departure_date: body['departure_date'] as string,
-      status: 1,
-    });
-    return HttpResponse.json(booking, { status: 201 });
+  // POST /booking/create (corrected endpoint)
+  http.post(`${BASE_URL}/booking/create`, async () => {
+    const booking = createMockBooking({ status: 1 });
+    return HttpResponse.json({ booking_id: booking.booking_id }, { status: 201 });
   }),
 
-  // POST /bookings/:id/payments
-  http.post(`${BASE_URL}/bookings/:id/payments`, () => {
+  // POST /booking/:id/payments (singular)
+  http.post(`${BASE_URL}/booking/:id/payments`, () => {
     return HttpResponse.json({ success: true });
   }),
 
-  // POST /bookings/:id/checkin
-  http.post(`${BASE_URL}/bookings/:id/checkin`, () => {
+  // POST /booking/:id/web-check-in (corrected)
+  http.post(`${BASE_URL}/booking/:id/web-check-in`, () => {
     return HttpResponse.json({ success: true });
   }),
 
@@ -74,8 +69,8 @@ export const artaxHandlers = [
     return HttpResponse.json({ cost_centers: MOCK_COST_CENTERS });
   }),
 
-  // GET /units
-  http.get(`${BASE_URL}/units`, () => {
+  // GET /housekeeping/units
+  http.get(`${BASE_URL}/housekeeping/units`, () => {
     return HttpResponse.json({
       units: [
         {
@@ -84,14 +79,6 @@ export const artaxHandlers = [
           room_type_id: 1,
           room_type_name: 'Standard',
           status: 'clean',
-          orders: [],
-        },
-        {
-          unit_id: 2,
-          unit_name: '102',
-          room_type_id: 1,
-          room_type_name: 'Standard',
-          status: 'dirty',
           orders: [],
         },
       ],
