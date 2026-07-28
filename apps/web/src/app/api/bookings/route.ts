@@ -9,6 +9,7 @@ const artaxHeaders = {
   ClientSecret: CLIENT_SECRET,
   Accept: 'application/json',
   'Content-Type': 'application/json',
+  'User-Agent': 'HotelParaiso/1.0',
 };
 
 // Room slug → Artax category ID mapping

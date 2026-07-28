@@ -177,6 +177,7 @@ export class ArtaxClient {
           ClientId: this.clientId,
           ClientSecret: this.clientSecret,
           Accept: 'application/json',
+          'User-Agent': 'HotelParaiso/1.0',
         };
 
         const init: RequestInit = {

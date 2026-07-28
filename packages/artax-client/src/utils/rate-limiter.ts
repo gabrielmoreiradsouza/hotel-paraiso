@@ -3,8 +3,8 @@ export class RateLimiter {
   private readonly maxRequests: number;
   private readonly windowMs: number;
 
-  // Artax limit: 100/60s, key DISABLED at 102. We stay at 50 for safety.
-  constructor(maxRequests = 50, windowMs = 60_000) {
+  // DR-001: Artax DESATIVA a chave em 102 req/60s. Mantemos em 30 para segurança.
+  constructor(maxRequests = 30, windowMs = 60_000) {
     this.maxRequests = maxRequests;
     this.windowMs = windowMs;
   }
