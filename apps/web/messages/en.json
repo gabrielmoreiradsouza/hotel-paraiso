@@ -1,0 +1,142 @@
+{
+  "nav": {
+    "about": "About",
+    "rooms": "Rooms",
+    "gallery": "Gallery",
+    "contact": "Contact",
+    "book": "Book Now"
+  },
+  "hero": {
+    "title1": "Hotel & Restaurant",
+    "title2": "Paraíso",
+    "subtitle": "Comfort and sophistication in Ponte Nova, MG. Your experience starts here.",
+    "cta": "Book now"
+  },
+  "booking": {
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "guests": "Guests",
+    "search": "Check availability",
+    "available": "Available rooms",
+    "select": "Select",
+    "perStay": "/ stay",
+    "available_count": "{count} available",
+    "noRooms": "No rooms available for the selected dates.",
+    "noRoomsHint": "Try different dates or contact us: +55 (31) 3881-8049",
+    "step1": "Choose",
+    "step2": "Your details",
+    "step3": "Confirmation",
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "confirm": "Confirm reservation",
+    "sending": "Sending...",
+    "back": "Back",
+    "confirmed": "Reservation confirmed!",
+    "confirmedMsg": "Your reservation has been successfully registered in the hotel system.",
+    "protocol": "Confirmation number",
+    "emailSent": "A confirmation email will be sent to {email}",
+    "questions": "Questions? +55 (31) 3881-8049 or WhatsApp",
+    "backHome": "Back to home",
+    "total": "Total",
+    "searching": "Checking hotel availability...",
+    "apiError": "Error checking availability. Please try again.",
+    "completeBooking": "Complete your reservation",
+    "cancel": "Free cancellation up to 48h before check-in",
+    "upTo": "Up to {adults} adults"
+  },
+  "rooms": {
+    "title": "Our Accommodations",
+    "subtitle": "Choose the perfect comfort for your stay",
+    "details": "View details",
+    "bookNow": "Book now",
+    "perNight": "/ night",
+    "amenities": "Room amenities",
+    "backAll": "← Back to all rooms"
+  },
+  "features": {
+    "title": "Why choose Paraíso",
+    "subtitle": "Everything you need for a perfect stay",
+    "wifi": "High-speed Wi-Fi",
+    "wifiDesc": "Fast internet throughout the property",
+    "parking": "Parking",
+    "parkingDesc": "Free and secure parking",
+    "restaurant": "Restaurant",
+    "restaurantDesc": "Regional and international cuisine",
+    "events": "Event venue",
+    "eventsDesc": "Space for corporate events",
+    "charger": "EV charging",
+    "chargerDesc": "Electric vehicle charging station",
+    "pet": "Pet friendly",
+    "petDesc": "Pet-friendly rooms available"
+  },
+  "location": {
+    "title": "Location",
+    "city": "Ponte Nova, Minas Gerais",
+    "howToGet": "How to get here",
+    "address": "R. Padre José Alvarenga, 50",
+    "neighborhood": "Bairro Paraíso — Ponte Nova, MG",
+    "cep": "ZIP 35430-303",
+    "distance": "~2h from Belo Horizonte via BR-262",
+    "reception": "+55 (31) 3881-8049 — 24h Front Desk",
+    "route": "Get directions"
+  },
+  "cta": {
+    "title": "Book your stay at",
+    "highlight": "Paraíso",
+    "subtitle": "Comfort, gastronomy, and a prime location in Ponte Nova, MG.",
+    "button": "Choose a room"
+  },
+  "footer": {
+    "hotel": "The Hotel",
+    "contact": "Contact",
+    "info": "Information",
+    "checkin": "Check-in: 2:00 PM",
+    "checkout": "Check-out: 12:00 PM",
+    "rights": "All rights reserved."
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "Explore our spaces and accommodations",
+    "all": "All",
+    "roomsCat": "Rooms",
+    "commonCat": "Common areas"
+  },
+  "about": {
+    "title": "About the Hotel",
+    "tradition": "Tradition and comfort in Ponte Nova",
+    "p1": "Hotel & Restaurant Paraíso is a benchmark in hospitality and gastronomy in the Zona da Mata region of Minas Gerais. Located in Ponte Nova, MG, we welcome both business travelers and families seeking comfort, convenience, and an authentic Minas Gerais experience.",
+    "p2": "With accommodations ranging from functional to sophisticated — from our Standard room to the Master Suite with jacuzzi — we offer options for every guest. Our restaurant serves the finest regional and international cuisine, with breakfast included in every stay.",
+    "infra": "Full infrastructure",
+    "p3": "The hotel features free parking, high-speed Wi-Fi throughout, an event venue for corporate gatherings, and even an electric vehicle charging station. We are also pet friendly — because we know your companion is part of the family.",
+    "location": "Strategic location",
+    "p4": "Just 150 km from Belo Horizonte, with easy access via the BR-120 and BR-262 highways, Ponte Nova is a regional hub that attracts professionals from various fields. Our hotel is the natural choice for those who need a comfortable and well-located base in the region.",
+    "roomCategories": "Room categories",
+    "receptionLabel": "Front Desk",
+    "fromBH": "from Belo Horizonte",
+    "gastronomy": "Regional cuisine",
+    "bookCta": "Book your stay"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Page not found",
+    "back": "Back to home"
+  },
+  "admin": {
+    "title": "Reservations Dashboard",
+    "total": "{count} total reservations — Artax PMS",
+    "thisPage": "This page",
+    "confirmed": "Confirmed",
+    "checkedIn": "Checked in",
+    "cancelled": "Cancelled",
+    "loading": "Loading reservations...",
+    "backToSite": "← Back to site",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {current} of {total}",
+    "guest": "Guest",
+    "room": "Room",
+    "status": "Status",
+    "origin": "Source"
+  }
+}

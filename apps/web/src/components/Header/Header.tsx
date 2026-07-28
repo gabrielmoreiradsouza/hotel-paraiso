@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 const navItems = [
   { label: 'Sobre', href: '/sobre' },
@@ -11,7 +12,7 @@ const navItems = [
   { label: 'Contato', href: '/#contato' },
 ];
 
-export function Header() {
+export function Header({ locale }: { locale: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -36,6 +37,7 @@ export function Header() {
               {item.label}
             </Link>
           ))}
+          <LanguageSwitcher locale={locale} />
           <Link
             href="/reservar"
             className="rounded-sm bg-brand-gold px-5 py-2 text-sm font-semibold uppercase tracking-wider text-brand-black transition-colors hover:bg-gold-400"
@@ -77,13 +79,16 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link
-            href="/reservar"
-            onClick={() => setMenuOpen(false)}
-            className="mt-2 block rounded-sm bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-wider text-brand-black"
-          >
-            Reservar
-          </Link>
+          <div className="flex items-center justify-between mt-2">
+            <LanguageSwitcher locale={locale} />
+            <Link
+              href="/reservar"
+              onClick={() => setMenuOpen(false)}
+              className="block flex-1 ml-3 rounded-sm bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-wider text-brand-black"
+            >
+              Reservar
+            </Link>
+          </div>
         </nav>
       )}
     </header>

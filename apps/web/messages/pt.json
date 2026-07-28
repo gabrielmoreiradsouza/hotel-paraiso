@@ -1,0 +1,142 @@
+{
+  "nav": {
+    "about": "Sobre",
+    "rooms": "Quartos",
+    "gallery": "Galeria",
+    "contact": "Contato",
+    "book": "Reservar"
+  },
+  "hero": {
+    "title1": "Hotel e Restaurante",
+    "title2": "Paraíso",
+    "subtitle": "Conforto e sofisticação em Ponte Nova, MG. Sua experiência começa aqui.",
+    "cta": "Reserve agora"
+  },
+  "booking": {
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "guests": "Hóspedes",
+    "search": "Verificar disponibilidade",
+    "available": "Quartos disponíveis",
+    "select": "Selecionar",
+    "perStay": "/ estadia",
+    "available_count": "{count} disponível",
+    "noRooms": "Nenhum quarto disponível para as datas selecionadas.",
+    "noRoomsHint": "Tente outras datas ou entre em contato: (31) 3881-8049",
+    "step1": "Escolha",
+    "step2": "Seus dados",
+    "step3": "Confirmação",
+    "name": "Nome completo",
+    "email": "Email",
+    "phone": "Telefone",
+    "confirm": "Confirmar reserva",
+    "sending": "Enviando...",
+    "back": "Voltar",
+    "confirmed": "Reserva confirmada!",
+    "confirmedMsg": "Sua reserva foi registrada com sucesso no sistema do hotel.",
+    "protocol": "Protocolo",
+    "emailSent": "Um email de confirmação será enviado para {email}",
+    "questions": "Dúvidas? (31) 3881-8049 ou WhatsApp",
+    "backHome": "Voltar ao início",
+    "total": "Total",
+    "searching": "Consultando disponibilidade no hotel...",
+    "apiError": "Erro ao consultar disponibilidade. Tente novamente.",
+    "completeBooking": "Complete sua reserva",
+    "cancel": "Cancelamento gratuito até 48h antes",
+    "upTo": "Até {adults} adultos"
+  },
+  "rooms": {
+    "title": "Nossas Acomodações",
+    "subtitle": "Escolha o conforto ideal para sua estadia",
+    "details": "Ver detalhes",
+    "bookNow": "Reservar agora",
+    "perNight": "/ noite",
+    "amenities": "O que este quarto oferece",
+    "backAll": "← Voltar para todos os quartos"
+  },
+  "features": {
+    "title": "Por que escolher o Paraíso",
+    "subtitle": "Tudo que você precisa para uma estadia perfeita",
+    "wifi": "Wi-Fi de alta velocidade",
+    "wifiDesc": "Internet rápida em todos os ambientes",
+    "parking": "Estacionamento",
+    "parkingDesc": "Estacionamento gratuito e seguro",
+    "restaurant": "Restaurante",
+    "restaurantDesc": "Gastronomia mineira e internacional",
+    "events": "Pista de eventos",
+    "eventsDesc": "Espaço para eventos corporativos",
+    "charger": "Carregador veicular",
+    "chargerDesc": "Estação de carregamento elétrico",
+    "pet": "Pet friendly",
+    "petDesc": "Quartos preparados para seu pet"
+  },
+  "location": {
+    "title": "Localização",
+    "city": "Ponte Nova, Minas Gerais",
+    "howToGet": "Como chegar",
+    "address": "R. Padre José Alvarenga, 50",
+    "neighborhood": "Bairro Paraíso — Ponte Nova, MG",
+    "cep": "CEP 35430-303",
+    "distance": "~2h de Belo Horizonte via BR-262",
+    "reception": "(31) 3881-8049 — Recepção 24h",
+    "route": "Traçar rota"
+  },
+  "cta": {
+    "title": "Reserve sua estadia no",
+    "highlight": "Paraíso",
+    "subtitle": "Conforto, gastronomia e localização estratégica em Ponte Nova, MG.",
+    "button": "Escolher quarto"
+  },
+  "footer": {
+    "hotel": "O Hotel",
+    "contact": "Contato",
+    "info": "Informações",
+    "checkin": "Check-in: 14h",
+    "checkout": "Check-out: 12h",
+    "rights": "Todos os direitos reservados."
+  },
+  "gallery": {
+    "title": "Galeria",
+    "subtitle": "Conheça nossos espaços e acomodações",
+    "all": "Todas",
+    "roomsCat": "Quartos",
+    "commonCat": "Áreas comuns"
+  },
+  "about": {
+    "title": "Sobre o Hotel",
+    "tradition": "Tradição e conforto em Ponte Nova",
+    "p1": "O Hotel e Restaurante Paraíso é referência em hospedagem e gastronomia na região da Zona da Mata Mineira. Localizado em Ponte Nova, MG, recebemos tanto viajantes corporativos quanto famílias que buscam conforto, praticidade e uma experiência autêntica mineira.",
+    "p2": "Com acomodações que vão do funcional ao sofisticado — do nosso quarto Standard à Suíte Master com hidromassagem — oferecemos opções para todos os perfis. Nosso restaurante serve o melhor da culinária mineira e internacional, com café da manhã incluso em todas as estadias.",
+    "infra": "Infraestrutura completa",
+    "p3": "O hotel conta com estacionamento gratuito, Wi-Fi de alta velocidade em todos os ambientes, pista de eventos para encontros corporativos, e até estação de carregamento para veículos elétricos. Também somos pet friendly — porque sabemos que seu companheiro faz parte da família.",
+    "location": "Localização estratégica",
+    "p4": "A apenas 150km de Belo Horizonte, com acesso fácil pelas rodovias BR-120 e BR-262, Ponte Nova é um polo regional que atrai profissionais de diversas áreas. Nosso hotel é a escolha natural para quem precisa de uma base confortável e bem localizada na região.",
+    "roomCategories": "Categorias de quartos",
+    "receptionLabel": "Recepção",
+    "fromBH": "de Belo Horizonte",
+    "gastronomy": "Gastronomia mineira",
+    "bookCta": "Reserve sua estadia"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Página não encontrada",
+    "back": "Voltar ao início"
+  },
+  "admin": {
+    "title": "Painel de Reservas",
+    "total": "{count} reservas no total — Artax PMS",
+    "thisPage": "Nesta página",
+    "confirmed": "Confirmadas",
+    "checkedIn": "Hospedados",
+    "cancelled": "Canceladas",
+    "loading": "Carregando reservas...",
+    "backToSite": "← Voltar ao site",
+    "prev": "Anterior",
+    "next": "Próxima",
+    "page": "Página {current} de {total}",
+    "guest": "Hóspede",
+    "room": "Quarto",
+    "status": "Status",
+    "origin": "Origem"
+  }
+}

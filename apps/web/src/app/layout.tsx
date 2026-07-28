@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
 import './globals.css';
 import { Header } from '@/components/Header/Header';
 import { Analytics } from '@/components/Analytics/Analytics';
@@ -76,9 +78,12 @@ const jsonLd = {
   priceRange: 'R$ 180 - R$ 420',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="pt-BR" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang={locale} className={`${playfair.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -88,10 +93,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/brand/favicon.png" type="image/png" />
       </head>
       <body>
-        <Analytics />
-        <Header />
-        {children}
-        <WhatsAppButton />
+        <NextIntlClientProvider messages={messages}>
+          <Analytics />
+          <Header locale={locale} />
+          {children}
+          <WhatsAppButton />
+        </NextIntlClientProvider>
       </body>
     </html>
   );
