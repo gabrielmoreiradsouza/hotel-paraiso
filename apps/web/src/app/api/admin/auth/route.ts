@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createHmac } from 'node:crypto';
 
 export async function POST(request: Request) {
   const { password } = await request.json();
@@ -8,6 +10,15 @@ export async function POST(request: Request) {
   }
 
   if (password === correct) {
+    const cookieStore = await cookies();
+    const sessionValue = createHmac('sha256', correct).update('admin').digest('hex');
+    cookieStore.set('admin_session', sessionValue, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 8, // 8 hours
+      path: '/',
+    });
     return NextResponse.json({ ok: true });
   }
   return NextResponse.json({ error: 'Senha incorreta' }, { status: 401 });

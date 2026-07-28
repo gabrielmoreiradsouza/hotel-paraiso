@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createHmac } from 'node:crypto';
 
 const ARTAX_URL = 'https://artaxnet.com/pms-api/v1';
 const CLIENT_ID = process.env['ARTAX_CLIENT_ID'] ?? '';
@@ -11,6 +13,24 @@ const artaxHeaders = {
   'Content-Type': 'application/json',
   'User-Agent': 'HotelParaiso/1.0',
 };
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function isAdminAuthed(): Promise<boolean> {
+  const adminPassword = process.env['ADMIN_PASSWORD'];
+  if (!adminPassword) return false;
+  const cookieStore = await cookies();
+  const session = cookieStore.get('admin_session')?.value;
+  if (!session) return false;
+  const expected = createHmac('sha256', adminPassword).update('admin').digest('hex');
+  return session === expected;
+}
 
 function sendConfirmationEmail(
   guestName: string,
@@ -33,11 +53,11 @@ function sendConfirmationEmail(
       to: [guestEmail],
       subject: 'Reserva confirmada — Hotel e Restaurante Paraíso',
       html: `
-        <h1>Olá, ${guestName}!</h1>
+        <h1>Olá, ${escapeHtml(guestName)}!</h1>
         <p>Sua reserva foi registrada com sucesso.</p>
-        <p><strong>Protocolo:</strong> ${bookingId}</p>
-        <p><strong>Check-in:</strong> ${checkin}</p>
-        <p><strong>Check-out:</strong> ${checkout}</p>
+        <p><strong>Protocolo:</strong> ${escapeHtml(bookingId)}</p>
+        <p><strong>Check-in:</strong> ${escapeHtml(checkin)}</p>
+        <p><strong>Check-out:</strong> ${escapeHtml(checkout)}</p>
         <p>Para dúvidas, ligue (31) 3881-8049 ou fale pelo WhatsApp.</p>
         <p>Atenciosamente,<br>Hotel e Restaurante Paraíso</p>
       `,
@@ -72,6 +92,29 @@ export async function POST(request: Request) {
 
     if (!guestName || !guestEmail || !checkin || !checkout) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 422 });
+    }
+
+    // Validate name length
+    if (guestName.length < 2 || guestName.length > 200) {
+      return NextResponse.json({ error: 'Nome inválido' }, { status: 422 });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(guestEmail)) {
+      return NextResponse.json({ error: 'Email inválido' }, { status: 422 });
+    }
+
+    // Validate dates
+    const today = new Date().toISOString().slice(0, 10);
+    if (checkin < today) {
+      return NextResponse.json(
+        { error: 'Data de check-in não pode ser no passado' },
+        { status: 422 }
+      );
+    }
+    if (checkout <= checkin) {
+      return NextResponse.json({ error: 'Check-out deve ser após check-in' }, { status: 422 });
     }
 
     const nameParts = guestName.trim().split(' ');
@@ -116,9 +159,16 @@ export async function POST(request: Request) {
 
       const errorText = await artaxResponse.text();
       console.error('Artax booking failed:', errorText);
+      return NextResponse.json(
+        {
+          error: 'Não foi possível completar a reserva. Tente novamente ou ligue (31) 3881-8049.',
+          details: errorText,
+        },
+        { status: 422 }
+      );
     }
 
-    // Fallback: accept locally + send email
+    // Fallback: accept locally + send email (only when Artax not configured)
     const localId = `LOCAL-${Date.now()}`;
     sendConfirmationEmail(guestName, guestEmail, checkin, checkout, localId);
     return NextResponse.json({
@@ -134,6 +184,10 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  if (!(await isAdminAuthed())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const page = searchParams.get('page') ?? '1';
 
