@@ -33,17 +33,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-brand-gold">
-                  Restaurante
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-brand-gold">
-                  Eventos
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-brand-gold">
+                <a href="/galeria" className="transition-colors hover:text-brand-gold">
                   Galeria
                 </a>
               </li>
@@ -78,16 +68,6 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>Check-in: 14h</li>
               <li>Check-out: 12h</li>
-              <li>
-                <a href="#" className="transition-colors hover:text-brand-gold">
-                  Política de cancelamento
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-brand-gold">
-                  Privacidade
-                </a>
-              </li>
             </ul>
           </div>
         </div>

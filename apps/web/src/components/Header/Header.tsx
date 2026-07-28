@@ -78,7 +78,7 @@ export function Header() {
             </Link>
           ))}
           <Link
-            href="/#quartos"
+            href="/reservar"
             onClick={() => setMenuOpen(false)}
             className="mt-2 block rounded-sm bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-wider text-brand-black"
           >

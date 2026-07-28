@@ -85,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <script dangerouslySetInnerHTML={{ __html: 'window.dataLayer=window.dataLayer||[];' }} />
+        <link rel="icon" href="/brand/favicon.png" type="image/png" />
       </head>
       <body>
         <Analytics />

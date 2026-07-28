@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   const { password } = await request.json();
-  const correct = process.env['ADMIN_PASSWORD'] ?? 'paraiso2026';
+  const correct = process.env['ADMIN_PASSWORD'];
+  if (!correct) {
+    return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
+  }
 
   if (password === correct) {
     return NextResponse.json({ ok: true });

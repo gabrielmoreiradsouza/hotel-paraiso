@@ -78,9 +78,7 @@ export function RoomCards() {
                 {/* Capacity + Price */}
                 <div className="mt-6 flex items-end justify-between border-t border-beige-200 pt-4">
                   <span className="text-xs text-beige-600">{room.capacity}</span>
-                  <span className="font-display text-lg font-bold text-brand-gold">
-                    {room.price}
-                  </span>
+                  <span className="font-display text-lg font-bold text-gold-700">{room.price}</span>
                 </div>
 
                 {/* CTA */}

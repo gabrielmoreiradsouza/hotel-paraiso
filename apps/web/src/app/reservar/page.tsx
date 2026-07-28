@@ -44,6 +44,8 @@ function BookingContent() {
   const [rooms, setRooms] = useState<AvailableRoom[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [apiError, setApiError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedRoom, setSelectedRoom] = useState<AvailableRoom | null>(null);
   const [step, setStep] = useState<'search' | 'details' | 'confirmed'>('search');
@@ -65,10 +67,14 @@ function BookingContent() {
       : 0;
 
   // Fetch availability when dates change
+  const today = new Date().toISOString().split('T')[0];
+  const minCheckOut = checkin || today;
+
   async function fetchAvailability() {
     if (!checkin || !checkout) return;
     setLoading(true);
     setSearched(true);
+    setApiError(false);
     try {
       const params = new URLSearchParams({
         arrival_date: checkin,
@@ -77,10 +83,17 @@ function BookingContent() {
         kids: '0',
       });
       const res = await fetch(`/api/availability?${params}`);
+      if (!res.ok) {
+        setApiError(true);
+        setRooms([]);
+        setLoading(false);
+        return;
+      }
       const data = await res.json();
       setRooms(data.rooms ?? []);
       trackAvailabilityViewed(data.rooms?.length ?? 0);
     } catch {
+      setApiError(true);
       setRooms([]);
     }
     setLoading(false);
@@ -93,6 +106,7 @@ function BookingContent() {
   }, [checkinParam, checkoutParam]);
 
   function handleSearch() {
+    if (checkout <= checkin) return;
     fetchAvailability();
   }
 
@@ -116,6 +130,7 @@ function BookingContent() {
   async function handleConfirm() {
     if (!guestName || !guestEmail || !selectedRoom) return;
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const response = await fetch('/api/bookings', {
@@ -135,22 +150,26 @@ function BookingContent() {
       });
 
       const data = await response.json();
-      if (data.booking_id) {
-        setBookingId(String(data.booking_id));
-        trackReservationCreated({
-          booking_id: String(data.booking_id),
-          room_name: selectedRoom.name,
-          value: selectedRoom.price,
-          nights,
-        });
+      if (!response.ok || !data.booking_id) {
+        setError(data.error ?? 'Erro ao criar reserva. Tente novamente ou ligue (31) 3881-8049.');
+        setIsSubmitting(false);
+        return;
       }
-    } catch {
-      // Accept locally even if API fails
-    }
 
-    setIsSubmitting(false);
-    setStep('confirmed');
-    window.scrollTo(0, 0);
+      setBookingId(String(data.booking_id));
+      trackReservationCreated({
+        booking_id: String(data.booking_id),
+        room_name: selectedRoom.name,
+        value: selectedRoom.price,
+        nights,
+      });
+      setIsSubmitting(false);
+      setStep('confirmed');
+      window.scrollTo(0, 0);
+    } catch {
+      setError('Falha na comunicação com o servidor. Tente novamente ou ligue (31) 3881-8049.');
+      setIsSubmitting(false);
+    }
   }
 
   // Step 3: Confirmation
@@ -190,7 +209,7 @@ function BookingContent() {
               </div>
               <div className="flex justify-between border-t border-beige-300 pt-2">
                 <span className="font-bold">Total</span>
-                <span className="font-display text-lg font-bold text-brand-gold">
+                <span className="font-display text-lg font-bold text-gold-700">
                   R$ {selectedRoom.price.toLocaleString('pt-BR')}
                 </span>
               </div>
@@ -267,6 +286,11 @@ function BookingContent() {
                   />
                 </div>
               </div>
+              {error && (
+                <div className="mt-6 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
               <div className="mt-8 flex gap-4">
                 <button
                   type="button"
@@ -307,7 +331,7 @@ function BookingContent() {
               <div className="mt-4 border-t border-beige-300 pt-4">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span className="font-display text-xl text-brand-gold">
+                  <span className="font-display text-xl text-gold-700">
                     R$ {selectedRoom.price.toLocaleString('pt-BR')}
                   </span>
                 </div>
@@ -342,6 +366,7 @@ function BookingContent() {
             <input
               type="date"
               value={checkin}
+              min={today}
               onChange={(e) => setCheckin(e.target.value)}
               className="w-full rounded-sm border border-beige-300 bg-brand-white px-3 py-2 text-sm outline-none focus:border-brand-gold"
             />
@@ -353,6 +378,7 @@ function BookingContent() {
             <input
               type="date"
               value={checkout}
+              min={minCheckOut}
               onChange={(e) => setCheckout(e.target.value)}
               className="w-full rounded-sm border border-beige-300 bg-brand-white px-3 py-2 text-sm outline-none focus:border-brand-gold"
             />
@@ -397,7 +423,16 @@ function BookingContent() {
             </div>
           )}
 
-          {!loading && searched && rooms.length === 0 && (
+          {!loading && searched && apiError && (
+            <div className="rounded-sm border border-red-300 bg-red-50 py-12 text-center">
+              <p className="text-lg text-red-700">Erro ao consultar disponibilidade.</p>
+              <p className="mt-2 text-sm text-red-500">
+                Tente novamente em alguns instantes ou ligue: (31) 3881-8049
+              </p>
+            </div>
+          )}
+
+          {!loading && searched && !apiError && rooms.length === 0 && (
             <div className="rounded-sm border border-beige-200 bg-beige-50 py-12 text-center">
               <p className="text-lg text-beige-700">
                 Nenhum quarto disponível para as datas selecionadas.
