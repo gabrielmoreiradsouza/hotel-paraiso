@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 
 const categories = [
@@ -33,6 +33,47 @@ export default function GaleriaPage() {
 
   const filtered =
     activeCategory === 'all' ? photos : photos.filter((p) => p.category === activeCategory);
+
+  const touchStartX = useRef<number | null>(null);
+
+  const goNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev !== null && prev < filtered.length - 1 ? prev + 1 : prev));
+  }, [filtered.length]);
+
+  const goPrev = useCallback(() => {
+    setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : prev));
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxIndex(null);
+  }, []);
+
+  // Keyboard support
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') goPrev();
+      else if (e.key === 'ArrowRight') goNext();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, closeLightbox, goPrev, goNext]);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    const endX = e.changedTouches[0]?.clientX ?? 0;
+    const diff = touchStartX.current - endX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) goNext();
+      else goPrev();
+    }
+    touchStartX.current = null;
+  }
 
   return (
     <main className="pt-24 pb-16">
@@ -85,12 +126,12 @@ export default function GaleriaPage() {
         {lightboxIndex !== null && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-brand-black/90 p-4"
-            onClick={() => setLightboxIndex(null)}
+            onClick={closeLightbox}
           >
             <button
               type="button"
               className="absolute top-4 right-4 text-3xl text-brand-white hover:text-brand-gold"
-              onClick={() => setLightboxIndex(null)}
+              onClick={closeLightbox}
             >
               ×
             </button>
@@ -102,7 +143,7 @@ export default function GaleriaPage() {
                 className="absolute left-4 text-3xl text-brand-white hover:text-brand-gold"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLightboxIndex(lightboxIndex - 1);
+                  goPrev();
                 }}
               >
                 ‹
@@ -113,6 +154,8 @@ export default function GaleriaPage() {
             <div
               className="relative max-h-[80vh] max-w-[90vw]"
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
               <Image
                 src={filtered[lightboxIndex]?.src ?? ''}
@@ -133,7 +176,7 @@ export default function GaleriaPage() {
                 className="absolute right-4 text-3xl text-brand-white hover:text-brand-gold"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLightboxIndex(lightboxIndex + 1);
+                  goNext();
                 }}
               >
                 ›

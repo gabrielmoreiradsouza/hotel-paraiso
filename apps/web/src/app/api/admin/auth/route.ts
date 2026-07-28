@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createHmac } from 'node:crypto';
+import { isRateLimited } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
+  const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+  if (isRateLimited(`admin-auth:${ip}`, 5, 60_000)) {
+    return NextResponse.json({ error: 'Too many attempts' }, { status: 429 });
+  }
+
   const { password } = await request.json();
   const correct = process.env['ADMIN_PASSWORD'];
   if (!correct) {

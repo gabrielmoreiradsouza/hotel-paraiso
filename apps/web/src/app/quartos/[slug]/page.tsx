@@ -186,27 +186,6 @@ export default async function RoomPage({ params }: Props) {
                 <span className="text-sm text-beige-600">/ noite</span>
               </div>
 
-              <div className="mt-6 space-y-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700">
-                    Check-in
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full rounded-sm border border-beige-300 bg-beige-50 px-3 py-2.5 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700">
-                    Check-out
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full rounded-sm border border-beige-300 bg-beige-50 px-3 py-2.5 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
-                  />
-                </div>
-              </div>
-
               <Link
                 href={`/reservar?room=${slug}`}
                 className="mt-6 block w-full rounded-sm bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"

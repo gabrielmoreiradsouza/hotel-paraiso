@@ -56,6 +56,64 @@ function BookingContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
 
+  const STORAGE_KEY = 'hp_booking_state';
+
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const state = JSON.parse(saved) as {
+        step?: 'search' | 'details' | 'confirmed';
+        selectedRoom?: AvailableRoom | null;
+        guestName?: string;
+        guestEmail?: string;
+        guestPhone?: string;
+      };
+      if (state.step && state.step !== 'confirmed') setStep(state.step);
+      if (state.selectedRoom) setSelectedRoom(state.selectedRoom);
+      if (state.guestName) setGuestName(state.guestName);
+      if (state.guestEmail) setGuestEmail(state.guestEmail);
+      if (state.guestPhone) setGuestPhone(state.guestPhone);
+    } catch {
+      // ignore corrupt data
+    }
+  }, []);
+
+  // Save state to sessionStorage
+  function saveBookingState(
+    overrides?: Partial<{
+      step: string;
+      selectedRoom: AvailableRoom | null;
+      guestName: string;
+      guestEmail: string;
+      guestPhone: string;
+    }>
+  ) {
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          step: overrides?.step ?? step,
+          selectedRoom: overrides?.selectedRoom ?? selectedRoom,
+          guestName: overrides?.guestName ?? guestName,
+          guestEmail: overrides?.guestEmail ?? guestEmail,
+          guestPhone: overrides?.guestPhone ?? guestPhone,
+        })
+      );
+    } catch {
+      // storage full or unavailable
+    }
+  }
+
+  function clearBookingState() {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }
+
   const nights =
     checkin && checkout
       ? Math.max(
@@ -124,6 +182,7 @@ function BookingContent() {
     });
     setSelectedRoom(room);
     setStep('details');
+    saveBookingState({ step: 'details', selectedRoom: room });
     window.scrollTo(0, 0);
   }
 
@@ -165,6 +224,7 @@ function BookingContent() {
       });
       setIsSubmitting(false);
       setStep('confirmed');
+      clearBookingState();
       window.scrollTo(0, 0);
     } catch {
       setError('Falha na comunicação com o servidor. Tente novamente ou ligue (31) 3881-8049.');
@@ -237,13 +297,21 @@ function BookingContent() {
     return (
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-4">
-          <div className="mb-8 flex items-center justify-center gap-4 text-sm">
-            <span className="text-beige-400">1. Escolha</span>
-            <span className="text-beige-300">→</span>
-            <span className="font-bold text-brand-gold">2. Seus dados</span>
-            <span className="text-beige-300">→</span>
-            <span className="text-beige-400">3. Confirmação</span>
-          </div>
+          <nav aria-label="Progresso da reserva" className="mb-8">
+            <ol className="flex items-center justify-center gap-4 text-sm">
+              <li className="text-beige-400">1. Escolha</li>
+              <li className="text-beige-300" aria-hidden="true">
+                →
+              </li>
+              <li className="font-bold text-brand-gold" aria-current="step">
+                2. Seus dados
+              </li>
+              <li className="text-beige-300" aria-hidden="true">
+                →
+              </li>
+              <li className="text-beige-400">3. Confirmação</li>
+            </ol>
+          </nav>
 
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
@@ -252,35 +320,52 @@ function BookingContent() {
               </h1>
               <div className="mt-6 space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-beige-700">
+                  <label
+                    htmlFor="guest-name"
+                    className="mb-1 block text-sm font-medium text-beige-700"
+                  >
                     Nome completo *
                   </label>
                   <input
+                    id="guest-name"
                     type="text"
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
+                    onBlur={(e) => saveBookingState({ guestName: e.target.value })}
                     className="w-full rounded-sm border border-beige-300 px-4 py-3 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
                     placeholder="João Silva"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-beige-700">Email *</label>
+                  <label
+                    htmlFor="guest-email"
+                    className="mb-1 block text-sm font-medium text-beige-700"
+                  >
+                    Email *
+                  </label>
                   <input
+                    id="guest-email"
                     type="email"
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
+                    onBlur={(e) => saveBookingState({ guestEmail: e.target.value })}
                     className="w-full rounded-sm border border-beige-300 px-4 py-3 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
                     placeholder="joao@email.com"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-beige-700">
+                  <label
+                    htmlFor="guest-phone"
+                    className="mb-1 block text-sm font-medium text-beige-700"
+                  >
                     Telefone *
                   </label>
                   <input
+                    id="guest-phone"
                     type="tel"
                     value={guestPhone}
                     onChange={(e) => setGuestPhone(e.target.value)}
+                    onBlur={(e) => saveBookingState({ guestPhone: e.target.value })}
                     className="w-full rounded-sm border border-beige-300 px-4 py-3 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
                     placeholder="(31) 99999-9999"
                   />
@@ -294,7 +379,10 @@ function BookingContent() {
               <div className="mt-8 flex gap-4">
                 <button
                   type="button"
-                  onClick={() => setStep('search')}
+                  onClick={() => {
+                    setStep('search');
+                    saveBookingState({ step: 'search' });
+                  }}
                   className="rounded-sm border border-beige-300 px-6 py-3 text-sm text-beige-700 transition-colors hover:bg-beige-50"
                 >
                   ← Voltar
@@ -347,23 +435,35 @@ function BookingContent() {
   return (
     <main className="pt-24 pb-16">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="mb-8 flex items-center justify-center gap-4 text-sm">
-          <span className="font-bold text-brand-gold">1. Escolha</span>
-          <span className="text-beige-300">→</span>
-          <span className="text-beige-400">2. Seus dados</span>
-          <span className="text-beige-300">→</span>
-          <span className="text-beige-400">3. Confirmação</span>
-        </div>
+        <nav aria-label="Progresso da reserva" className="mb-8">
+          <ol className="flex items-center justify-center gap-4 text-sm">
+            <li className="font-bold text-brand-gold" aria-current="step">
+              1. Escolha
+            </li>
+            <li className="text-beige-300" aria-hidden="true">
+              →
+            </li>
+            <li className="text-beige-400">2. Seus dados</li>
+            <li className="text-beige-300" aria-hidden="true">
+              →
+            </li>
+            <li className="text-beige-400">3. Confirmação</li>
+          </ol>
+        </nav>
 
         <h1 className="font-display text-3xl font-bold text-brand-black">Quartos disponíveis</h1>
 
         {/* Search bar */}
         <div className="mt-6 flex flex-wrap items-end gap-4 rounded-sm border border-beige-200 bg-beige-50 p-4">
           <div className="flex-1">
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700">
+            <label
+              htmlFor="search-checkin"
+              className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700"
+            >
               Check-in
             </label>
             <input
+              id="search-checkin"
               type="date"
               value={checkin}
               min={today}
@@ -372,10 +472,14 @@ function BookingContent() {
             />
           </div>
           <div className="flex-1">
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700">
+            <label
+              htmlFor="search-checkout"
+              className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700"
+            >
               Check-out
             </label>
             <input
+              id="search-checkout"
               type="date"
               value={checkout}
               min={minCheckOut}
@@ -384,20 +488,27 @@ function BookingContent() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700">
+            <label
+              htmlFor="search-guests"
+              className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700"
+            >
               Hóspedes
             </label>
             <div className="flex items-center gap-3 rounded-sm border border-beige-300 bg-brand-white px-3 py-2">
               <button
                 type="button"
+                aria-label="Diminuir hóspedes"
                 onClick={() => setGuests(Math.max(1, guests - 1))}
                 className="font-bold text-beige-600"
               >
                 -
               </button>
-              <span className="w-6 text-center text-sm">{guests}</span>
+              <span id="search-guests" className="w-6 text-center text-sm">
+                {guests}
+              </span>
               <button
                 type="button"
+                aria-label="Aumentar hóspedes"
                 onClick={() => setGuests(Math.min(10, guests + 1))}
                 className="font-bold text-beige-600"
               >

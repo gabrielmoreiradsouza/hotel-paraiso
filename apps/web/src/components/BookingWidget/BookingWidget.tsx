@@ -28,10 +28,14 @@ export function BookingWidget() {
     <section className="sticky top-[56px] z-40 border-b border-beige-300 bg-brand-white shadow-md">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-3 sm:flex-row sm:gap-4">
         <div className="flex w-full flex-col sm:w-auto">
-          <label className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700">
+          <label
+            htmlFor="checkin-input"
+            className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700"
+          >
             Check-in
           </label>
           <input
+            id="checkin-input"
             type="date"
             value={checkIn}
             min={today}
@@ -41,10 +45,14 @@ export function BookingWidget() {
         </div>
 
         <div className="flex w-full flex-col sm:w-auto">
-          <label className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700">
+          <label
+            htmlFor="checkout-input"
+            className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700"
+          >
             Check-out
           </label>
           <input
+            id="checkout-input"
             type="date"
             value={checkOut}
             min={minCheckOut}
@@ -54,20 +62,27 @@ export function BookingWidget() {
         </div>
 
         <div className="flex w-full flex-col sm:w-auto">
-          <label className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700">
+          <label
+            htmlFor="guests-input"
+            className="mb-1 text-xs font-medium uppercase tracking-wider text-beige-700"
+          >
             Hóspedes
           </label>
           <div className="flex items-center gap-3 rounded-sm border border-beige-300 bg-beige-50 px-4 py-2.5">
             <button
               type="button"
+              aria-label="Diminuir hóspedes"
               onClick={() => setGuests(Math.max(1, guests - 1))}
               className="text-lg font-bold text-beige-600 hover:text-brand-gold"
             >
               -
             </button>
-            <span className="w-8 text-center text-sm font-medium">{guests}</span>
+            <span id="guests-input" className="w-8 text-center text-sm font-medium">
+              {guests}
+            </span>
             <button
               type="button"
+              aria-label="Aumentar hóspedes"
               onClick={() => setGuests(Math.min(10, guests + 1))}
               className="text-lg font-bold text-beige-600 hover:text-brand-gold"
             >
