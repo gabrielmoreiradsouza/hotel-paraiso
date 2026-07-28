@@ -128,6 +128,7 @@ export default async function RoomPage({ params }: Props) {
               fill
               className="object-cover"
               priority
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
           {/* Secondary photos */}
@@ -138,7 +139,13 @@ export default async function RoomPage({ params }: Props) {
                 i === 1 ? 'rounded-tr-lg' : i === 2 ? 'rounded-br-lg' : ''
               }`}
             >
-              <Image src={img} alt={`${room.name} ${i + 2}`} fill className="object-cover" />
+              <Image
+                src={img}
+                alt={`${room.name} ${i + 2}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </div>
           ))}
         </div>
