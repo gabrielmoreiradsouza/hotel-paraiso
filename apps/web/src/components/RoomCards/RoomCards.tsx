@@ -1,4 +1,7 @@
+'use client';
+
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 const rooms = [
   {
@@ -32,14 +35,16 @@ const rooms = [
 ];
 
 export function RoomCards() {
+  const t = useTranslations('rooms');
+
   return (
     <section id="quartos" className="bg-brand-white py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-12 text-center">
           <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-            Nossas Acomodações
+            {t('title')}
           </h2>
-          <p className="mt-4 text-beige-700">Escolha o conforto ideal para sua estadia</p>
+          <p className="mt-4 text-beige-700">{t('subtitle')}</p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
@@ -87,7 +92,7 @@ export function RoomCards() {
                   href={`/quartos/${room.slug}`}
                   className="mt-4 block w-full rounded-sm border border-brand-gold py-2.5 text-center text-sm font-semibold uppercase tracking-wider text-brand-gold transition-colors hover:bg-brand-gold hover:text-brand-black"
                 >
-                  Ver detalhes
+                  {t('details')}
                 </a>
               </div>
             </article>

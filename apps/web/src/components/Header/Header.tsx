@@ -3,17 +3,19 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher/LanguageSwitcher';
-
-const navItems = [
-  { label: 'Sobre', href: '/sobre' },
-  { label: 'Quartos', href: '/#quartos' },
-  { label: 'Galeria', href: '/galeria' },
-  { label: 'Contato', href: '/#contato' },
-];
 
 export function Header({ locale }: { locale: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const t = useTranslations('nav');
+
+  const navItems = [
+    { label: t('about'), href: '/sobre' },
+    { label: t('rooms'), href: '/#quartos' },
+    { label: t('gallery'), href: '/galeria' },
+    { label: t('contact'), href: '/#contato' },
+  ];
 
   return (
     <header className="fixed top-0 z-50 w-full bg-brand-black/90 backdrop-blur-sm">
@@ -42,7 +44,7 @@ export function Header({ locale }: { locale: string }) {
             href="/reservar"
             className="rounded-sm bg-brand-gold px-5 py-2 text-sm font-semibold uppercase tracking-wider text-brand-black transition-colors hover:bg-gold-400"
           >
-            Reservar
+            {t('book')}
           </Link>
         </nav>
 
@@ -86,7 +88,7 @@ export function Header({ locale }: { locale: string }) {
               onClick={() => setMenuOpen(false)}
               className="block flex-1 ml-3 rounded-sm bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-wider text-brand-black"
             >
-              Reservar
+              {t('book')}
             </Link>
           </div>
         </nav>

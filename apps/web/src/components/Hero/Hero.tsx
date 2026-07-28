@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 export function Hero() {
+  const t = useTranslations('hero');
   return (
     <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
       {/* Background image */}
@@ -30,21 +32,18 @@ export function Hero() {
         />
 
         <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          Hotel e Restaurante
+          {t('title1')}
           <br />
-          <span className="text-brand-gold">Paraíso</span>
+          <span className="text-brand-gold">{t('title2')}</span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-beige-200 sm:text-xl">
-          Conforto e sofisticação em Ponte Nova, MG.
-          <br className="hidden sm:block" /> Sua experiência começa aqui.
-        </p>
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-beige-200 sm:text-xl">{t('subtitle')}</p>
 
         <a
           href="#quartos"
           className="mt-10 inline-flex items-center gap-2 rounded-sm bg-brand-gold px-8 py-4 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
         >
-          Reserve agora
+          {t('cta')}
         </a>
       </div>
 

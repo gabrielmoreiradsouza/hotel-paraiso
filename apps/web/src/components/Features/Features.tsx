@@ -1,61 +1,43 @@
-const features = [
-  {
-    icon: '📶',
-    title: 'Wi-Fi de alta velocidade',
-    description: 'Internet rápida em todos os ambientes',
-  },
-  {
-    icon: '🅿️',
-    title: 'Estacionamento',
-    description: 'Estacionamento gratuito e seguro',
-  },
-  {
-    icon: '🍽️',
-    title: 'Restaurante',
-    description: 'Gastronomia mineira e internacional',
-  },
-  {
-    icon: '🏟️',
-    title: 'Pista de eventos',
-    description: 'Espaço para eventos corporativos',
-  },
-  {
-    icon: '⚡',
-    title: 'Carregador veicular',
-    description: 'Estação de carregamento elétrico',
-  },
-  {
-    icon: '🐾',
-    title: 'Pet friendly',
-    description: 'Quartos preparados para seu pet',
-  },
+'use client';
+
+import { useTranslations } from 'next-intl';
+
+const featureKeys = [
+  { icon: '\u{1F4F6}', key: 'wifi' },
+  { icon: '\u{1F17F}\uFE0F', key: 'parking' },
+  { icon: '\u{1F37D}\uFE0F', key: 'restaurant' },
+  { icon: '\u{1F3DF}\uFE0F', key: 'events' },
+  { icon: '\u26A1', key: 'charger' },
+  { icon: '\u{1F43E}', key: 'pet' },
 ];
 
 export function Features() {
+  const t = useTranslations('features');
+
   return (
     <section className="bg-beige-50 py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-12 text-center">
           <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-            Por que escolher o Paraíso
+            {t('title')}
           </h2>
-          <p className="mt-4 text-beige-700">Tudo que você precisa para uma estadia perfeita</p>
+          <p className="mt-4 text-beige-700">{t('subtitle')}</p>
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
+          {featureKeys.map((feature) => (
             <div
-              key={feature.title}
+              key={feature.key}
               className="flex items-start gap-4 rounded-sm bg-brand-white p-6 shadow-sm"
             >
-              <span className="text-3xl" role="img" aria-label={feature.title}>
+              <span className="text-3xl" role="img" aria-label={t(feature.key)}>
                 {feature.icon}
               </span>
               <div>
                 <h3 className="font-display text-lg font-semibold text-brand-black">
-                  {feature.title}
+                  {t(feature.key)}
                 </h3>
-                <p className="mt-1 text-sm text-beige-700">{feature.description}</p>
+                <p className="mt-1 text-sm text-beige-700">{t(`${feature.key}Desc`)}</p>
               </div>
             </div>
           ))}

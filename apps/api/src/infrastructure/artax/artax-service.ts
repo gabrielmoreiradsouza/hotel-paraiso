@@ -59,7 +59,7 @@ export class ArtaxService {
       await tx.booking.create({
         data: {
           id: booking.booking_id,
-          status: booking.status,
+          status: ((booking as Record<string, unknown>)['status'] as number) ?? 1,
           arrivalDate: new Date(input.arrival_date),
           departureDate: new Date(input.departure_date),
           source: 'website',

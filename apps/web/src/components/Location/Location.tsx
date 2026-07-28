@@ -1,12 +1,18 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+
 export function Location() {
+  const t = useTranslations('location');
+
   return (
     <section id="contato" className="bg-brand-white py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-12 text-center">
           <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-            Localização
+            {t('title')}
           </h2>
-          <p className="mt-4 text-beige-700">Ponte Nova, Minas Gerais</p>
+          <p className="mt-4 text-beige-700">{t('city')}</p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
@@ -20,33 +26,33 @@ export function Location() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Localização do Hotel Paraíso"
+              title={t('title')}
             />
           </div>
 
           {/* Info */}
           <div className="flex flex-col justify-center">
-            <h3 className="font-display text-2xl font-bold text-brand-black">Como chegar</h3>
+            <h3 className="font-display text-2xl font-bold text-brand-black">{t('howToGet')}</h3>
 
             <div className="mt-6 space-y-4">
               <div className="flex items-start gap-3">
-                <span className="mt-1 text-brand-gold">📍</span>
+                <span className="mt-1 text-brand-gold">{'\u{1F4CD}'}</span>
                 <div>
-                  <p className="font-medium text-brand-black">R. Padre José Alvarenga, 50</p>
-                  <p className="text-sm text-beige-700">Bairro Paraíso — Ponte Nova, MG</p>
-                  <p className="text-sm text-beige-600">CEP 35430-303</p>
+                  <p className="font-medium text-brand-black">{t('address')}</p>
+                  <p className="text-sm text-beige-700">{t('neighborhood')}</p>
+                  <p className="text-sm text-beige-600">{t('cep')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-brand-gold">🚗</span>
-                <span className="text-sm text-beige-800">~2h de Belo Horizonte via BR-262</span>
+                <span className="text-brand-gold">{'\u{1F697}'}</span>
+                <span className="text-sm text-beige-800">{t('distance')}</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-brand-gold">📞</span>
-                <span className="text-sm text-beige-800">(31) 3881-8049 — Recepção 24h</span>
+                <span className="text-brand-gold">{'\u{1F4DE}'}</span>
+                <span className="text-sm text-beige-800">{t('reception')}</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-brand-gold">✉️</span>
+                <span className="text-brand-gold">{'\u2709\uFE0F'}</span>
                 <a
                   href="mailto:hotelrparaiso@gmail.com"
                   className="text-sm text-beige-800 transition-colors hover:text-brand-gold"
@@ -62,7 +68,7 @@ export function Location() {
               rel="noopener noreferrer"
               className="mt-8 inline-flex w-fit items-center gap-2 rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
             >
-              Traçar rota
+              {t('route')}
             </a>
           </div>
         </div>

@@ -2,12 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-
-const categories = [
-  { id: 'all', label: 'Todas' },
-  { id: 'rooms', label: 'Quartos' },
-  { id: 'common', label: 'Áreas comuns' },
-];
+import { useTranslations } from 'next-intl';
 
 const photos = [
   // Rooms
@@ -28,8 +23,15 @@ const photos = [
 ];
 
 export default function GaleriaPage() {
+  const t = useTranslations('gallery');
   const [activeCategory, setActiveCategory] = useState('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const categories = [
+    { id: 'all', label: t('all') },
+    { id: 'rooms', label: t('roomsCat') },
+    { id: 'common', label: t('commonCat') },
+  ];
 
   const filtered =
     activeCategory === 'all' ? photos : photos.filter((p) => p.category === activeCategory);
@@ -79,8 +81,10 @@ export default function GaleriaPage() {
     <main className="pt-24 pb-16">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-8 text-center">
-          <h1 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">Galeria</h1>
-          <p className="mt-2 text-beige-700">Conheça nossos espaços e acomodações</p>
+          <h1 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
+            {t('title')}
+          </h1>
+          <p className="mt-2 text-beige-700">{t('subtitle')}</p>
         </div>
 
         {/* Filter tabs */}
