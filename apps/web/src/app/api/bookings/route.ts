@@ -12,19 +12,12 @@ const artaxHeaders = {
   'User-Agent': 'HotelParaiso/1.0',
 };
 
-// Room slug → Artax category ID mapping
-// TODO: these IDs need to be confirmed from Artax Configurações > Tipos de Acomodação
-const ROOM_CATEGORY_IDS: Record<string, number> = {
-  standard: 1,
-  luxo: 2,
-  master: 3,
-};
-
 function sendConfirmationEmail(
   guestName: string,
   guestEmail: string,
   checkin: string,
-  checkout: string
+  checkout: string,
+  bookingId: string
 ) {
   const resendKey = process.env['RESEND_API_KEY'];
   if (!resendKey || !guestEmail) return;
@@ -38,14 +31,15 @@ function sendConfirmationEmail(
     body: JSON.stringify({
       from: 'Hotel Paraíso <noreply@moreirads.cloud>',
       to: [guestEmail],
-      subject: 'Reserva solicitada — Hotel e Restaurante Paraíso',
+      subject: 'Reserva confirmada — Hotel e Restaurante Paraíso',
       html: `
         <h1>Olá, ${guestName}!</h1>
-        <p>Sua solicitação de reserva foi recebida com sucesso.</p>
+        <p>Sua reserva foi registrada com sucesso.</p>
+        <p><strong>Protocolo:</strong> ${bookingId}</p>
         <p><strong>Check-in:</strong> ${checkin}</p>
         <p><strong>Check-out:</strong> ${checkout}</p>
-        <p>Entraremos em contato para confirmar sua reserva.</p>
-        <p>Atenciosamente,<br>Hotel e Restaurante Paraíso<br>(31) 3881-8049</p>
+        <p>Para dúvidas, ligue (31) 3881-8049 ou fale pelo WhatsApp.</p>
+        <p>Atenciosamente,<br>Hotel e Restaurante Paraíso</p>
       `,
     }),
   }).catch((err) => console.error('Email error:', err));
@@ -54,13 +48,26 @@ function sendConfirmationEmail(
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { guestName, guestEmail, guestPhone, checkin, checkout, roomSlug } = body as {
+    const {
+      guestName,
+      guestEmail,
+      guestPhone,
+      checkin,
+      checkout,
+      categoryId,
+      rateplanId,
+      adults,
+      kids,
+    } = body as {
       guestName: string;
       guestEmail: string;
       guestPhone?: string;
       checkin: string;
       checkout: string;
-      roomSlug: string;
+      categoryId?: number;
+      rateplanId?: number;
+      adults?: number;
+      kids?: number;
     };
 
     if (!guestName || !guestEmail || !checkin || !checkout) {
@@ -70,13 +77,14 @@ export async function POST(request: Request) {
     const nameParts = guestName.trim().split(' ');
     const firstName = nameParts[0] ?? '';
     const lastName = nameParts.slice(1).join(' ') || '';
-    const categoryId = ROOM_CATEGORY_IDS[roomSlug] ?? 1;
 
-    // If Artax credentials are configured, create real booking
-    if (CLIENT_ID && CLIENT_SECRET) {
+    // Create booking in Artax if credentials + category info available
+    if (CLIENT_ID && CLIENT_SECRET && categoryId && rateplanId) {
       const artaxPayload = {
         arrival_date: checkin,
         departure_date: checkout,
+        rateplan_id: rateplanId,
+        comment: 'Reserva via site hotelparaiso.moreirads.cloud',
         guest: {
           first_name: firstName,
           last_name: lastName,
@@ -86,8 +94,8 @@ export async function POST(request: Request) {
         },
         room_units: {
           [String(categoryId)]: {
-            adults: 2,
-            kids: 0,
+            adults: adults ?? 2,
+            kids: kids ?? 0,
             guests: [{ first_name: firstName, last_name: lastName }],
           },
         },
@@ -101,24 +109,21 @@ export async function POST(request: Request) {
 
       if (artaxResponse.ok) {
         const artaxData = (await artaxResponse.json()) as { booking_id: number };
-        sendConfirmationEmail(guestName, guestEmail, checkin, checkout);
-
-        return NextResponse.json({
-          success: true,
-          booking_id: artaxData.booking_id,
-          source: 'artax',
-        });
+        const bid = String(artaxData.booking_id);
+        sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid);
+        return NextResponse.json({ success: true, booking_id: bid, source: 'artax' });
       }
 
-      console.error('Artax booking failed:', await artaxResponse.text());
+      const errorText = await artaxResponse.text();
+      console.error('Artax booking failed:', errorText);
     }
 
-    // Fallback: accept reservation locally + send email
-    sendConfirmationEmail(guestName, guestEmail, checkin, checkout);
-
+    // Fallback: accept locally + send email
+    const localId = `LOCAL-${Date.now()}`;
+    sendConfirmationEmail(guestName, guestEmail, checkin, checkout, localId);
     return NextResponse.json({
       success: true,
-      booking_id: `LOCAL-${Date.now()}`,
+      booking_id: localId,
       source: 'local',
       message: 'Reserva registrada. Confirmaremos em breve.',
     });

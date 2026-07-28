@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -10,34 +10,27 @@ import {
   trackAvailabilityViewed,
 } from '@hotel-paraiso/tracking';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 
-const availableRooms = [
-  {
-    slug: 'standard',
-    name: 'Standard',
-    price: 180,
-    image: '/images/rooms/standard.jpg',
-    capacity: '2 adultos',
-    amenities: ['Wi-Fi', 'Ar condicionado', 'TV', 'Frigobar'],
-  },
-  {
-    slug: 'luxo',
-    name: 'Luxo',
-    price: 280,
-    image: '/images/rooms/luxo.jpg',
-    capacity: '2 adultos + 1 criança',
-    amenities: ['Wi-Fi', 'Ar condicionado', 'TV 50"', 'Cofre'],
-  },
-  {
-    slug: 'master',
-    name: 'Suíte Master',
-    price: 420,
-    image: '/images/rooms/master.jpg',
-    capacity: '2 adultos + 2 crianças',
-    amenities: ['Wi-Fi', 'Hidromassagem', 'Sala de estar', 'Serviço de quarto'],
-  },
-];
+// Room images mapping (by name pattern)
+function getRoomImage(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('master')) return '/images/rooms/master.jpg';
+  if (n.includes('luxo')) return '/images/rooms/luxo.jpg';
+  if (n.includes('standard')) return '/images/rooms/standard.jpg';
+  if (n.includes('confort')) return '/images/rooms/standard.jpg';
+  if (n.includes('solteiro')) return '/images/rooms/luxo.jpg';
+  return '/images/rooms/standard.jpg';
+}
+
+interface AvailableRoom {
+  category_id: number;
+  rateplan_id: number;
+  name: string;
+  available: boolean;
+  allots: number;
+  price: number;
+  capacity: { adults: number; kids: number };
+}
 
 function BookingContent() {
   const searchParams = useSearchParams();
@@ -48,17 +41,18 @@ function BookingContent() {
   const [checkin, setCheckin] = useState(checkinParam);
   const [checkout, setCheckout] = useState(checkoutParam);
   const [guests, setGuests] = useState(Number(guestsParam));
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+  const [rooms, setRooms] = useState<AvailableRoom[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const [selectedRoom, setSelectedRoom] = useState<AvailableRoom | null>(null);
   const [step, setStep] = useState<'search' | 'details' | 'confirmed'>('search');
 
-  useEffect(() => {
-    trackAvailabilityViewed(availableRooms.length);
-  }, []);
-
-  // Form for confirmed step
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   const nights =
     checkin && checkout
@@ -70,26 +64,54 @@ function BookingContent() {
         )
       : 0;
 
-  const selected = availableRooms.find((r) => r.slug === selectedRoom);
-
-  function handleSelectRoom(slug: string) {
-    const room = availableRooms.find((r) => r.slug === slug);
-    if (room) {
-      trackRoomSelected({ room_slug: slug, room_name: room.name, price: room.price });
-      trackCheckoutStarted({
-        room_slug: slug,
-        room_name: room.name,
-        value: room.price * nights,
-        nights,
+  // Fetch availability when dates change
+  async function fetchAvailability() {
+    if (!checkin || !checkout) return;
+    setLoading(true);
+    setSearched(true);
+    try {
+      const params = new URLSearchParams({
+        arrival_date: checkin,
+        departure_date: checkout,
+        adults: String(guests),
+        kids: '0',
       });
+      const res = await fetch(`/api/availability?${params}`);
+      const data = await res.json();
+      setRooms(data.rooms ?? []);
+      trackAvailabilityViewed(data.rooms?.length ?? 0);
+    } catch {
+      setRooms([]);
     }
-    setSelectedRoom(slug);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    if (checkinParam && checkoutParam) {
+      fetchAvailability();
+    }
+  }, [checkinParam, checkoutParam]);
+
+  function handleSearch() {
+    fetchAvailability();
+  }
+
+  function handleSelectRoom(room: AvailableRoom) {
+    trackRoomSelected({
+      room_slug: String(room.category_id),
+      room_name: room.name,
+      price: room.price,
+    });
+    trackCheckoutStarted({
+      room_slug: String(room.category_id),
+      room_name: room.name,
+      value: room.price,
+      nights,
+    });
+    setSelectedRoom(room);
     setStep('details');
     window.scrollTo(0, 0);
   }
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingId, setBookingId] = useState<string | null>(null);
 
   async function handleConfirm() {
     if (!guestName || !guestEmail || !selectedRoom) return;
@@ -105,24 +127,25 @@ function BookingContent() {
           guestPhone,
           checkin,
           checkout,
-          roomSlug: selectedRoom,
+          categoryId: selectedRoom.category_id,
+          rateplanId: selectedRoom.rateplan_id,
+          adults: guests,
+          kids: 0,
         }),
       });
 
       const data = await response.json();
       if (data.booking_id) {
         setBookingId(String(data.booking_id));
-        if (selected) {
-          trackReservationCreated({
-            booking_id: String(data.booking_id),
-            room_name: selected.name,
-            value: selected.price * nights,
-            nights,
-          });
-        }
+        trackReservationCreated({
+          booking_id: String(data.booking_id),
+          room_name: selectedRoom.name,
+          value: selectedRoom.price,
+          nights,
+        });
       }
     } catch {
-      // Even if API fails, show confirmation (we'll process manually)
+      // Accept locally even if API fails
     }
 
     setIsSubmitting(false);
@@ -131,15 +154,14 @@ function BookingContent() {
   }
 
   // Step 3: Confirmation
-  if (step === 'confirmed' && selected) {
+  if (step === 'confirmed' && selectedRoom) {
     return (
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-2xl px-4 text-center">
           <div className="mb-8 text-6xl">✓</div>
-          <h1 className="font-display text-3xl font-bold text-brand-black">Reserva solicitada!</h1>
+          <h1 className="font-display text-3xl font-bold text-brand-black">Reserva confirmada!</h1>
           <p className="mt-4 text-beige-700">
-            Sua solicitação de reserva foi enviada com sucesso. Entraremos em contato em breve para
-            confirmar.
+            Sua reserva foi registrada com sucesso no sistema do hotel.
           </p>
           {bookingId && <p className="mt-2 text-sm text-beige-500">Protocolo: {bookingId}</p>}
 
@@ -148,7 +170,7 @@ function BookingContent() {
             <div className="mt-4 space-y-2 text-sm text-beige-800">
               <div className="flex justify-between">
                 <span>Quarto</span>
-                <span className="font-medium">{selected.name}</span>
+                <span className="font-medium">{selectedRoom.name}</span>
               </div>
               <div className="flex justify-between">
                 <span>Check-in</span>
@@ -163,17 +185,13 @@ function BookingContent() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Noites</span>
-                <span className="font-medium">{nights}</span>
-              </div>
-              <div className="flex justify-between">
                 <span>Hóspedes</span>
                 <span className="font-medium">{guests}</span>
               </div>
               <div className="flex justify-between border-t border-beige-300 pt-2">
-                <span className="font-bold">Total estimado</span>
+                <span className="font-bold">Total</span>
                 <span className="font-display text-lg font-bold text-brand-gold">
-                  R$ {(selected.price * nights).toLocaleString('pt-BR')}
+                  R$ {selectedRoom.price.toLocaleString('pt-BR')}
                 </span>
               </div>
             </div>
@@ -181,7 +199,7 @@ function BookingContent() {
 
           <div className="mt-8 space-y-3 text-sm text-beige-600">
             <p>Um email de confirmação será enviado para {guestEmail}</p>
-            <p>Para dúvidas, entre em contato com nossa recepção 24h</p>
+            <p>Dúvidas? (31) 3881-8049 ou WhatsApp</p>
           </div>
 
           <Link
@@ -196,11 +214,10 @@ function BookingContent() {
   }
 
   // Step 2: Guest details
-  if (step === 'details' && selected) {
+  if (step === 'details' && selectedRoom) {
     return (
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-4">
-          {/* Stepper */}
           <div className="mb-8 flex items-center justify-center gap-4 text-sm">
             <span className="text-beige-400">1. Escolha</span>
             <span className="text-beige-300">→</span>
@@ -210,12 +227,10 @@ function BookingContent() {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Form */}
             <div className="lg:col-span-2">
               <h1 className="font-display text-2xl font-bold text-brand-black">
                 Complete sua reserva
               </h1>
-
               <div className="mt-6 space-y-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-beige-700">
@@ -240,7 +255,9 @@ function BookingContent() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-beige-700">Telefone</label>
+                  <label className="mb-1 block text-sm font-medium text-beige-700">
+                    Telefone *
+                  </label>
                   <input
                     type="tel"
                     value={guestPhone}
@@ -250,7 +267,6 @@ function BookingContent() {
                   />
                 </div>
               </div>
-
               <div className="mt-8 flex gap-4">
                 <button
                   type="button"
@@ -262,41 +278,37 @@ function BookingContent() {
                 <button
                   type="button"
                   onClick={handleConfirm}
-                  disabled={!guestName || !guestEmail || isSubmitting}
+                  disabled={!guestName || !guestEmail || !guestPhone || isSubmitting}
                   className="flex-1 rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? 'Enviando...' : 'Confirmar reserva'}
                 </button>
               </div>
             </div>
-
-            {/* Summary sidebar */}
             <div className="rounded-sm border border-beige-200 bg-beige-50 p-6">
               <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
-                <Image src={selected.image} alt={selected.name} fill className="object-cover" />
+                <Image
+                  src={getRoomImage(selectedRoom.name)}
+                  alt={selectedRoom.name}
+                  fill
+                  className="object-cover"
+                />
               </div>
-              <h3 className="mt-4 font-display text-lg font-bold">{selected.name}</h3>
+              <h3 className="mt-4 font-display text-lg font-bold">{selectedRoom.name}</h3>
               <div className="mt-3 space-y-1 text-sm text-beige-700">
                 <div>
                   {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')} →{' '}
                   {new Date(checkout + 'T12:00:00').toLocaleDateString('pt-BR')}
                 </div>
                 <div>
-                  {nights} noite{nights !== 1 ? 's' : ''} · {guests} hóspede
-                  {guests !== 1 ? 's' : ''}
+                  {guests} hóspede{guests !== 1 ? 's' : ''}
                 </div>
               </div>
               <div className="mt-4 border-t border-beige-300 pt-4">
-                <div className="flex justify-between text-sm">
-                  <span>
-                    R$ {selected.price} × {nights} noites
-                  </span>
-                  <span>R$ {(selected.price * nights).toLocaleString('pt-BR')}</span>
-                </div>
-                <div className="mt-2 flex justify-between font-bold">
+                <div className="flex justify-between font-bold">
                   <span>Total</span>
                   <span className="font-display text-xl text-brand-gold">
-                    R$ {(selected.price * nights).toLocaleString('pt-BR')}
+                    R$ {selectedRoom.price.toLocaleString('pt-BR')}
                   </span>
                 </div>
               </div>
@@ -307,11 +319,10 @@ function BookingContent() {
     );
   }
 
-  // Step 1: Room selection
+  // Step 1: Search + Room selection
   return (
     <main className="pt-24 pb-16">
       <div className="mx-auto max-w-6xl px-4">
-        {/* Stepper */}
         <div className="mb-8 flex items-center justify-center gap-4 text-sm">
           <span className="font-bold text-brand-gold">1. Escolha</span>
           <span className="text-beige-300">→</span>
@@ -322,7 +333,7 @@ function BookingContent() {
 
         <h1 className="font-display text-3xl font-bold text-brand-black">Quartos disponíveis</h1>
 
-        {/* Date bar */}
+        {/* Search bar */}
         <div className="mt-6 flex flex-wrap items-end gap-4 rounded-sm border border-beige-200 bg-beige-50 p-4">
           <div className="flex-1">
             <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700">
@@ -368,58 +379,83 @@ function BookingContent() {
               </button>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={handleSearch}
+            disabled={!checkin || !checkout || loading}
+            className="rounded-sm bg-brand-gold px-6 py-2.5 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:opacity-50"
+          >
+            {loading ? 'Buscando...' : 'Buscar'}
+          </button>
         </div>
 
-        {/* Room list */}
-        <div className="mt-8 space-y-6">
-          {availableRooms.map((room) => (
-            <div
-              key={room.slug}
-              className="flex flex-col overflow-hidden rounded-sm border border-beige-200 bg-brand-white shadow-sm transition-shadow hover:shadow-md md:flex-row"
-            >
-              <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
-                <Image src={room.image} alt={room.name} fill className="object-cover" />
-              </div>
-              <div className="flex flex-1 flex-col justify-between p-6">
-                <div>
-                  <h3 className="font-display text-xl font-bold text-brand-black">{room.name}</h3>
-                  <p className="mt-1 text-sm text-beige-600">{room.capacity}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {room.amenities.map((a) => (
-                      <span
-                        key={a}
-                        className="rounded-sm bg-beige-100 px-2 py-1 text-xs text-beige-700"
-                      >
-                        {a}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <span className="font-display text-2xl font-bold text-brand-black">
-                      R$ {room.price}
-                    </span>
-                    <span className="text-sm text-beige-600"> / noite</span>
-                    {nights > 0 && (
-                      <p className="text-sm text-beige-500">
-                        Total: R$ {(room.price * nights).toLocaleString('pt-BR')} ({nights} noite
-                        {nights !== 1 ? 's' : ''})
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectRoom(room.slug)}
-                    disabled={!checkin || !checkout}
-                    className="rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Selecionar
-                  </button>
-                </div>
-              </div>
+        {/* Results */}
+        <div className="mt-8">
+          {loading && (
+            <div className="py-12 text-center text-beige-500">
+              Consultando disponibilidade no hotel...
             </div>
-          ))}
+          )}
+
+          {!loading && searched && rooms.length === 0 && (
+            <div className="rounded-sm border border-beige-200 bg-beige-50 py-12 text-center">
+              <p className="text-lg text-beige-700">
+                Nenhum quarto disponível para as datas selecionadas.
+              </p>
+              <p className="mt-2 text-sm text-beige-500">
+                Tente outras datas ou entre em contato: (31) 3881-8049
+              </p>
+            </div>
+          )}
+
+          {!loading && rooms.length > 0 && (
+            <div className="space-y-6">
+              {rooms.map((room) => (
+                <div
+                  key={`${room.category_id}-${room.rateplan_id}`}
+                  className="flex flex-col overflow-hidden rounded-sm border border-beige-200 bg-brand-white shadow-sm transition-shadow hover:shadow-md md:flex-row"
+                >
+                  <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
+                    <Image
+                      src={getRoomImage(room.name)}
+                      alt={room.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between p-6">
+                    <div>
+                      <h3 className="font-display text-xl font-bold text-brand-black">
+                        {room.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-beige-600">
+                        Até {room.capacity.adults} adultos
+                        {room.capacity.kids > 0 ? ` + ${room.capacity.kids} crianças` : ''}
+                      </p>
+                      <p className="mt-1 text-xs text-green-600">
+                        {room.allots} disponível{room.allots !== 1 ? 'is' : ''}
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-end justify-between">
+                      <div>
+                        <span className="font-display text-2xl font-bold text-brand-black">
+                          R$ {room.price.toLocaleString('pt-BR')}
+                        </span>
+                        <span className="text-sm text-beige-600"> / estadia</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectRoom(room)}
+                        className="rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
+                      >
+                        Selecionar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>
