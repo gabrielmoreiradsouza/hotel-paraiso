@@ -87,6 +87,13 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
       fbq('track', metaEvent, { value: payload['value'], currency: 'BRL' });
     }
   }
+
+  // Also persist to our backend
+  fetch('/api/events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(event),
+  }).catch(() => {}); // fire and forget
 }
 
 // === Canonical events ===

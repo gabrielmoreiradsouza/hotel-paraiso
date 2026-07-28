@@ -163,13 +163,15 @@ export async function POST(request: Request) {
         sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid);
 
         // Server-side tracking — GA4 MP + Meta CAPI (fire and forget)
+        const ua = request.headers.get('user-agent');
+        const ip = request.headers.get('x-forwarded-for');
         trackServerPurchase({
           bookingId: bid,
-          value: 0, // Price comes from Artax, not passed to this endpoint
+          value: 0,
           guestEmail,
-          guestPhone,
-          userAgent: request.headers.get('user-agent') ?? undefined,
-          clientIp: request.headers.get('x-forwarded-for') ?? undefined,
+          ...(guestPhone != null && { guestPhone }),
+          ...(ua != null && { userAgent: ua }),
+          ...(ip != null && { clientIp: ip }),
         });
 
         return NextResponse.json({ success: true, booking_id: bid, source: 'artax' });
