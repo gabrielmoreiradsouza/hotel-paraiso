@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createHmac } from 'node:crypto';
 import { isRateLimited } from '@/lib/rate-limit';
+import { trackServerPurchase } from '@/lib/server-tracking';
 
 const ARTAX_URL = 'https://artaxnet.com/pms-api/v1';
 const CLIENT_ID = process.env['ARTAX_CLIENT_ID'] ?? '';
@@ -160,6 +161,17 @@ export async function POST(request: Request) {
         const artaxData = (await artaxResponse.json()) as { booking_id: number };
         const bid = String(artaxData.booking_id);
         sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid);
+
+        // Server-side tracking — GA4 MP + Meta CAPI (fire and forget)
+        trackServerPurchase({
+          bookingId: bid,
+          value: 0, // Price comes from Artax, not passed to this endpoint
+          guestEmail,
+          guestPhone,
+          userAgent: request.headers.get('user-agent') ?? undefined,
+          clientIp: request.headers.get('x-forwarded-for') ?? undefined,
+        });
+
         return NextResponse.json({ success: true, booking_id: bid, source: 'artax' });
       }
 
