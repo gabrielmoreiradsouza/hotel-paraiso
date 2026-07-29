@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
@@ -15,10 +15,22 @@ const heroImages = [
 export function Hero() {
   const t = useTranslations('hero');
   const [current, setCurrent] = useState(0);
+  const [loaded, setLoaded] = useState<Set<number>>(new Set([0]));
+  const prevRef = useRef(0);
 
   const next = useCallback(() => {
-    setCurrent((prev) => (prev + 1) % heroImages.length);
+    setCurrent((prev) => {
+      const nextIdx = (prev + 1) % heroImages.length;
+      prevRef.current = prev;
+      return nextIdx;
+    });
   }, []);
+
+  // Preload next slide
+  useEffect(() => {
+    const nextIdx = (current + 1) % heroImages.length;
+    setLoaded((prev) => new Set(prev).add(current).add(nextIdx));
+  }, [current]);
 
   useEffect(() => {
     const timer = setInterval(next, 5000);
@@ -27,24 +39,29 @@ export function Hero() {
 
   return (
     <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
-      {/* Background images with crossfade */}
-      {heroImages.map((img, i) => (
-        <div
-          key={img.src}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            i === current ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <Image
-            src={img.src}
-            alt={img.alt}
-            fill
-            className="object-cover"
-            priority={i === 0}
-            sizes="100vw"
-          />
-        </div>
-      ))}
+      {/* Only render loaded slides */}
+      {heroImages.map((img, i) => {
+        if (!loaded.has(i)) return null;
+        return (
+          <div
+            key={img.src}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              i === current ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <Image
+              src={img.src}
+              alt={img.alt}
+              fill
+              className="object-cover"
+              priority={i === 0}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              sizes="(max-width: 640px) 640px, (max-width: 1080px) 1080px, 1280px"
+              quality={75}
+            />
+          </div>
+        );
+      })}
       <div className="absolute inset-0 bg-gradient-to-b from-brand-black/60 via-brand-black/40 to-brand-black/80" />
 
       {/* Content */}
