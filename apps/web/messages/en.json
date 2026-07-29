@@ -126,11 +126,11 @@
   },
   "restaurant": {
     "title": "Paraíso Restaurant",
-    "description": "Our restaurant serves the best of Minas Gerais and international cuisine. Full breakfast included in every stay, with lunch and dinner available for guests and visitors.",
+    "description": "Our restaurant serves the best of Minas Gerais cuisine. Full breakfast included in every stay, with dinner available for guests and visitors.",
     "breakfast": "Full breakfast",
     "breakfastTime": "Included in all rates — served 6:30 AM to 9:30 AM",
-    "dinner": "Lunch & dinner",
-    "dinnerTime": "Regional and international cuisine — open to the public",
+    "dinner": "Dinner",
+    "dinnerTime": "Minas Gerais cuisine — from 7:30 PM, open to the public",
     "included": "Included in your stay",
     "includedDesc": "Breakfast for all guests, no extra charge",
     "gallery": "View restaurant photos"

@@ -22,7 +22,7 @@ export function Footer() {
                 className="invert"
               />
               <span className="font-display text-2xl font-medium text-beige-100">
-                Paraíso Heritage
+                Hotel Paraíso
               </span>
             </div>
             <p className="text-sm text-beige-100/60 leading-relaxed">

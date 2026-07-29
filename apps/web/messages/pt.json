@@ -126,11 +126,11 @@
   },
   "restaurant": {
     "title": "Restaurante Paraíso",
-    "description": "Nosso restaurante serve o melhor da culinária mineira e internacional. Café da manhã completo incluso em todas as estadias, com almoço e jantar disponíveis para hóspedes e visitantes.",
+    "description": "Nosso restaurante serve o melhor da culinária mineira. Café da manhã completo incluso em todas as estadias, com jantar disponível para hóspedes e visitantes.",
     "breakfast": "Café da manhã completo",
     "breakfastTime": "Incluso em todas as diárias — servido das 6h30 às 9h30",
-    "dinner": "Almoço e jantar",
-    "dinnerTime": "Culinária mineira e internacional — aberto ao público",
+    "dinner": "Jantar",
+    "dinnerTime": "Culinária mineira — a partir das 19h30, aberto ao público",
     "included": "Incluso na diária",
     "includedDesc": "Café da manhã para todos os hóspedes, sem custo adicional",
     "gallery": "Ver fotos do restaurante"
