@@ -1,14 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Wifi, Car, UtensilsCrossed, Calendar, Zap, PawPrint } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const featureKeys = [
-  { icon: '\u{1F4F6}', key: 'wifi' },
-  { icon: '\u{1F17F}\uFE0F', key: 'parking' },
-  { icon: '\u{1F37D}\uFE0F', key: 'restaurant' },
-  { icon: '\u{1F3DF}\uFE0F', key: 'events' },
-  { icon: '\u26A1', key: 'charger' },
-  { icon: '\u{1F43E}', key: 'pet' },
+const featureKeys: { icon: LucideIcon; key: string }[] = [
+  { icon: Wifi, key: 'wifi' },
+  { icon: Car, key: 'parking' },
+  { icon: UtensilsCrossed, key: 'restaurant' },
+  { icon: Calendar, key: 'events' },
+  { icon: Zap, key: 'charger' },
+  { icon: PawPrint, key: 'pet' },
 ];
 
 export function Features() {
@@ -25,22 +27,25 @@ export function Features() {
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {featureKeys.map((feature) => (
-            <div
-              key={feature.key}
-              className="flex items-start gap-4 rounded-sm bg-brand-white p-6 shadow-sm"
-            >
-              <span className="text-3xl" role="img" aria-label={t(feature.key)}>
-                {feature.icon}
-              </span>
-              <div>
-                <h3 className="font-display text-lg font-semibold text-brand-black">
-                  {t(feature.key)}
-                </h3>
-                <p className="mt-1 text-sm text-beige-700">{t(`${feature.key}Desc`)}</p>
+          {featureKeys.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.key}
+                className="flex items-start gap-4 rounded-lg bg-brand-white p-6 shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gold-50 text-brand-gold">
+                  <Icon className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-brand-black">
+                    {t(feature.key)}
+                  </h3>
+                  <p className="mt-1 text-sm text-beige-700">{t(`${feature.key}Desc`)}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

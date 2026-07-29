@@ -55,20 +55,20 @@
     "backAll": "← Back to all rooms"
   },
   "features": {
-    "title": "Why choose Paraíso",
-    "subtitle": "Everything you need for a perfect stay",
-    "wifi": "High-speed Wi-Fi",
-    "wifiDesc": "Fast internet throughout the property",
-    "parking": "Parking",
-    "parkingDesc": "Free and secure parking",
-    "restaurant": "Restaurant",
-    "restaurantDesc": "Regional and international cuisine",
+    "title": "Everything included in your stay",
+    "subtitle": "No surprises. No hidden fees.",
+    "wifi": "Fast Wi-Fi",
+    "wifiDesc": "Stable connection throughout — work or relax without interruption",
+    "parking": "Free parking",
+    "parkingDesc": "Guaranteed secure spot, no extra charge",
+    "restaurant": "On-site restaurant",
+    "restaurantDesc": "Breakfast included + lunch and dinner with the best of Minas Gerais cuisine",
     "events": "Event venue",
-    "eventsDesc": "Space for corporate events",
+    "eventsDesc": "Spacious area for corporate meetings, training sessions and gatherings",
     "charger": "EV charging",
-    "chargerDesc": "Electric vehicle charging station",
+    "chargerDesc": "Electric vehicle charging station — recharge while you rest",
     "pet": "Pet friendly",
-    "petDesc": "Pet-friendly rooms available"
+    "petDesc": "Pet-friendly rooms ready to welcome your companion"
   },
   "location": {
     "title": "Location",
@@ -82,10 +82,30 @@
     "route": "Get directions"
   },
   "cta": {
-    "title": "Book your stay at",
-    "highlight": "Paraíso",
-    "subtitle": "Comfort, gastronomy, and a prime location in Ponte Nova, MG.",
-    "button": "Choose a room"
+    "title": "Book direct and save",
+    "highlight": "No intermediary fees",
+    "subtitle": "Best price guaranteed. Breakfast included. Free cancellation up to 48h.",
+    "button": "Check availability"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Everything you need to know before booking",
+    "checkinOutQ": "What are the check-in and check-out times?",
+    "checkinOutA": "Check-in from 2:00 PM and check-out by 12:00 PM. Flexible times may be requested at the front desk, subject to availability.",
+    "breakfastQ": "Is breakfast included?",
+    "breakfastA": "Yes, all room categories include a full breakfast served at the hotel restaurant.",
+    "cancellationQ": "What is the cancellation policy?",
+    "cancellationA": "Free cancellation up to 48 hours before check-in date. After that, the first night will be charged.",
+    "parkingQ": "Is parking free?",
+    "parkingA": "Yes, we offer free and secure parking for all guests, no reservation needed.",
+    "petsQ": "Can I bring my pet?",
+    "petsA": "Yes, we are pet friendly! We have rooms prepared to welcome your pet. Let us know when booking to ensure the best room.",
+    "paymentQ": "What payment methods are accepted?",
+    "paymentA": "We accept credit card, debit card, Pix and cash. Payment is made at check-in.",
+    "evQ": "Do you have EV charging?",
+    "evA": "Yes, we have an electric vehicle charging station available free of charge for guests.",
+    "eventsQ": "Do you host corporate events?",
+    "eventsA": "Yes, we have a spacious event venue for meetings, training sessions and gatherings. Contact us for quotes: +55 (31) 3881-8049."
   },
   "footer": {
     "hotel": "The Hotel",
@@ -104,18 +124,18 @@
   },
   "about": {
     "title": "About the Hotel",
-    "tradition": "Tradition and comfort in Ponte Nova",
-    "p1": "Hotel & Restaurant Paraíso is a benchmark in hospitality and gastronomy in the Zona da Mata region of Minas Gerais. Located in Ponte Nova, MG, we welcome both business travelers and families seeking comfort, convenience, and an authentic Minas Gerais experience.",
-    "p2": "With accommodations ranging from functional to sophisticated — from our Standard room to the Master Suite with jacuzzi — we offer options for every guest. Our restaurant serves the finest regional and international cuisine, with breakfast included in every stay.",
-    "infra": "Full infrastructure",
-    "p3": "The hotel features free parking, high-speed Wi-Fi throughout, an event venue for corporate gatherings, and even an electric vehicle charging station. We are also pet friendly — because we know your companion is part of the family.",
-    "location": "Strategic location",
-    "p4": "Just 150 km from Belo Horizonte, with easy access via the BR-120 and BR-262 highways, Ponte Nova is a regional hub that attracts professionals from various fields. Our hotel is the natural choice for those who need a comfortable and well-located base in the region.",
+    "tradition": "Hospitality benchmark in Zona da Mata",
+    "p1": "Hotel & Restaurant Paraíso is the choice of executives, families and travelers passing through Ponte Nova. With a central location and easy access, we offer the perfect balance of comfort, convenience and authentic Minas Gerais hospitality.",
+    "p2": "Three room categories — from the functional Standard to the Master Suite with jacuzzi — all with breakfast included and the quality standard that made us a regional benchmark.",
+    "infra": "Infrastructure that makes a difference",
+    "p3": "Free parking, high-speed Wi-Fi throughout, event venue for corporate gatherings, EV charging station, and pet-friendly rooms. Everything designed so you only worry about what matters.",
+    "location": "Strategic location in Minas Gerais",
+    "p4": "150 km from Belo Horizonte via BR-262, Ponte Nova is a regional hub that receives professionals from across the state. Our hotel is the natural base for those seeking comfort and location — minutes from downtown and major businesses.",
     "roomCategories": "Room categories",
-    "receptionLabel": "Front Desk",
+    "receptionLabel": "24h Front Desk",
     "fromBH": "from Belo Horizonte",
-    "gastronomy": "Regional cuisine",
-    "bookCta": "Book your stay"
+    "gastronomy": "On-site restaurant",
+    "bookCta": "Book now — best direct price"
   },
   "notFound": {
     "title": "404",

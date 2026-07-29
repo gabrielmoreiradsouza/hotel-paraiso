@@ -14,6 +14,7 @@
   "dependencies": {
     "@hotel-paraiso/tracking": "workspace:*",
     "@tailwindcss/postcss": "^4.3.1",
+    "lucide-react": "^1.27.0",
     "next": "^15.4.2",
     "next-intl": "^4.13.0",
     "postcss": "^8.5.15",

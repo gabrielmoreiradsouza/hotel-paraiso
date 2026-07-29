@@ -55,20 +55,20 @@
     "backAll": "← Voltar para todos os quartos"
   },
   "features": {
-    "title": "Por que escolher o Paraíso",
-    "subtitle": "Tudo que você precisa para uma estadia perfeita",
-    "wifi": "Wi-Fi de alta velocidade",
-    "wifiDesc": "Internet rápida em todos os ambientes",
-    "parking": "Estacionamento",
-    "parkingDesc": "Estacionamento gratuito e seguro",
-    "restaurant": "Restaurante",
-    "restaurantDesc": "Gastronomia mineira e internacional",
+    "title": "Tudo incluso na sua estadia",
+    "subtitle": "Sem surpresas. Sem taxas extras.",
+    "wifi": "Wi-Fi rápido",
+    "wifiDesc": "Conexão estável em todos os ambientes — trabalhe ou relaxe sem interrupção",
+    "parking": "Estacionamento grátis",
+    "parkingDesc": "Vaga garantida e segura, sem custo adicional",
+    "restaurant": "Restaurante no hotel",
+    "restaurantDesc": "Café da manhã incluso + almoço e jantar com o melhor da culinária mineira",
     "events": "Pista de eventos",
-    "eventsDesc": "Espaço para eventos corporativos",
+    "eventsDesc": "Espaço amplo para encontros corporativos, treinamentos e confraternizações",
     "charger": "Carregador veicular",
-    "chargerDesc": "Estação de carregamento elétrico",
+    "chargerDesc": "Estação de carregamento para veículos elétricos — recarregue enquanto descansa",
     "pet": "Pet friendly",
-    "petDesc": "Quartos preparados para seu pet"
+    "petDesc": "Quartos preparados para receber seu pet com conforto"
   },
   "location": {
     "title": "Localização",
@@ -82,10 +82,30 @@
     "route": "Traçar rota"
   },
   "cta": {
-    "title": "Reserve sua estadia no",
-    "highlight": "Paraíso",
-    "subtitle": "Conforto, gastronomia e localização estratégica em Ponte Nova, MG.",
-    "button": "Escolher quarto"
+    "title": "Reserve direto e economize",
+    "highlight": "Sem taxas de intermediário",
+    "subtitle": "Melhor preço garantido. Café da manhã incluso. Cancelamento gratuito até 48h.",
+    "button": "Ver disponibilidade"
+  },
+  "faq": {
+    "title": "Perguntas frequentes",
+    "subtitle": "Tudo que você precisa saber antes de reservar",
+    "checkinOutQ": "Quais os horários de check-in e check-out?",
+    "checkinOutA": "Check-in a partir das 14h e check-out até as 12h. Horários flexíveis podem ser solicitados na recepção, sujeitos a disponibilidade.",
+    "breakfastQ": "O café da manhã está incluso?",
+    "breakfastA": "Sim, todas as categorias de quarto incluem café da manhã completo servido no restaurante do hotel.",
+    "cancellationQ": "Qual a política de cancelamento?",
+    "cancellationA": "Cancelamento gratuito até 48h antes da data de check-in. Após esse prazo, será cobrada a primeira diária.",
+    "parkingQ": "O estacionamento é gratuito?",
+    "parkingA": "Sim, oferecemos estacionamento gratuito e seguro para todos os hóspedes, sem necessidade de reserva.",
+    "petsQ": "Posso levar meu pet?",
+    "petsA": "Sim, somos pet friendly! Temos quartos preparados para receber seu animal de estimação. Informe na reserva para garantirmos o melhor quarto.",
+    "paymentQ": "Quais formas de pagamento são aceitas?",
+    "paymentA": "Aceitamos cartão de crédito, débito, Pix e dinheiro. O pagamento é realizado no check-in.",
+    "evQ": "Vocês têm carregador para veículo elétrico?",
+    "evA": "Sim, temos estação de carregamento para veículos elétricos disponível gratuitamente para hóspedes.",
+    "eventsQ": "Vocês realizam eventos corporativos?",
+    "eventsA": "Sim, temos uma pista de eventos ampla para reuniões, treinamentos e confraternizações. Entre em contato para orçamentos: (31) 3881-8049."
   },
   "footer": {
     "hotel": "O Hotel",
@@ -104,18 +124,18 @@
   },
   "about": {
     "title": "Sobre o Hotel",
-    "tradition": "Tradição e conforto em Ponte Nova",
-    "p1": "O Hotel e Restaurante Paraíso é referência em hospedagem e gastronomia na região da Zona da Mata Mineira. Localizado em Ponte Nova, MG, recebemos tanto viajantes corporativos quanto famílias que buscam conforto, praticidade e uma experiência autêntica mineira.",
-    "p2": "Com acomodações que vão do funcional ao sofisticado — do nosso quarto Standard à Suíte Master com hidromassagem — oferecemos opções para todos os perfis. Nosso restaurante serve o melhor da culinária mineira e internacional, com café da manhã incluso em todas as estadias.",
-    "infra": "Infraestrutura completa",
-    "p3": "O hotel conta com estacionamento gratuito, Wi-Fi de alta velocidade em todos os ambientes, pista de eventos para encontros corporativos, e até estação de carregamento para veículos elétricos. Também somos pet friendly — porque sabemos que seu companheiro faz parte da família.",
-    "location": "Localização estratégica",
-    "p4": "A apenas 150km de Belo Horizonte, com acesso fácil pelas rodovias BR-120 e BR-262, Ponte Nova é um polo regional que atrai profissionais de diversas áreas. Nosso hotel é a escolha natural para quem precisa de uma base confortável e bem localizada na região.",
+    "tradition": "Referência em hospedagem na Zona da Mata",
+    "p1": "O Hotel e Restaurante Paraíso é a escolha de executivos, famílias e viajantes que passam por Ponte Nova. Com localização central e fácil acesso, oferecemos o equilíbrio perfeito entre conforto, praticidade e a autêntica hospitalidade mineira.",
+    "p2": "São 3 categorias de quarto — do Standard funcional à Suíte Master com hidromassagem — todas com café da manhã incluso e o padrão de qualidade que nos tornou referência na região.",
+    "infra": "Infraestrutura que faz diferença",
+    "p3": "Estacionamento gratuito, Wi-Fi de alta velocidade em todos os ambientes, pista de eventos para encontros corporativos, estação de carregamento para veículos elétricos e quartos pet friendly. Tudo pensado para que você se preocupe apenas com o que importa.",
+    "location": "Ponto estratégico em Minas Gerais",
+    "p4": "A 150km de Belo Horizonte pela BR-262, Ponte Nova é polo regional que recebe profissionais de todo o estado. Nosso hotel é a base natural para quem precisa de conforto e localização — a poucos minutos do centro e das principais empresas da cidade.",
     "roomCategories": "Categorias de quartos",
-    "receptionLabel": "Recepção",
+    "receptionLabel": "Recepção 24h",
     "fromBH": "de Belo Horizonte",
-    "gastronomy": "Gastronomia mineira",
-    "bookCta": "Reserve sua estadia"
+    "gastronomy": "Restaurante próprio",
+    "bookCta": "Reserve agora — melhor preço direto"
   },
   "notFound": {
     "title": "404",
