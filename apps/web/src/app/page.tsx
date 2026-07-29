@@ -6,6 +6,7 @@ import { Location } from '@/components/Location/Location';
 import { Footer } from '@/components/Footer/Footer';
 import { HomeCta } from '@/components/HomeCta/HomeCta';
 import { FAQ } from '@/components/FAQ/FAQ';
+import { Restaurant } from '@/components/Restaurant/Restaurant';
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <Hero />
       <BookingWidget />
       <RoomCards />
+      <Restaurant />
       <Features />
       <FAQ />
       <Location />

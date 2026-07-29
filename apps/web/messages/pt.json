@@ -2,6 +2,7 @@
   "nav": {
     "about": "Sobre",
     "rooms": "Quartos",
+    "restaurantNav": "Restaurante",
     "gallery": "Galeria",
     "contact": "Contato",
     "book": "Reservar"
@@ -120,7 +121,19 @@
     "subtitle": "Conheça nossos espaços e acomodações",
     "all": "Todas",
     "roomsCat": "Quartos",
-    "commonCat": "Áreas comuns"
+    "commonCat": "Áreas comuns",
+    "restaurantCat": "Restaurante"
+  },
+  "restaurant": {
+    "title": "Restaurante Paraíso",
+    "description": "Nosso restaurante serve o melhor da culinária mineira e internacional. Café da manhã completo incluso em todas as estadias, com almoço e jantar disponíveis para hóspedes e visitantes.",
+    "breakfast": "Café da manhã completo",
+    "breakfastTime": "Incluso em todas as diárias — servido das 6h30 às 9h30",
+    "dinner": "Almoço e jantar",
+    "dinnerTime": "Culinária mineira e internacional — aberto ao público",
+    "included": "Incluso na diária",
+    "includedDesc": "Café da manhã para todos os hóspedes, sem custo adicional",
+    "gallery": "Ver fotos do restaurante"
   },
   "about": {
     "title": "Sobre o Hotel",

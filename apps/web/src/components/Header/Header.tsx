@@ -13,6 +13,7 @@ export function Header({ locale }: { locale: string }) {
   const navItems = [
     { label: t('about'), href: '/sobre' },
     { label: t('rooms'), href: '/#quartos' },
+    { label: t('restaurantNav'), href: '/#restaurante' },
     { label: t('gallery'), href: '/galeria' },
     { label: t('contact'), href: '/#contato' },
   ];

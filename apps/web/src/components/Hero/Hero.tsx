@@ -1,24 +1,51 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
+const heroImages = [
+  { src: '/images/common/recepcao.jpg', alt: 'Hotel e Restaurante Paraíso — Recepção' },
+  { src: '/images/common/fachada.jpg', alt: 'Hotel e Restaurante Paraíso — Fachada' },
+  { src: '/images/common/recepcao-2.jpg', alt: 'Hotel e Restaurante Paraíso — Lobby' },
+  { src: '/images/common/fachada-2.jpg', alt: 'Hotel e Restaurante Paraíso — Acesso' },
+  { src: '/images/common/fachada-3.jpg', alt: 'Hotel e Restaurante Paraíso — Entrada' },
+];
+
 export function Hero() {
   const t = useTranslations('hero');
+  const [current, setCurrent] = useState(0);
+
+  const next = useCallback(() => {
+    setCurrent((prev) => (prev + 1) % heroImages.length);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(next, 5000);
+    return () => clearInterval(timer);
+  }, [next]);
+
   return (
     <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/images/common/recepcao.jpg"
-          alt="Hotel e Restaurante Paraíso — Recepção"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-black/60 via-brand-black/40 to-brand-black/80" />
-      </div>
+      {/* Background images with crossfade */}
+      {heroImages.map((img, i) => (
+        <div
+          key={img.src}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            i === current ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <Image
+            src={img.src}
+            alt={img.alt}
+            fill
+            className="object-cover"
+            priority={i === 0}
+            sizes="100vw"
+          />
+        </div>
+      ))}
+      <div className="absolute inset-0 bg-gradient-to-b from-brand-black/60 via-brand-black/40 to-brand-black/80" />
 
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-brand-white">
@@ -45,6 +72,21 @@ export function Hero() {
         >
           {t('cta')}
         </a>
+      </div>
+
+      {/* Slide indicators */}
+      <div className="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+        {heroImages.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setCurrent(i)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === current ? 'w-8 bg-brand-gold' : 'w-1.5 bg-white/50'
+            }`}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
       </div>
 
       {/* Scroll indicator */}

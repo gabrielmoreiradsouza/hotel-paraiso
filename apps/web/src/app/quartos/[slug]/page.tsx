@@ -39,6 +39,7 @@ const roomsData: Record<
       '/images/rooms/standard-2.jpg',
       '/images/rooms/standard-bath.jpg',
       '/images/rooms/standard-triplo.jpg',
+      '/images/rooms/standard-triplo-2.jpg',
       '/images/rooms/standard-pet.jpg',
     ],
   },
@@ -68,6 +69,8 @@ const roomsData: Record<
       '/images/rooms/luxo-bath.jpg',
       '/images/rooms/luxo-triplo.jpg',
       '/images/rooms/luxo-casal.jpg',
+      '/images/rooms/luxo-casal-3.jpg',
+      '/images/rooms/luxo-triplo-3.jpg',
     ],
   },
   master: {
@@ -97,7 +100,9 @@ const roomsData: Record<
       '/images/rooms/master-3.jpg',
       '/images/rooms/master-bath.jpg',
       '/images/rooms/master-hidro.jpg',
+      '/images/rooms/master-hidro-2.jpg',
       '/images/rooms/master-suite.jpg',
+      '/images/rooms/master-casal.jpg',
     ],
   },
 };
