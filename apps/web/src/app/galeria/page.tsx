@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { trackGalleryOpened } from '@hotel-paraiso/tracking';
 
 const photos = [
   // Rooms — Master (8)
@@ -119,6 +120,14 @@ export default function GaleriaPage() {
   const t = useTranslations('gallery');
   const [activeCategory, setActiveCategory] = useState('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const tracked = useRef(false);
+
+  useEffect(() => {
+    if (!tracked.current) {
+      trackGalleryOpened();
+      tracked.current = true;
+    }
+  }, []);
 
   const categories = [
     { id: 'all', label: t('all') },

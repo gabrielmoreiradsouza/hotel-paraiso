@@ -95,6 +95,7 @@ export async function POST(request: Request) {
       rateplanId?: number;
       adults?: number;
       kids?: number;
+      totalPrice?: number;
     };
 
     if (!guestName || !guestEmail || !checkin || !checkout) {
@@ -167,7 +168,7 @@ export async function POST(request: Request) {
         const ip = request.headers.get('x-forwarded-for');
         trackServerPurchase({
           bookingId: bid,
-          value: 0,
+          value: body.totalPrice ?? 0,
           guestEmail,
           ...(guestPhone != null && { guestPhone }),
           ...(ua != null && { userAgent: ua }),

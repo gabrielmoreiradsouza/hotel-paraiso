@@ -78,6 +78,7 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
     const fbq = (window as unknown as Record<string, (...args: unknown[]) => void>)['fbq'];
     const metaEventMap: Record<string, string> = {
       search_performed: 'Search',
+      view_item: 'ViewContent',
       room_selected: 'ViewContent',
       checkout_started: 'InitiateCheckout',
       reservation_created: 'Purchase',
@@ -136,6 +137,10 @@ export function trackReservationCreated(params: {
   nights: number;
 }) {
   track('reservation_created', { ...params, category: 'macro', currency: 'BRL' });
+}
+
+export function trackViewItem(params: { room_slug: string; room_name: string; price: number }) {
+  track('view_item', { ...params, category: 'macro', currency: 'BRL' });
 }
 
 export function trackGalleryOpened() {

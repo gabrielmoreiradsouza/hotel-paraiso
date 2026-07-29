@@ -205,6 +205,7 @@ function BookingContent() {
           rateplanId: selectedRoom.rateplan_id,
           adults: guests,
           kids: 0,
+          totalPrice: selectedRoom.price,
         }),
       });
 

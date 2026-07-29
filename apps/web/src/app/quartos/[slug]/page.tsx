@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { RoomViewTracker } from './tracker';
 
 const roomsData: Record<
   string,
@@ -130,8 +131,11 @@ export default async function RoomPage({ params }: Props) {
   const room = roomsData[slug];
   if (!room) notFound();
 
+  const priceNum = parseInt(room.price.replace(/\D/g, ''), 10) || 0;
+
   return (
     <main className="pt-16">
+      <RoomViewTracker slug={slug} name={room.name} price={priceNum} />
       {/* Photo grid — padrão Airbnb */}
       <section className="mx-auto max-w-6xl px-4 py-8">
         <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:grid-rows-2">
