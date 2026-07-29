@@ -53,9 +53,66 @@ const photos = [
     alt: 'Carregador veicular elétrico',
     category: 'common',
   },
-  // Restaurante (placeholder — aguardando fotos do cliente)
+  // Restaurante & Eventos
   { src: '/images/common/restaurante.jpg', alt: 'Restaurante — Salão', category: 'restaurant' },
+  { src: '/images/restaurant/salao-cafe-2.jpg', alt: 'Salão de café', category: 'restaurant' },
+  {
+    src: '/images/restaurant/salao-cafe-3.jpg',
+    alt: 'Salão de café — Vista',
+    category: 'restaurant',
+  },
+  { src: '/images/restaurant/prato-1.jpg', alt: 'Prato — Bife com batata', category: 'restaurant' },
+  {
+    src: '/images/restaurant/prato-2.jpg',
+    alt: 'Prato — Gastronomia mineira',
+    category: 'restaurant',
+  },
   { src: '/images/common/hero.jpg', alt: 'Gastronomia', category: 'restaurant' },
+  {
+    src: '/images/restaurant/pista-foco-1.jpg',
+    alt: 'Pista de eventos — Panorâmica',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-foco-2.jpg',
+    alt: 'Pista de eventos — Detalhe',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-foco-3.jpg',
+    alt: 'Pista de eventos — Estrutura',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-foco-4.jpg',
+    alt: 'Pista de eventos — Vista lateral',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-2.jpg',
+    alt: 'Pista de eventos — Ambiente',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-4.jpg',
+    alt: 'Pista de eventos — Espaço',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-7.jpg',
+    alt: 'Pista de eventos — Noturno',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-9.jpg',
+    alt: 'Pista de eventos — Ampla',
+    category: 'restaurant',
+  },
+  {
+    src: '/images/restaurant/pista-10.jpg',
+    alt: 'Pista de eventos — Cobertura',
+    category: 'restaurant',
+  },
 ];
 
 export default function GaleriaPage() {

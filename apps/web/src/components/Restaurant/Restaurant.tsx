@@ -11,15 +11,37 @@ export function Restaurant() {
     <section id="restaurante" className="bg-brand-white py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
-          {/* Image */}
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <Image
-              src="/images/common/restaurante.jpg"
-              alt="Restaurante Hotel Paraíso"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+          {/* Images */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-lg col-span-1">
+              <Image
+                src="/images/restaurant/prato-1.jpg"
+                alt="Gastronomia — Bife com batata"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 50vw, 25vw"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                <Image
+                  src="/images/common/restaurante.jpg"
+                  alt="Restaurante — Salão"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                />
+              </div>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                <Image
+                  src="/images/restaurant/salao-cafe-2.jpg"
+                  alt="Salão de café da manhã"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Content */}
