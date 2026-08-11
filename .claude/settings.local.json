@@ -37,7 +37,6 @@
     "deny": [
       "Bash(rm -rf /:*)",
       "Bash(sudo:*)",
-      "Bash(:(){ :|:& };:)",
       "Write(.env)",
       "Write(.env.local)",
       "Write(.env.production)"
