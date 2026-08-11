@@ -21,6 +21,10 @@
 - **Google Calendar** — leitura para contexto de prazos
 - **GitHub** (via Claude Code) — branches, commits, PRs, issues
 
+### Plugins
+
+- **Codex** (via Claude Code plugin) — revisão de código, diagnóstico de bugs, second opinion arquitetural. Comandos: `/codex-review`, `/codex-rescue`, `/codex:setup`
+
 ### APIs
 
 - **Artax API** — todos os endpoints documentados em `/pms-api/v1/`

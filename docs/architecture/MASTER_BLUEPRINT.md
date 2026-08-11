@@ -12,21 +12,22 @@ O motor de reservas é o **primeiro produto** desta plataforma. Outros virão (�
 
 ## 2. Componentes do sistema
 
-| Componente          | Tecnologia                     | Responsabilidade                                         |
-| ------------------- | ------------------------------ | -------------------------------------------------------- |
-| Frontend público    | Next.js 15                     | Site institucional + motor de reservas + tracking client |
-| API Gateway         | Fastify 5                      | Validação, rate limit, auth, roteamento                  |
-| Serviços de domínio | TypeScript puro                | Lógica de negócio testável                               |
-| ArtaxClient         | TypeScript + axios             | Wrapper Artax com circuit breaker, retry, rate limit     |
-| Banco operacional   | PostgreSQL 16                  | Espelho Artax + jornada + sistema                        |
-| Cache e filas       | Redis 7 + BullMQ               | Jobs assíncronos, cache, sessões                         |
-| CMS                 | Payload 3                      | Conteúdo rico bilíngue                                   |
-| Admin               | Next.js 15 + NextAuth 5        | Painel operacional                                       |
-| Workers             | BullMQ                         | Sync, webhooks, reconciliação, anomalias                 |
-| Tracking server     | Custom + GA4 MP + Meta CAPI    | Eventos server-side                                      |
-| Observabilidade     | Sentry + Grafana + Loki        | Logs, métricas, traces, alertas                          |
-| Comunicação         | Resend + WhatsApp Cloud        | Emails e notificações                                    |
-| Infra               | Easypanel + Caddy + Cloudflare | Deploy, SSL, CDN, WAF                                    |
+| Componente          | Tecnologia                          | Responsabilidade                                         |
+| ------------------- | ----------------------------------- | -------------------------------------------------------- |
+| Frontend público    | Next.js 15                          | Site institucional + motor de reservas + tracking client |
+| API Gateway         | Fastify 5                           | Validação, rate limit, auth, roteamento                  |
+| Serviços de domínio | TypeScript puro                     | Lógica de negócio testável                               |
+| ArtaxClient         | TypeScript + axios                  | Wrapper Artax com circuit breaker, retry, rate limit     |
+| Banco operacional   | PostgreSQL 16                       | Espelho Artax + jornada + sistema                        |
+| Cache e filas       | Redis 7 + BullMQ                    | Jobs assíncronos, cache, sessões                         |
+| CMS                 | Payload 3                           | Conteúdo rico bilíngue                                   |
+| Admin               | Next.js 15 + NextAuth 5             | Painel operacional                                       |
+| Workers             | BullMQ                              | Sync, webhooks, reconciliação, anomalias                 |
+| Tracking server     | Custom + GA4 MP + Meta CAPI         | Eventos server-side                                      |
+| Observabilidade     | Sentry + Grafana + Loki             | Logs, métricas, traces, alertas                          |
+| Dual-AI Review      | Codex (OpenAI) + Claude (Anthropic) | Revisão cruzada, diagnóstico, second opinion             |
+| Comunicação         | Resend + WhatsApp Cloud             | Emails e notificações                                    |
+| Infra               | Easypanel + Caddy + Cloudflare      | Deploy, SSL, CDN, WAF                                    |
 
 ## 3. Arquitetura em camadas
 
@@ -88,6 +89,7 @@ Externos: Artax, Resend, WhatsApp, GA4, Ads, Meta
 - Toda regra defensiva tem **teste automatizado** em `docs/defensive-rules/`
 - CHANGELOG.md mantido por release
 - Revisão mensal de incidentes (mesmo solo)
+- **Dual-AI Review**: Claude implementa, Codex revisa (ou vice-versa) — `/codex-review` antes de PRs críticos
 
 ## 6. Status atual
 

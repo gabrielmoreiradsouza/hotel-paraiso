@@ -51,6 +51,16 @@ Plataforma digital integrada que aprende continuamente. Motor de reservas + trac
 3. Antes de decisão visual nova → consultar `REFERENCES.md`; se faltar, adicionar em `PENDING.md`
 4. Após resolver incidente → criar `INC-{n}.md` com root cause + defensive rule + test
 5. Antes de cada PR → executar `pnpm learn-check`
-6. Para Nível 4 (ver PERMISSIONS.md) → sempre confirmar com usuário
+6. Antes de PR crítico → executar `/codex-review` (dual-AI review)
+7. Quando travado em bug/diagnóstico → delegar ao `/codex-rescue`
+8. Para Nível 4 (ver PERMISSIONS.md) → sempre confirmar com usuário
+
+## Dual-AI Review (Codex + Claude):
+
+O projeto usa dois modelos de IA como revisores cruzados. Ver `docs/architecture/CODE_STANDARDS.md` seção "Dual-AI Review" para fluxo completo.
+
+- `/codex-review` — Codex revisa código implementado por Claude (bugs, segurança, performance)
+- `/codex-rescue` — Delega investigação/fix ao Codex quando Claude precisa de second opinion
+- `/codex:setup` — Verifica status do plugin Codex
 
 Para qualquer outra dúvida sobre o projeto, consulte primeiro o `MASTER_BLUEPRINT.md`.

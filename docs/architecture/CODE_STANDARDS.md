@@ -190,6 +190,26 @@ docs(adr): documentar escolha de Payload
 - CI verde obrigatório
 - Sem merge se há mudança em regra defensiva sem atualização do doc
 
+### Dual-AI Review (Claude + Codex)
+
+O projeto usa dois modelos de IA como revisores cruzados para maximizar assertividade:
+
+| Momento         | Comando            | O que faz                                                           |
+| --------------- | ------------------ | ------------------------------------------------------------------- |
+| Antes de commit | `pnpm learn-check` | Validação estática contra regras defensivas + code standards        |
+| Antes de PR     | `/codex-review`    | Codex revisa diff completo: bugs, segurança, performance, cobertura |
+| Quando travado  | `/codex-rescue`    | Delega diagnóstico/fix ao Codex como second opinion                 |
+| Após incidente  | `/new-incident`    | Gera INC + regra defensiva + teste (ambos modelos validam)          |
+
+**Fluxo recomendado para mudanças críticas:**
+
+1. Claude implementa
+2. `pnpm learn-check` — validação estática rápida
+3. `/codex-review` — revisão profunda por segundo modelo
+4. Corrigir issues encontrados
+5. `/run-tests` — suite completa
+6. Commit + PR
+
 ## Logging
 
 ```typescript

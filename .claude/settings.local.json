@@ -16,6 +16,7 @@
       "Bash(prettier:*)",
       "Bash(vitest:*)",
       "Bash(playwright:*)",
+      "Bash(codex:*)",
       "Bash(curl:*)",
       "Bash(jq:*)",
       "Bash(mkdir:*)",
