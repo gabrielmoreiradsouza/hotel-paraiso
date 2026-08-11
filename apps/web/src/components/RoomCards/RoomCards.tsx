@@ -5,32 +5,40 @@ import { useTranslations } from 'next-intl';
 
 const rooms = [
   {
+    slug: 'confort',
+    name: 'Confort',
+    description: 'Acomodação acessível com ventilador. Individual, duplo ou casal.',
+    price: 'A partir de R$ 130',
+    image: '/images/rooms/standard.jpg',
+    capacity: '1–2 adultos',
+    amenities: ['Wi-Fi', 'Ventilador', 'TV', 'Frigobar'],
+  },
+  {
     slug: 'standard',
     name: 'Standard',
-    description:
-      'Conforto essencial para uma estadia agradável. Ideal para viajantes corporativos.',
+    description: 'Conforto com ar condicionado. Individual, casal ou triplo.',
     price: 'A partir de R$ 180',
     image: '/images/rooms/standard.jpg',
-    capacity: '2 adultos',
+    capacity: '1–3 adultos',
     amenities: ['Wi-Fi', 'Ar condicionado', 'TV', 'Frigobar'],
   },
   {
     slug: 'luxo',
     name: 'Luxo',
-    description: 'Espaço amplo com acabamentos premium e vista privilegiada.',
+    description: 'Espaço amplo com acabamentos premium e ventilador de teto.',
     price: 'A partir de R$ 280',
     image: '/images/rooms/luxo.jpg',
-    capacity: '2 adultos + 1 criança',
-    amenities: ['Wi-Fi', 'Ar condicionado', 'TV 50"', 'Frigobar', 'Cofre'],
+    capacity: '2 adultos',
+    amenities: ['Wi-Fi', 'Ventilador', 'TV 50"', 'Frigobar'],
   },
   {
     slug: 'master',
     name: 'Suíte Master',
-    description: 'Nossa melhor acomodação. Hidromassagem, sala de estar e serviço exclusivo.',
+    description: 'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
     price: 'A partir de R$ 420',
     image: '/images/rooms/master.jpg',
-    capacity: '2 adultos + 2 crianças',
-    amenities: ['Wi-Fi', 'Ar condicionado', 'TV 55"', 'Hidromassagem', 'Sala de estar'],
+    capacity: '1–3 adultos',
+    amenities: ['Wi-Fi', 'Ar condicionado', 'TV 55"', 'Sala de estar'],
   },
 ];
 
@@ -47,7 +55,7 @@ export function RoomCards() {
           <p className="mt-4 text-beige-700">{t('subtitle')}</p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {rooms.map((room) => (
             <article
               key={room.slug}

@@ -17,13 +17,36 @@ const roomsData: Record<
     images: string[];
   }
 > = {
+  confort: {
+    name: 'Confort',
+    description: 'Acomodação acessível com ventilador para uma estadia confortável.',
+    longDescription:
+      'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponível em três opções: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e café da manhã incluso.',
+    price: 'R$ 130',
+    capacity: '1–2 adultos',
+    size: '15m²',
+    amenities: [
+      'Wi-Fi de alta velocidade',
+      'Ventilador de teto',
+      'TV LED 32"',
+      'Frigobar',
+      'Chuveiro quente',
+      'Toalhas e roupas de cama',
+      'Tomadas USB ao lado da cama',
+    ],
+    images: [
+      '/images/rooms/standard.jpg',
+      '/images/rooms/standard-2.jpg',
+      '/images/rooms/standard-bath.jpg',
+    ],
+  },
   standard: {
     name: 'Standard',
-    description: 'Tudo que o viajante corporativo precisa, sem pagar por extras.',
+    description: 'Conforto com ar condicionado para viajantes corporativos.',
     longDescription:
-      'Quarto funcional e bem equipado para quem precisa de uma base confortável em Ponte Nova. Cama de qualidade, Wi-Fi rápido para trabalho, ar-condicionado silencioso e mesa de trabalho. Café da manhã incluso — você sai direto para seus compromissos.',
+      'Quarto funcional e bem equipado com ar-condicionado para quem precisa de uma base confortável em Ponte Nova. Disponível como Suite Standard (individual ou casal) e Suite Triplo Standard (casal + 1 box solteiro ou 3 box solteiro). Wi-Fi rápido, mesa de trabalho e café da manhã incluso.',
     price: 'R$ 180',
-    capacity: '2 adultos',
+    capacity: '1–3 adultos',
     size: '18m²',
     amenities: [
       'Wi-Fi de alta velocidade',
@@ -48,16 +71,15 @@ const roomsData: Record<
     name: 'Luxo',
     description: 'Mais espaço, mais conforto. Para estadias que pedem algo a mais.',
     longDescription:
-      'Ambiente amplo com 25m² de acabamentos premium. TV 50", minibar abastecido, cofre digital e chuveiro com ducha dupla. O quarto Luxo é a escolha certa para quem quer mais conforto sem exagero — perfeito para casais ou estadias mais longas.',
+      'Ambiente amplo com 25m² de acabamentos premium. TV 50", minibar abastecido e chuveiro com ducha dupla. Ventilador de teto silencioso. Disponível como Suite Luxo individual ou casal (cama casal ou 2 box solteiro). O quarto Luxo é a escolha certa para quem quer mais conforto — perfeito para casais ou estadias mais longas.',
     price: 'R$ 280',
-    capacity: '2 adultos + 1 criança',
+    capacity: '2 adultos',
     size: '25m²',
     amenities: [
       'Wi-Fi de alta velocidade',
-      'Ar-condicionado split silencioso',
+      'Ventilador de teto silencioso',
       'TV LED 50"',
       'Minibar abastecido',
-      'Cofre digital',
       'Roupão e chinelos',
       'Chuveiro com ducha dupla',
       'Amenities premium',
@@ -78,18 +100,16 @@ const roomsData: Record<
     name: 'Suíte Master',
     description: 'Nossa melhor acomodação. Para quem não abre mão do melhor.',
     longDescription:
-      'A Suíte Master é para quem quer o máximo. São 35m² com hidromassagem privativa, sala de estar separada, TV 55" e room service. Perfeita para ocasiões especiais, lua de mel ou simplesmente para quem merece o melhor que Ponte Nova tem a oferecer.',
+      'A Suíte Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais ou simplesmente para quem merece o melhor que Ponte Nova tem a oferecer.',
     price: 'R$ 420',
-    capacity: '2 adultos + 2 crianças',
+    capacity: '1–3 adultos',
     size: '35m²',
     amenities: [
       'Wi-Fi de alta velocidade',
       'Ar-condicionado split silencioso',
       'TV LED 55"',
       'Minibar abastecido',
-      'Hidromassagem privativa',
       'Sala de estar separada',
-      'Cofre digital',
       'Roupão e chinelos',
       'Amenities premium',
       'Room service',
@@ -100,8 +120,6 @@ const roomsData: Record<
       '/images/rooms/master-2.jpg',
       '/images/rooms/master-3.jpg',
       '/images/rooms/master-bath.jpg',
-      '/images/rooms/master-hidro.jpg',
-      '/images/rooms/master-hidro-2.jpg',
       '/images/rooms/master-suite.jpg',
       '/images/rooms/master-casal.jpg',
     ],
@@ -200,6 +218,25 @@ export default async function RoomPage({ params }: Props) {
                 ))}
               </div>
             </div>
+
+            {/* Hydromassage upsell — only for Master */}
+            {slug === 'master' && (
+              <div className="mt-8 rounded-lg border-2 border-dashed border-brand-gold/40 bg-gold-50/50 p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">♨</span>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-brand-black">
+                      Hidromassagem — Upgrade disponível
+                    </h3>
+                    <p className="mt-1 text-sm text-beige-700">
+                      Adicione banheira de hidromassagem à sua estadia por{' '}
+                      <span className="font-semibold text-gold-700">R$ 120–150/noite</span>. Sujeito
+                      a disponibilidade (2 unidades). Solicite na reserva ou no check-in.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Booking card — sticky */}

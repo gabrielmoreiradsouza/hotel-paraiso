@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Hotel e Restaurante Paraíso — Ponte Nova, MG',
     description:
-      'Conforto e sofisticação em Ponte Nova, MG. Quartos Standard, Luxo e Suíte Master. Reserve agora.',
+      'Conforto e sofisticação em Ponte Nova, MG. Quartos Confort, Standard, Luxo e Suíte Master. Reserve agora.',
     url: 'https://hotelparaiso.moreirads.cloud',
     siteName: 'Hotel Paraíso',
     locale: 'pt_BR',
@@ -75,7 +75,7 @@ const jsonLd = {
   ],
   checkinTime: '14:00',
   checkoutTime: '12:00',
-  priceRange: 'R$ 180 - R$ 420',
+  priceRange: 'R$ 130 - R$ 420',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

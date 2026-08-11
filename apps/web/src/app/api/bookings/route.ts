@@ -39,10 +39,13 @@ function sendConfirmationEmail(
   guestEmail: string,
   checkin: string,
   checkout: string,
-  bookingId: string
+  bookingId: string,
+  notes?: string
 ) {
   const resendKey = process.env['RESEND_API_KEY'];
   if (!resendKey || !guestEmail) return;
+
+  const notesHtml = notes ? `<p><strong>Observação:</strong> ${escapeHtml(notes)}</p>` : '';
 
   fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -60,6 +63,7 @@ function sendConfirmationEmail(
         <p><strong>Protocolo:</strong> ${escapeHtml(bookingId)}</p>
         <p><strong>Check-in:</strong> ${escapeHtml(checkin)}</p>
         <p><strong>Check-out:</strong> ${escapeHtml(checkout)}</p>
+        ${notesHtml}
         <p>Para dúvidas, ligue (31) 3881-8049 ou fale pelo WhatsApp.</p>
         <p>Atenciosamente,<br>Hotel e Restaurante Paraíso</p>
       `,
@@ -85,6 +89,7 @@ export async function POST(request: Request) {
       rateplanId,
       adults,
       kids,
+      notes: rawNotes,
     } = body as {
       guestName: string;
       guestEmail: string;
@@ -96,7 +101,11 @@ export async function POST(request: Request) {
       adults?: number;
       kids?: number;
       totalPrice?: number;
+      notes?: unknown;
     };
+
+    // Sanitise notes: must be a string, max 500 chars, or discard
+    const notes = typeof rawNotes === 'string' ? rawNotes.slice(0, 500) : undefined;
 
     if (!guestName || !guestEmail || !checkin || !checkout) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 422 });
@@ -135,7 +144,9 @@ export async function POST(request: Request) {
         arrival_date: checkin,
         departure_date: checkout,
         rateplan_id: rateplanId,
-        comment: 'Reserva via site hotelparaiso.moreirads.cloud',
+        comment: notes
+          ? `Reserva via site hotelparaiso.moreirads.cloud | ${notes}`
+          : 'Reserva via site hotelparaiso.moreirads.cloud',
         guest: {
           first_name: firstName,
           last_name: lastName,
@@ -161,7 +172,7 @@ export async function POST(request: Request) {
       if (artaxResponse.ok) {
         const artaxData = (await artaxResponse.json()) as { booking_id: number };
         const bid = String(artaxData.booking_id);
-        sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid);
+        sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid, notes);
 
         // Server-side tracking — GA4 MP + Meta CAPI (fire and forget)
         const ua = request.headers.get('user-agent');
@@ -191,7 +202,7 @@ export async function POST(request: Request) {
 
     // Fallback: accept locally + send email (only when Artax not configured)
     const localId = `LOCAL-${Date.now()}`;
-    sendConfirmationEmail(guestName, guestEmail, checkin, checkout, localId);
+    sendConfirmationEmail(guestName, guestEmail, checkin, checkout, localId, notes);
     return NextResponse.json({
       success: true,
       booking_id: localId,

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const highlights = [
   { icon: UtensilsCrossed, label: 'Restaurante próprio' },
-  { icon: Car, label: 'Estacionamento grátis' },
+  { icon: Car, label: 'Estacionamento' },
   { icon: Wifi, label: 'Wi-Fi rápido' },
   { icon: Zap, label: 'Carregador veicular' },
   { icon: PawPrint, label: 'Pet friendly' },
@@ -55,7 +55,7 @@ export default async function SobrePage() {
           <div className="flex flex-col justify-center lg:col-span-2">
             <div className="grid grid-cols-2 gap-6">
               {[
-                { value: '3', label: t('roomCategories') },
+                { value: '4', label: t('roomCategories') },
                 { value: '24h', label: t('receptionLabel') },
                 { value: '150km', label: t('fromBH') },
                 { value: '\u2605', label: t('gastronomy') },

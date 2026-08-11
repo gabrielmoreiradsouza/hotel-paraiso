@@ -8,13 +8,13 @@ import { trackGalleryOpened } from '@hotel-paraiso/tracking';
 const photos = [
   // Rooms — Master (8)
   { src: '/images/rooms/master.jpg', alt: 'Suíte Master', category: 'rooms' },
-  { src: '/images/rooms/master-2.jpg', alt: 'Suíte Master — Hidromassagem', category: 'rooms' },
+  { src: '/images/rooms/master-2.jpg', alt: 'Suíte Master — Detalhe', category: 'rooms' },
   { src: '/images/rooms/master-3.jpg', alt: 'Suíte Master — Vista', category: 'rooms' },
   { src: '/images/rooms/master-bath.jpg', alt: 'Suíte Master — Banheiro', category: 'rooms' },
-  { src: '/images/rooms/master-hidro.jpg', alt: 'Suíte Master — Banheira', category: 'rooms' },
+  { src: '/images/rooms/master-hidro.jpg', alt: 'Hidromassagem — Opcional', category: 'rooms' },
   {
     src: '/images/rooms/master-hidro-2.jpg',
-    alt: 'Suíte Master — Hidro detalhe',
+    alt: 'Hidromassagem — Detalhe (opcional)',
     category: 'rooms',
   },
   { src: '/images/rooms/master-suite.jpg', alt: 'Suíte Master — Sala de estar', category: 'rooms' },
@@ -27,8 +27,8 @@ const photos = [
   { src: '/images/rooms/luxo-casal.jpg', alt: 'Quarto Luxo — Casal', category: 'rooms' },
   { src: '/images/rooms/luxo-casal-3.jpg', alt: 'Quarto Luxo — Casal vista', category: 'rooms' },
   { src: '/images/rooms/luxo-triplo-3.jpg', alt: 'Quarto Luxo — Triplo amplo', category: 'rooms' },
-  // Rooms — Standard (6)
-  { src: '/images/rooms/standard.jpg', alt: 'Quarto Standard', category: 'rooms' },
+  // Rooms — Confort & Standard (6)
+  { src: '/images/rooms/standard.jpg', alt: 'Quarto Confort / Standard', category: 'rooms' },
   { src: '/images/rooms/standard-2.jpg', alt: 'Quarto Standard — Detalhe', category: 'rooms' },
   { src: '/images/rooms/standard-bath.jpg', alt: 'Quarto Standard — Banheiro', category: 'rooms' },
   { src: '/images/rooms/standard-triplo.jpg', alt: 'Quarto Standard — Família', category: 'rooms' },
@@ -47,7 +47,7 @@ const photos = [
   { src: '/images/common/fachada-2.jpg', alt: 'Fachada — Entrada', category: 'common' },
   { src: '/images/common/recepcao.jpg', alt: 'Recepção', category: 'common' },
   { src: '/images/common/recepcao-2.jpg', alt: 'Recepção — Lobby', category: 'common' },
-  { src: '/images/common/salao-cafe.jpg', alt: 'Salão de café da manhã', category: 'common' },
+  { src: '/images/common/salao-cafe.jpg', alt: 'Café da manhã — Salão', category: 'restaurant' },
   { src: '/images/common/pista-eventos.jpg', alt: 'Pista de eventos', category: 'common' },
   {
     src: '/images/common/carregador-veicular.jpg',

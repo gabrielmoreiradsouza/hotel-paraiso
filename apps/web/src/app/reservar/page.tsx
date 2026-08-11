@@ -53,6 +53,7 @@ function BookingContent() {
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [wantsHydro, setWantsHydro] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
 
@@ -69,12 +70,14 @@ function BookingContent() {
         guestName?: string;
         guestEmail?: string;
         guestPhone?: string;
+        wantsHydro?: boolean;
       };
       if (state.step && state.step !== 'confirmed') setStep(state.step);
       if (state.selectedRoom) setSelectedRoom(state.selectedRoom);
       if (state.guestName) setGuestName(state.guestName);
       if (state.guestEmail) setGuestEmail(state.guestEmail);
       if (state.guestPhone) setGuestPhone(state.guestPhone);
+      if (state.wantsHydro) setWantsHydro(state.wantsHydro);
     } catch {
       // ignore corrupt data
     }
@@ -88,6 +91,7 @@ function BookingContent() {
       guestName: string;
       guestEmail: string;
       guestPhone: string;
+      wantsHydro: boolean;
     }>
   ) {
     try {
@@ -99,6 +103,7 @@ function BookingContent() {
           guestName: overrides?.guestName ?? guestName,
           guestEmail: overrides?.guestEmail ?? guestEmail,
           guestPhone: overrides?.guestPhone ?? guestPhone,
+          wantsHydro: overrides?.wantsHydro ?? wantsHydro,
         })
       );
     } catch {
@@ -181,8 +186,9 @@ function BookingContent() {
       nights,
     });
     setSelectedRoom(room);
+    setWantsHydro(false);
     setStep('details');
-    saveBookingState({ step: 'details', selectedRoom: room });
+    saveBookingState({ step: 'details', selectedRoom: room, wantsHydro: false });
     window.scrollTo(0, 0);
   }
 
@@ -206,6 +212,7 @@ function BookingContent() {
           adults: guests,
           kids: 0,
           totalPrice: selectedRoom.price,
+          ...(wantsHydro && { notes: 'Solicita hidromassagem (sujeito a disponibilidade)' }),
         }),
       });
 
@@ -268,6 +275,12 @@ function BookingContent() {
                 <span>Hóspedes</span>
                 <span className="font-medium">{guests}</span>
               </div>
+              {wantsHydro && (
+                <div className="flex justify-between text-gold-700">
+                  <span>Hidromassagem</span>
+                  <span className="font-medium">Solicitada (sujeito a disp.)</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-beige-300 pt-2">
                 <span className="font-bold">Total</span>
                 <span className="font-display text-lg font-bold text-gold-700">
@@ -372,6 +385,33 @@ function BookingContent() {
                   />
                 </div>
               </div>
+
+              {/* Hydromassage upsell — only for Master rooms */}
+              {selectedRoom && selectedRoom.name.toLowerCase().includes('master') && (
+                <div className="mt-6 rounded-lg border-2 border-dashed border-brand-gold/40 bg-gold-50/50 p-4">
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={wantsHydro}
+                      onChange={(e) => {
+                        setWantsHydro(e.target.checked);
+                        saveBookingState({ wantsHydro: e.target.checked });
+                      }}
+                      className="mt-1 h-4 w-4 rounded border-beige-300 text-brand-gold accent-brand-gold"
+                    />
+                    <div>
+                      <span className="font-semibold text-brand-black">
+                        Adicionar hidromassagem
+                      </span>
+                      <p className="mt-0.5 text-xs text-beige-600">
+                        R$ 120–150/noite extra. Sujeito a disponibilidade (2 unidades). O hotel
+                        confirmará por e-mail.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              )}
+
               {error && (
                 <div className="mt-6 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
@@ -417,6 +457,11 @@ function BookingContent() {
                   {guests} hóspede{guests !== 1 ? 's' : ''}
                 </div>
               </div>
+              {wantsHydro && (
+                <div className="mt-2 text-xs text-gold-700">
+                  + Hidromassagem solicitada (R$ 120–150/noite)
+                </div>
+              )}
               <div className="mt-4 border-t border-beige-300 pt-4">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
