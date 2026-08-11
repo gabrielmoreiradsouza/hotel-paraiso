@@ -3,6 +3,8 @@ import { Playfair_Display, Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import './globals.css';
+
+export const dynamic = 'force-dynamic';
 import { Header } from '@/components/Header/Header';
 import { Analytics } from '@/components/Analytics/Analytics';
 import { WhatsAppButton } from '@/components/WhatsAppButton/WhatsAppButton';

@@ -1,8 +1,11 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+
 import {
   trackRoomSelected,
   trackCheckoutStarted,
@@ -34,9 +37,9 @@ interface AvailableRoom {
 
 function BookingContent() {
   const searchParams = useSearchParams();
-  const checkinParam = searchParams.get('checkin') ?? '';
-  const checkoutParam = searchParams.get('checkout') ?? '';
-  const guestsParam = searchParams.get('guests') ?? '2';
+  const checkinParam = searchParams?.get('checkin') ?? '';
+  const checkoutParam = searchParams?.get('checkout') ?? '';
+  const guestsParam = searchParams?.get('guests') ?? '2';
 
   const [checkin, setCheckin] = useState(checkinParam);
   const [checkout, setCheckout] = useState(checkoutParam);
