@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { RoomViewTracker } from './tracker';
+import { getRoom, getRoomSlugs, getMediaUrl, type CmsRoom } from '@/lib/cms';
 
-const roomsData: Record<
+const fallbackRooms: Record<
   string,
   {
     name: string;
@@ -126,17 +127,56 @@ const roomsData: Record<
   },
 };
 
+function cmsToRoom(cms: CmsRoom) {
+  const images =
+    cms.gallery
+      ?.map((g) => getMediaUrl(typeof g.image === 'number' ? undefined : g.image))
+      .filter(Boolean) ?? [];
+  const featuredUrl = getMediaUrl(
+    typeof cms.featuredImage === 'number' ? undefined : cms.featuredImage
+  );
+  if (featuredUrl && !images.includes(featuredUrl)) images.unshift(featuredUrl);
+  return {
+    name: cms.name,
+    description: cms.shortDescription ?? '',
+    longDescription: cms.longDescription ?? '',
+    price: cms.startingPrice?.replace('A partir de ', '') ?? '',
+    capacity: cms.capacityLabel ?? '',
+    size: cms.size ? `${cms.size}m²` : '',
+    amenities: cms.amenities?.map((a) => a.name) ?? [],
+    images: images.length > 0 ? images : ['/images/rooms/standard.jpg'],
+  };
+}
+
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  return Object.keys(roomsData).map((slug) => ({ slug }));
+  try {
+    const slugs = await getRoomSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return Object.keys(fallbackRooms).map((slug) => ({ slug }));
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const room = roomsData[slug];
+
+  try {
+    const cmsRoom = await getRoom(slug);
+    if (cmsRoom) {
+      return {
+        title: `${cmsRoom.seo?.title ?? cmsRoom.name} — Hotel Paraíso`,
+        description: cmsRoom.seo?.description ?? cmsRoom.shortDescription ?? '',
+      };
+    }
+  } catch {
+    // CMS unavailable — fall through to fallback
+  }
+
+  const room = fallbackRooms[slug];
   if (!room) return {};
   return {
     title: `${room.name} — Hotel Paraíso`,
@@ -146,7 +186,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function RoomPage({ params }: Props) {
   const { slug } = await params;
-  const room = roomsData[slug];
+
+  let room:
+    | {
+        name: string;
+        description: string;
+        longDescription: string;
+        price: string;
+        capacity: string;
+        size: string;
+        amenities: string[];
+        images: string[];
+      }
+    | undefined;
+
+  try {
+    const cmsRoom = await getRoom(slug);
+    if (cmsRoom) {
+      room = cmsToRoom(cmsRoom);
+    }
+  } catch {
+    // CMS unavailable — fall through to fallback
+  }
+
+  if (!room) {
+    room = fallbackRooms[slug];
+  }
+
   if (!room) notFound();
 
   const priceNum = parseInt(room.price.replace(/\D/g, ''), 10) || 0;
@@ -166,6 +232,7 @@ export default async function RoomPage({ params }: Props) {
               className="object-cover"
               priority
               sizes="(max-width: 768px) 100vw, 50vw"
+              unoptimized={room.images[0]?.startsWith('http') ?? false}
             />
           </div>
           {/* Secondary photos */}
@@ -182,6 +249,7 @@ export default async function RoomPage({ params }: Props) {
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                unoptimized={img.startsWith('http')}
               />
             </div>
           ))}

@@ -3,13 +3,13 @@ import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import sharp from 'sharp';
 
-import { Rooms } from './collections/Rooms.js';
-import { Experiences } from './collections/Experiences.js';
-import { Gallery } from './collections/Gallery.js';
-import { Pages } from './collections/Pages.js';
-import { BlogPosts } from './collections/BlogPosts.js';
-import { Media } from './collections/Media.js';
-import { Settings } from './collections/Settings.js';
+import { Rooms } from './collections/Rooms';
+import { Experiences } from './collections/Experiences';
+import { Gallery } from './collections/Gallery';
+import { Pages } from './collections/Pages';
+import { BlogPosts } from './collections/BlogPosts';
+import { Media } from './collections/Media';
+import { Settings } from './collections/Settings';
 
 export default buildConfig({
   admin: {

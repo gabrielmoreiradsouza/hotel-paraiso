@@ -1,3 +1,5 @@
+/* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
+import config from '@payload-config';
 import {
   REST_DELETE,
   REST_GET,
@@ -6,7 +8,6 @@ import {
   REST_POST,
   REST_PUT,
 } from '@payloadcms/next/routes';
-import config from '../../../../payload.config.js';
 
 export const GET = REST_GET(config);
 export const POST = REST_POST(config);

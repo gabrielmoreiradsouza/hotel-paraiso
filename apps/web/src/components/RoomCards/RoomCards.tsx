@@ -1,9 +1,8 @@
-'use client';
-
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import { getRooms, getMediaUrl } from '@/lib/cms';
 
-const rooms = [
+const fallbackRooms = [
   {
     slug: 'confort',
     name: 'Confort',
@@ -42,8 +41,28 @@ const rooms = [
   },
 ];
 
-export function RoomCards() {
-  const t = useTranslations('rooms');
+export async function RoomCards() {
+  const t = await getTranslations('rooms');
+
+  let rooms = fallbackRooms;
+  try {
+    const cmsRooms = await getRooms();
+    if (cmsRooms.length > 0) {
+      rooms = cmsRooms.map((r) => ({
+        slug: r.slug,
+        name: r.name,
+        description: r.shortDescription ?? '',
+        price: r.startingPrice ?? '',
+        image:
+          getMediaUrl(typeof r.featuredImage === 'number' ? undefined : r.featuredImage) ||
+          '/images/rooms/standard.jpg',
+        capacity: r.capacityLabel ?? '',
+        amenities: (r.amenities?.map((a) => a.name) ?? []).slice(0, 4),
+      }));
+    }
+  } catch {
+    // CMS unavailable — use fallbackRooms
+  }
 
   return (
     <section id="quartos" className="bg-brand-white py-16 sm:py-24">
@@ -69,6 +88,7 @@ export function RoomCards() {
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  unoptimized={room.image.startsWith('http')}
                 />
               </div>
 

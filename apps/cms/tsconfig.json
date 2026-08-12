@@ -6,12 +6,20 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@payload-config": ["./src/payload.config.ts"]
     },
     "outDir": "dist",
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "allowJs": true,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src", "**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src", ".next/types/**/*.ts"],
   "exclude": ["node_modules", ".next"]
 }

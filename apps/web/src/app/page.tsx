@@ -8,7 +8,7 @@ import { HomeCta } from '@/components/HomeCta/HomeCta';
 import { FAQ } from '@/components/FAQ/FAQ';
 import { Restaurant } from '@/components/Restaurant/Restaurant';
 
-export default function Home() {
+export default async function Home() {
   return (
     <>
       <Hero />
