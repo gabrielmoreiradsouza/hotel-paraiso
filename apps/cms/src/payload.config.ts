@@ -10,6 +10,7 @@ import { Pages } from './collections/Pages';
 import { BlogPosts } from './collections/BlogPosts';
 import { Media } from './collections/Media';
 import { Settings } from './collections/Settings';
+import { migrations } from './migrations';
 
 export default buildConfig({
   admin: {
@@ -31,8 +32,11 @@ export default buildConfig({
         'postgresql://hotel_paraiso:hotel_paraiso_dev@localhost:5432/hotel_paraiso',
     },
     schemaName: 'cms',
-    push: true,
+    push: process.env['NODE_ENV'] !== 'production',
+    migrationDir: './src/migrations',
   }),
+
+  migrations,
 
   localization: {
     locales: [

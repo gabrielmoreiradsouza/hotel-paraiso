@@ -16,7 +16,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PAYLOAD_SECRET=build-time-secret
 ENV DATABASE_URL=postgres://hotel_paraiso:HpCms2026Prod!Secure@lp-mds_hp-postgres:5432/hotel_paraiso
-# v3 - force rebuild: push:true creates tables on startup
+# v4 - migrations instead of push:true
 RUN cd apps/cms && npx next build
 
 # Production — full copy, no standalone (Payload needs all node_modules)
@@ -40,4 +40,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 WORKDIR /app/apps/cms
-CMD ["npx", "next", "start", "-p", "3000"]
+CMD ["sh", "-c", "npx payload migrate && npx next start -p 3000"]
