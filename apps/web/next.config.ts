@@ -13,7 +13,11 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       { protocol: 'http' as const, hostname: 'localhost', port: '3003', pathname: '/api/media/**' },
-      { protocol: 'http' as const, hostname: '127.0.0.1', port: '3003', pathname: '/api/media/**' },
+      {
+        protocol: 'https' as const,
+        hostname: 'cms.hotelparaiso.moreirads.cloud',
+        pathname: '/api/media/**',
+      },
     ],
   },
   turbopack: {

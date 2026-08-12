@@ -16,6 +16,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-VW178YY861
 ENV NEXT_PUBLIC_META_PIXEL_ID=4310343772554446
+ARG CMS_URL=https://cms.hotelparaiso.moreirads.cloud
+ENV CMS_URL=${CMS_URL}
 RUN pnpm --filter @hotel-paraiso/web build
 
 # Production
