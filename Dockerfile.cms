@@ -9,7 +9,7 @@ COPY apps/cms/package.json ./apps/cms/
 COPY packages/ui/package.json ./packages/ui/
 RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/cms...
 
-# Build — uses --network host (Easypanel) to reach internal Postgres for schema push
+# Build
 FROM base AS builder
 COPY --from=deps /app/ ./
 COPY . .
@@ -18,24 +18,25 @@ ENV PAYLOAD_SECRET=build-time-secret
 ENV DATABASE_URL=postgres://hotel_paraiso:HpCms2026Prod!Secure@lp-mds_hp-postgres:5432/hotel_paraiso
 RUN cd apps/cms && npx next build
 
-# Production
+# Production — full copy, no standalone (Payload needs all node_modules)
 FROM node:22-alpine AS runner
+RUN corepack enable && corepack prepare pnpm@10.34.1 --activate
 WORKDIR /app
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 payload
+# Copy everything needed
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/cms ./apps/cms
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/standalone ./
-COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/static ./apps/cms/.next/static
-# Copy sharp binary for image processing
-RUN mkdir -p ./node_modules
-COPY --from=builder --chown=payload:nodejs /app/apps/cms/docker-entrypoint.sh ./docker-entrypoint.sh
-RUN mkdir -p ./apps/cms/public ./apps/cms/media && chown -R payload:nodejs ./apps/cms/public ./apps/cms/media
-RUN chmod +x ./docker-entrypoint.sh
+# Create media directory
+RUN mkdir -p /app/apps/cms/media
 
-USER payload
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-ENTRYPOINT ["./docker-entrypoint.sh"]
+WORKDIR /app/apps/cms
+CMD ["npx", "next", "start", "-p", "3000"]
