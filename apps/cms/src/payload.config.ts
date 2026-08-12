@@ -31,6 +31,7 @@ export default buildConfig({
         'postgresql://hotel_paraiso:hotel_paraiso_dev@localhost:5432/hotel_paraiso',
     },
     schemaName: 'cms',
+    push: true,
   }),
 
   localization: {
