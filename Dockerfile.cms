@@ -9,15 +9,13 @@ COPY apps/cms/package.json ./apps/cms/
 COPY packages/ui/package.json ./packages/ui/
 RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/cms...
 
-# Build — uses --network host so it can reach Easypanel's Postgres during build
+# Build — uses --network host (Easypanel default) to reach internal Postgres
 FROM base AS builder
 COPY --from=deps /app/ ./
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PAYLOAD_SECRET=build-time-secret-not-used-in-runtime
-# Easypanel injects DATABASE_URL as build-arg from env vars
-ARG DATABASE_URL
-ENV DATABASE_URL=${DATABASE_URL}
+ENV PAYLOAD_SECRET=build-time-secret
+ENV DATABASE_URL=postgres://hotel_paraiso:HpCms2026Prod!Secure@lp-mds_hp-postgres:5432/hotel_paraiso
 RUN cd apps/cms && npx next build
 
 # Production
