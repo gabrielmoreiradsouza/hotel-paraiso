@@ -16,7 +16,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PAYLOAD_SECRET=build-time-secret
 ENV DATABASE_URL=postgres://hotel_paraiso:HpCms2026Prod!Secure@lp-mds_hp-postgres:5432/hotel_paraiso
-# v2 - push:true in payload.config.ts
+# v3 - force rebuild: push:true creates tables on startup
 RUN cd apps/cms && npx next build
 
 # Production — full copy, no standalone (Payload needs all node_modules)
