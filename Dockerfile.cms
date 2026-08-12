@@ -40,4 +40,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 WORKDIR /app/apps/cms
-CMD ["sh", "-c", "npx payload migrate && npx next start -p 3000"]
+CMD ["sh", "-c", "node init-db.mjs && npx next start -p 3000"]
