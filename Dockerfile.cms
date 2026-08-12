@@ -28,6 +28,8 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 payload
 
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/standalone ./
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/static ./apps/cms/.next/static
+# Copy sharp binary for image processing
+RUN mkdir -p ./node_modules
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN mkdir -p ./apps/cms/public ./apps/cms/media && chown -R payload:nodejs ./apps/cms/public ./apps/cms/media
 RUN chmod +x ./docker-entrypoint.sh
