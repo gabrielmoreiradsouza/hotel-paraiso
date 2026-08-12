@@ -14,6 +14,11 @@ FROM base AS builder
 COPY --from=deps /app/ ./
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Payload needs these at build time but should NOT connect to DB
+ENV PAYLOAD_SECRET=build-time-secret-not-used-in-runtime
+# Use a dummy DB URL - Payload won't actually connect during build with SKIP_PUSH
+ENV DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+ENV SKIP_ENV_VALIDATION=1
 RUN pnpm --filter @hotel-paraiso/cms build
 
 # Production
@@ -27,7 +32,7 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 payload
 # Copy standalone server
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/standalone ./
 
-# Copy public assets
+# Copy public assets (may not exist)
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/public ./apps/cms/public 2>/dev/null || true
 
 # Copy static files
@@ -37,7 +42,7 @@ COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/static ./apps/cms
 RUN mkdir -p /app/apps/cms/media && chown payload:nodejs /app/apps/cms/media
 
 USER payload
-EXPOSE 3003
-ENV PORT=3003
+EXPOSE 3000
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "apps/cms/server.js"]
