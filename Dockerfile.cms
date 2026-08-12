@@ -9,7 +9,7 @@ COPY apps/cms/package.json ./apps/cms/
 COPY packages/ui/package.json ./packages/ui/
 RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/cms...
 
-# Build — uses --network host (Easypanel default) to reach internal Postgres
+# Build — uses --network host (Easypanel) to reach internal Postgres for schema push
 FROM base AS builder
 COPY --from=deps /app/ ./
 COPY . .
@@ -28,10 +28,12 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 payload
 
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/standalone ./
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/static ./apps/cms/.next/static
+COPY --from=builder --chown=payload:nodejs /app/apps/cms/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN mkdir -p ./apps/cms/public ./apps/cms/media && chown -R payload:nodejs ./apps/cms/public ./apps/cms/media
+RUN chmod +x ./docker-entrypoint.sh
 
 USER payload
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "apps/cms/server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
