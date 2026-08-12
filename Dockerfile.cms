@@ -9,17 +9,27 @@ COPY apps/cms/package.json ./apps/cms/
 COPY packages/ui/package.json ./packages/ui/
 RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/cms...
 
-# Build
+# Build with a temporary Postgres for schema push
 FROM base AS builder
+RUN apk add --no-cache postgresql16 postgresql16-contrib su-exec
+# Init and start Postgres
+RUN mkdir -p /run/postgresql /var/lib/postgresql/data && \
+    chown -R postgres:postgres /run/postgresql /var/lib/postgresql/data && \
+    su-exec postgres initdb -D /var/lib/postgresql/data && \
+    su-exec postgres pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/logfile start && \
+    su-exec postgres createuser -s root && \
+    createdb hotel_paraiso && \
+    echo "Postgres ready for build"
+
 COPY --from=deps /app/ ./
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Payload needs these at build time but should NOT connect to DB
 ENV PAYLOAD_SECRET=build-time-secret-not-used-in-runtime
-ENV DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
-ENV SKIP_ENV_VALIDATION=1
-# Build with --experimental-build-mode=compile to skip prerender (avoids DB connection)
-RUN cd apps/cms && npx next build --experimental-build-mode compile
+ENV DATABASE_URL=postgresql://root@localhost:5432/hotel_paraiso
+# Build with real Postgres available for schema push
+RUN su-exec postgres pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/logfile start && \
+    sleep 2 && \
+    cd apps/cms && npx next build
 
 # Production
 FROM node:22-alpine AS runner
@@ -32,14 +42,11 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 payload
 # Copy standalone server
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/standalone ./
 
-# Copy public assets (may not exist - ignore if missing)
-RUN mkdir -p ./apps/cms/public
-
 # Copy static files
 COPY --from=builder --chown=payload:nodejs /app/apps/cms/.next/static ./apps/cms/.next/static
 
-# Create media directory for uploads
-RUN mkdir -p /app/apps/cms/media && chown payload:nodejs /app/apps/cms/media
+# Create directories
+RUN mkdir -p ./apps/cms/public ./apps/cms/media && chown -R payload:nodejs ./apps/cms/public ./apps/cms/media
 
 USER payload
 EXPOSE 3000
