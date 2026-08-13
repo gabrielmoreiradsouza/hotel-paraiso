@@ -86,6 +86,67 @@ const fallbackPhotos: { src: string; alt: string; category: 'rooms' | 'common' |
       category: 'restaurant',
     },
     { src: '/images/common/hero.jpg', alt: 'Gastronomia', category: 'restaurant' },
+    // Café da manhã — Buffet
+    {
+      src: '/images/restaurant/cafe-buffet-1.jpg',
+      alt: 'Café da manhã — Frutas e frios',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-2.jpg',
+      alt: 'Café da manhã — Doces e bolos',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-3.jpg',
+      alt: 'Café da manhã — Broa com goiabada',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-brownie.jpg',
+      alt: 'Café da manhã — Brownie',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-pudim.jpg',
+      alt: 'Café da manhã — Pudim de leite',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-bolos.jpg',
+      alt: 'Café da manhã — Bolos de chocolate',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-4.jpg',
+      alt: 'Café da manhã — Buffet completo',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-5.jpg',
+      alt: 'Café da manhã — Pães e salgados',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-6.jpg',
+      alt: 'Café da manhã — Bebidas e pães',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-7.jpg',
+      alt: 'Café da manhã — Pão de queijo',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-8.jpg',
+      alt: 'Café da manhã — Vista geral',
+      category: 'restaurant',
+    },
+    {
+      src: '/images/restaurant/cafe-buffet-9.jpg',
+      alt: 'Café da manhã — Salão e xícaras',
+      category: 'restaurant',
+    },
     {
       src: '/images/restaurant/pista-foco-1.jpg',
       alt: 'Pista de eventos — Panorâmica',
