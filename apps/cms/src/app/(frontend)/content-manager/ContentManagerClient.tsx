@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import styles from './content-manager.module.css';
 
 /* ═══════════════════════════════════════════════════════
@@ -21,6 +21,8 @@ interface MediaItem {
   filesize?: number;
   width?: number;
   height?: number;
+  mimeType?: string;
+  createdAt?: string;
   sizes?: {
     thumbnail?: MediaSize;
     card?: MediaSize;
@@ -53,6 +55,7 @@ interface Room {
   capacity?: { adults?: number; children?: number };
   size?: number;
   displayOrder?: number;
+  seo?: { title?: string; description?: string };
 }
 
 interface GalleryItem {
@@ -61,6 +64,40 @@ interface GalleryItem {
   category: 'rooms' | 'common' | 'restaurant';
   image: MediaItem | number;
   order: number;
+}
+
+interface Experience {
+  id: number;
+  name: string;
+  slug: string;
+  status: 'draft' | 'published';
+  category?: 'gastronomy' | 'leisure' | 'wellness' | 'adventure' | 'cultural';
+  shortDescription?: string;
+  featuredImage?: MediaItem | number | null;
+  gallery?: RoomGalleryItem[];
+}
+
+interface SettingsData {
+  hotelName?: string;
+  tagline?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+    whatsapp?: string;
+    address?: string;
+  };
+  social?: {
+    instagram?: string;
+    facebook?: string;
+    tripadvisor?: string;
+    booking?: string;
+  };
+  policies?: {
+    checkinTime?: string;
+    checkoutTime?: string;
+  };
+  logo?: MediaItem | number | null;
+  favicon?: MediaItem | number | null;
 }
 
 interface UploadItem {
@@ -74,9 +111,13 @@ interface UploadItem {
   lowRes?: boolean;
 }
 
+type SectionType = 'rooms' | 'gallery' | 'experiences' | 'settings' | 'media';
+
 interface Props {
   initialRooms: Room[];
   initialGallery: GalleryItem[];
+  initialExperiences: Experience[];
+  initialSettings: SettingsData;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -147,22 +188,69 @@ function getAmenityIcon(icon?: string, name?: string): string {
   return '✓';
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  gastronomy: 'Gastronomia',
+  leisure: 'Lazer',
+  wellness: 'Bem-estar',
+  adventure: 'Aventura',
+  cultural: 'Cultural',
+};
+
+const CATEGORY_ICONS: Record<string, string> = {
+  gastronomy: '🍽️',
+  leisure: '🏖️',
+  wellness: '🧖',
+  adventure: '🏔️',
+  cultural: '🎭',
+};
+
 /* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════ */
-export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
+export function ContentManagerClient({
+  initialRooms,
+  initialGallery,
+  initialExperiences,
+  initialSettings,
+}: Props) {
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
   const [gallery, setGallery] = useState<GalleryItem[]>(initialGallery);
-  const [activeTab, setActiveTab] = useState<'rooms' | 'gallery'>('rooms');
+  const [experiences, setExperiences] = useState<Experience[]>(initialExperiences);
+  const [settings, setSettings] = useState<SettingsData>(initialSettings);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [mediaLoaded, setMediaLoaded] = useState(false);
+
+  const [activeSection, setActiveSection] = useState<SectionType>('rooms');
   const [expandedRoom, setExpandedRoom] = useState<number | null>(null);
+  const [expandedExperience, setExpandedExperience] = useState<number | null>(null);
   const [previewRoom, setPreviewRoom] = useState<number | null>(null);
   const [saving, setSaving] = useState<number | null>(null);
   const [savedId, setSavedId] = useState<number | null>(null);
+  const [savingGlobal, setSavingGlobal] = useState(false);
+  const [savedGlobal, setSavedGlobal] = useState(false);
+
+  // Room SEO collapsible
+  const [seoOpenRooms, setSeoOpenRooms] = useState<Record<number, boolean>>({});
+
+  // Room amenity input
+  const [amenityInput, setAmenityInput] = useState<Record<number, string>>({});
+
+  // Gallery inline edit
+  const [editingGalleryTitle, setEditingGalleryTitle] = useState<number | null>(null);
+  const [galleryTitleDraft, setGalleryTitleDraft] = useState('');
+
+  // Media alt edit
+  const [editingMediaAlt, setEditingMediaAlt] = useState<number | null>(null);
+  const [mediaAltDraft, setMediaAltDraft] = useState('');
 
   // Upload state
   const [dropzoneOpen, setDropzoneOpen] = useState(false);
   const [dropzoneTarget, setDropzoneTarget] = useState<
-    { type: 'room'; roomId: number } | { type: 'gallery'; category: string } | null
+    | { type: 'room'; roomId: number }
+    | { type: 'gallery'; category: string }
+    | { type: 'experience'; experienceId: number }
+    | { type: 'media' }
+    | null
   >(null);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [showUploadPanel, setShowUploadPanel] = useState(false);
@@ -172,8 +260,21 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
   const dragOverItem = useRef<number | null>(null);
 
   // Editing state
-  const [editFields, setEditFields] = useState<Record<number, Partial<Room>>>({});
+  const [editFields, setEditFields] = useState<Record<number, Record<string, unknown>>>({});
+  const [settingsEdits, setSettingsEdits] = useState<Record<string, string>>({});
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  /* ─── Load media on demand ─── */
+  useEffect(() => {
+    if (activeSection === 'media' && !mediaLoaded) {
+      fetch('/api/media?depth=0&locale=pt&sort=-createdAt&limit=100')
+        .then((res) => res.json())
+        .then((data) => {
+          setMediaItems(data.docs);
+          setMediaLoaded(true);
+        });
+    }
+  }, [activeSection, mediaLoaded]);
 
   /* ─── Data refresh ─── */
   const refreshRooms = useCallback(async () => {
@@ -186,6 +287,18 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
     const res = await fetch('/api/gallery?depth=2&locale=pt&sort=order&limit=200');
     const data = await res.json();
     setGallery(data.docs);
+  }, []);
+
+  const refreshExperiences = useCallback(async () => {
+    const res = await fetch('/api/experiences?depth=2&locale=pt&sort=name&limit=50');
+    const data = await res.json();
+    setExperiences(data.docs);
+  }, []);
+
+  const refreshMedia = useCallback(async () => {
+    const res = await fetch('/api/media?depth=0&locale=pt&sort=-createdAt&limit=100');
+    const data = await res.json();
+    setMediaItems(data.docs);
   }, []);
 
   /* ─── Room field editing with debounced save ─── */
@@ -209,6 +322,115 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
       setTimeout(() => setSavedId(null), 2000);
     }, 800);
   }, []);
+
+  /* ─── Room nested field editing (capacity, seo) ─── */
+  const updateRoomNestedField = useCallback(
+    (roomId: number, group: string, field: string, value: string | number) => {
+      setEditFields((prev) => {
+        const existing = (prev[roomId]?.[group] as Record<string, unknown>) || {};
+        return {
+          ...prev,
+          [roomId]: {
+            ...prev[roomId],
+            [group]: { ...existing, [field]: value },
+          },
+        };
+      });
+
+      const key = `${roomId}-${group}.${field}`;
+      if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
+      debounceTimers.current[key] = setTimeout(async () => {
+        const room = rooms.find((r) => r.id === roomId);
+        const currentGroup = (room?.[group as keyof Room] as Record<string, unknown>) || {};
+        const editGroup = (editFields[roomId]?.[group] as Record<string, unknown>) || {};
+
+        setSaving(roomId);
+        await fetch(`/api/rooms/${roomId}?locale=pt`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            [group]: { ...currentGroup, ...editGroup, [field]: value },
+          }),
+        });
+        setSaving(null);
+        setSavedId(roomId);
+        setTimeout(() => setSavedId(null), 2000);
+      }, 800);
+    },
+    [rooms, editFields]
+  );
+
+  /* ─── Room status toggle ─── */
+  const toggleRoomStatus = useCallback(
+    async (roomId: number) => {
+      const room = rooms.find((r) => r.id === roomId);
+      if (!room) return;
+      const newStatus = room.status === 'published' ? 'draft' : 'published';
+
+      setRooms((prev) => prev.map((r) => (r.id === roomId ? { ...r, status: newStatus } : r)));
+
+      setSaving(roomId);
+      await fetch(`/api/rooms/${roomId}?locale=pt`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setSaving(null);
+      setSavedId(roomId);
+      setTimeout(() => setSavedId(null), 2000);
+    },
+    [rooms]
+  );
+
+  /* ─── Room amenity management ─── */
+  const addAmenity = useCallback(
+    async (roomId: number, amenityName: string) => {
+      const room = rooms.find((r) => r.id === roomId);
+      if (!room) return;
+      const trimmed = amenityName.trim();
+      if (!trimmed) return;
+
+      const newAmenities = [...(room.amenities || []), { name: trimmed }];
+      setRooms((prev) =>
+        prev.map((r) => (r.id === roomId ? { ...r, amenities: newAmenities } : r))
+      );
+      setAmenityInput((prev) => ({ ...prev, [roomId]: '' }));
+
+      setSaving(roomId);
+      await fetch(`/api/rooms/${roomId}?locale=pt`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amenities: newAmenities }),
+      });
+      setSaving(null);
+      setSavedId(roomId);
+      setTimeout(() => setSavedId(null), 2000);
+    },
+    [rooms]
+  );
+
+  const removeAmenity = useCallback(
+    async (roomId: number, idx: number) => {
+      const room = rooms.find((r) => r.id === roomId);
+      if (!room?.amenities) return;
+
+      const newAmenities = room.amenities.filter((_, i) => i !== idx);
+      setRooms((prev) =>
+        prev.map((r) => (r.id === roomId ? { ...r, amenities: newAmenities } : r))
+      );
+
+      setSaving(roomId);
+      await fetch(`/api/rooms/${roomId}?locale=pt`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amenities: newAmenities }),
+      });
+      setSaving(null);
+      setSavedId(roomId);
+      setTimeout(() => setSavedId(null), 2000);
+    },
+    [rooms]
+  );
 
   /* ─── Set cover photo ─── */
   const setCoverPhoto = useCallback(
@@ -276,6 +498,200 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
     },
     [rooms]
   );
+
+  /* ─── Experience field editing with debounced save ─── */
+  const updateExperienceField = useCallback((expId: number, field: string, value: string) => {
+    setEditFields((prev) => ({
+      ...prev,
+      [expId]: { ...prev[expId], [field]: value },
+    }));
+
+    const key = `exp-${expId}-${field}`;
+    if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
+    debounceTimers.current[key] = setTimeout(async () => {
+      setSaving(expId);
+      await fetch(`/api/experiences/${expId}?locale=pt`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      });
+      setSaving(null);
+      setSavedId(expId);
+      setTimeout(() => setSavedId(null), 2000);
+    }, 800);
+  }, []);
+
+  /* ─── Experience status toggle ─── */
+  const toggleExperienceStatus = useCallback(
+    async (expId: number) => {
+      const exp = experiences.find((e) => e.id === expId);
+      if (!exp) return;
+      const newStatus = exp.status === 'published' ? 'draft' : 'published';
+
+      setExperiences((prev) => prev.map((e) => (e.id === expId ? { ...e, status: newStatus } : e)));
+
+      setSaving(expId);
+      await fetch(`/api/experiences/${expId}?locale=pt`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setSaving(null);
+      setSavedId(expId);
+      setTimeout(() => setSavedId(null), 2000);
+    },
+    [experiences]
+  );
+
+  /* ─── Experience gallery reorder ─── */
+  const reorderExperienceGallery = useCallback(
+    async (expId: number, fromIdx: number, toIdx: number) => {
+      const exp = experiences.find((e) => e.id === expId);
+      if (!exp?.gallery) return;
+
+      const newGallery = [...exp.gallery];
+      const moved = newGallery.splice(fromIdx, 1)[0];
+      if (!moved) return;
+      newGallery.splice(toIdx, 0, moved);
+
+      setExperiences((prev) =>
+        prev.map((e) => (e.id === expId ? { ...e, gallery: newGallery } : e))
+      );
+
+      const galleryPayload = newGallery.map((item) => ({
+        image: getMediaId(item.image),
+      }));
+
+      await fetch(`/api/experiences/${expId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gallery: galleryPayload }),
+      });
+    },
+    [experiences]
+  );
+
+  /* ─── Remove photo from experience gallery ─── */
+  const removeFromExperienceGallery = useCallback(
+    async (expId: number, idx: number) => {
+      const exp = experiences.find((e) => e.id === expId);
+      if (!exp?.gallery) return;
+
+      const newGallery = exp.gallery.filter((_, i) => i !== idx);
+      setExperiences((prev) =>
+        prev.map((e) => (e.id === expId ? { ...e, gallery: newGallery } : e))
+      );
+
+      const galleryPayload = newGallery.map((item) => ({
+        image: getMediaId(item.image),
+      }));
+
+      await fetch(`/api/experiences/${expId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gallery: galleryPayload }),
+      });
+    },
+    [experiences]
+  );
+
+  /* ─── Gallery delete item ─── */
+  const deleteGalleryItem = useCallback(async (itemId: number) => {
+    setGallery((prev) => prev.filter((g) => g.id !== itemId));
+    await fetch(`/api/gallery/${itemId}`, { method: 'DELETE' });
+  }, []);
+
+  /* ─── Gallery edit title ─── */
+  const saveGalleryTitle = useCallback(async (itemId: number, newTitle: string) => {
+    setGallery((prev) => prev.map((g) => (g.id === itemId ? { ...g, title: newTitle } : g)));
+    setEditingGalleryTitle(null);
+
+    await fetch(`/api/gallery/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle }),
+    });
+  }, []);
+
+  /* ─── Gallery create new item ─── */
+  const createGalleryItem = useCallback(
+    async (mediaId: number, title: string, category: string) => {
+      const res = await fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          category,
+          image: mediaId,
+          order: gallery.filter((g) => g.category === category).length,
+        }),
+      });
+      if (res.ok) {
+        await refreshGallery();
+      }
+    },
+    [gallery, refreshGallery]
+  );
+
+  /* ─── Settings editing with debounced save ─── */
+  const updateSettingsField = useCallback(
+    (path: string, value: string) => {
+      setSettingsEdits((prev) => ({ ...prev, [path]: value }));
+
+      const key = `settings-${path}`;
+      if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
+      debounceTimers.current[key] = setTimeout(async () => {
+        setSavingGlobal(true);
+
+        // Build nested object from dot path
+        const parts = path.split('.');
+        const body: Record<string, unknown> = {};
+        if (parts.length === 1) {
+          body[parts[0] as string] = value;
+        } else if (parts.length === 2) {
+          const group = parts[0] as string;
+          const field = parts[1] as string;
+          // Merge with current settings group
+          const currentGroup =
+            (settings[group as keyof SettingsData] as Record<string, unknown>) || {};
+          body[group] = { ...currentGroup, [field]: value };
+        }
+
+        await fetch('/api/globals/settings?locale=pt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        // Refresh settings
+        const res = await fetch('/api/globals/settings?locale=pt');
+        const data = await res.json();
+        setSettings(data);
+
+        setSavingGlobal(false);
+        setSavedGlobal(true);
+        setTimeout(() => setSavedGlobal(false), 2000);
+      }, 800);
+    },
+    [settings]
+  );
+
+  /* ─── Media delete ─── */
+  const deleteMediaItem = useCallback(async (mediaId: number) => {
+    setMediaItems((prev) => prev.filter((m) => m.id !== mediaId));
+    await fetch(`/api/media/${mediaId}`, { method: 'DELETE' });
+  }, []);
+
+  /* ─── Media alt edit ─── */
+  const saveMediaAlt = useCallback(async (mediaId: number, alt: string) => {
+    setMediaItems((prev) => prev.map((m) => (m.id === mediaId ? { ...m, alt } : m)));
+    setEditingMediaAlt(null);
+    await fetch(`/api/media/${mediaId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt }),
+    });
+  }, []);
 
   /* ─── Upload files ─── */
   const handleUpload = useCallback(
@@ -355,6 +771,29 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                 });
               }
             }
+
+            // Add to experience gallery if target is an experience
+            if (dropzoneTarget?.type === 'experience') {
+              const exp = experiences.find((e) => e.id === dropzoneTarget.experienceId);
+              if (exp) {
+                const currentGallery = (exp.gallery || []).map((item) => ({
+                  image: getMediaId(item.image),
+                }));
+                currentGallery.push({ image: mediaRes.doc.id });
+
+                await fetch(`/api/experiences/${dropzoneTarget.experienceId}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ gallery: currentGallery }),
+                });
+              }
+            }
+
+            // Create gallery record if target is gallery category
+            if (dropzoneTarget?.type === 'gallery') {
+              const title = upload.file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+              await createGalleryItem(mediaRes.doc.id, title, dropzoneTarget.category);
+            }
           } else {
             upload.status = 'error';
             upload.progress = 100;
@@ -369,8 +808,22 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
       // Refresh data
       await refreshRooms();
       await refreshGallery();
+      await refreshExperiences();
+      if (mediaLoaded) {
+        await refreshMedia();
+      }
     },
-    [dropzoneTarget, rooms, refreshRooms, refreshGallery]
+    [
+      dropzoneTarget,
+      rooms,
+      experiences,
+      refreshRooms,
+      refreshGallery,
+      refreshExperiences,
+      refreshMedia,
+      mediaLoaded,
+      createGalleryItem,
+    ]
   );
 
   /* ─── Drag handlers for photo grid ─── */
@@ -431,6 +884,25 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
     [gallery]
   );
 
+  /* ─── Helper to get settings value with edits ─── */
+  const getSettingsValue = useCallback(
+    (path: string): string => {
+      if (path in settingsEdits) return settingsEdits[path] as string;
+      const parts = path.split('.');
+      if (parts.length === 1) {
+        return (settings[parts[0] as keyof SettingsData] as string) || '';
+      }
+      if (parts.length === 2) {
+        const group = settings[parts[0] as keyof SettingsData] as
+          | Record<string, unknown>
+          | undefined;
+        return (group?.[parts[1] as string] as string) || '';
+      }
+      return '';
+    },
+    [settings, settingsEdits]
+  );
+
   /* ═══════════════════════════════════════════════════════
      RENDER
      ═══════════════════════════════════════════════════════ */
@@ -456,17 +928,65 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
           <div className={styles.sidebarSection}>
             <div className={styles.sidebarSectionTitle}>Conteúdo</div>
             <button
-              className={`${styles.sidebarLink} ${activeTab === 'rooms' ? styles.sidebarLinkActive : ''}`}
-              onClick={() => setActiveTab('rooms')}
+              className={`${styles.sidebarLink} ${activeSection === 'rooms' ? styles.sidebarLinkActive : ''}`}
+              onClick={() => setActiveSection('rooms')}
             >
               🏨 Quartos
             </button>
             <button
-              className={`${styles.sidebarLink} ${activeTab === 'gallery' ? styles.sidebarLinkActive : ''}`}
-              onClick={() => setActiveTab('gallery')}
+              className={`${styles.sidebarLink} ${activeSection === 'gallery' ? styles.sidebarLinkActive : ''}`}
+              onClick={() => setActiveSection('gallery')}
             >
               🖼️ Galeria
             </button>
+            <button
+              className={`${styles.sidebarLink} ${activeSection === 'experiences' ? styles.sidebarLinkActive : ''}`}
+              onClick={() => setActiveSection('experiences')}
+            >
+              🌟 Experiências
+            </button>
+            <button
+              className={`${styles.sidebarLink} ${activeSection === 'media' ? styles.sidebarLinkActive : ''}`}
+              onClick={() => setActiveSection('media')}
+            >
+              📁 Mídias
+            </button>
+          </div>
+          <div className={styles.sidebarSection}>
+            <div className={styles.sidebarSectionTitle}>Sistema</div>
+            <button
+              className={`${styles.sidebarLink} ${activeSection === 'settings' ? styles.sidebarLinkActive : ''}`}
+              onClick={() => setActiveSection('settings')}
+            >
+              ⚙️ Configurações
+            </button>
+          </div>
+          <div className={styles.sidebarSection}>
+            <div className={styles.sidebarSectionTitle}>Avançado</div>
+            <a
+              href="/admin/collections/pages"
+              className={styles.sidebarLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📄 Páginas
+            </a>
+            <a
+              href="/admin/collections/blog-posts"
+              className={styles.sidebarLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ✍️ Blog
+            </a>
+            <a
+              href="/admin/collections/users"
+              className={styles.sidebarLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              👥 Usuários
+            </a>
           </div>
           <div className={styles.sidebarSection}>
             <div className={styles.sidebarSectionTitle}>Navegação</div>
@@ -500,21 +1020,39 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
           {/* Tabs */}
           <div className={styles.tabs}>
             <button
-              className={`${styles.tab} ${activeTab === 'rooms' ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab('rooms')}
+              className={`${styles.tab} ${activeSection === 'rooms' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('rooms')}
             >
               Quartos <span className={styles.tabBadge}>{rooms.length}</span>
             </button>
             <button
-              className={`${styles.tab} ${activeTab === 'gallery' ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab('gallery')}
+              className={`${styles.tab} ${activeSection === 'gallery' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('gallery')}
             >
-              Galeria Geral <span className={styles.tabBadge}>{totalGallery}</span>
+              Galeria <span className={styles.tabBadge}>{totalGallery}</span>
+            </button>
+            <button
+              className={`${styles.tab} ${activeSection === 'experiences' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('experiences')}
+            >
+              Experiências <span className={styles.tabBadge}>{experiences.length}</span>
+            </button>
+            <button
+              className={`${styles.tab} ${activeSection === 'settings' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('settings')}
+            >
+              Configurações
+            </button>
+            <button
+              className={`${styles.tab} ${activeSection === 'media' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('media')}
+            >
+              Mídias
             </button>
           </div>
 
-          {/* ═══ ROOMS TAB ═══ */}
-          {activeTab === 'rooms' && (
+          {/* ═══ ROOMS SECTION ═══ */}
+          {activeSection === 'rooms' && (
             <div>
               {/* Alert for rooms without photos */}
               {rooms
@@ -535,6 +1073,9 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                 const edits = editFields[room.id] || {};
                 const featuredId = getMediaId(room.featuredImage);
                 const photoCount = room.gallery?.length || 0;
+                const seoEdits = (edits.seo as Record<string, string>) || {};
+                const capacityEdits = (edits.capacity as Record<string, unknown>) || {};
+                const seoOpen = seoOpenRooms[room.id] || false;
 
                 return (
                   <div
@@ -716,7 +1257,7 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                                   <span className={styles.previewDot} />
                                   <span>Preview ao vivo</span>
                                 </div>
-                                <div style={{ display: 'flex', gap: '4px' }}>
+                                <div className={styles.previewDevices}>
                                   <button
                                     className={`${styles.previewDeviceBtn} ${styles.previewDeviceBtnActive}`}
                                   >
@@ -748,13 +1289,13 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                                   <div className={styles.siteRoomContent}>
                                     <div className={styles.siteRoomName}>{room.name}</div>
                                     <div className={styles.siteRoomPrice}>
-                                      {edits.startingPrice ?? room.startingPrice}
+                                      {(edits.startingPrice as string) ?? room.startingPrice}
                                     </div>
                                     <div className={styles.siteRoomDesc}>
-                                      {edits.shortDescription ?? room.shortDescription}
+                                      {(edits.shortDescription as string) ?? room.shortDescription}
                                     </div>
                                     <div className={styles.siteRoomDescFull}>
-                                      {edits.longDescription ?? room.longDescription}
+                                      {(edits.longDescription as string) ?? room.longDescription}
                                     </div>
                                     {room.amenities && (
                                       <div className={styles.siteRoomAmenities}>
@@ -772,12 +1313,43 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                             </div>
                           ) : (
                             <div className={styles.infoPanel}>
+                              {/* Name */}
+                              <div className={styles.infoGroup}>
+                                <label className={styles.infoLabel}>Nome</label>
+                                <input
+                                  className={styles.infoEditable}
+                                  type="text"
+                                  value={(edits.name as string) ?? room.name ?? ''}
+                                  onChange={(e) => updateRoomField(room.id, 'name', e.target.value)}
+                                />
+                              </div>
+
+                              {/* Status toggle */}
+                              <div className={styles.infoGroup}>
+                                <label className={styles.infoLabel}>Status</label>
+                                <button
+                                  className={`${styles.statusToggle} ${
+                                    room.status === 'published'
+                                      ? styles.statusTogglePublished
+                                      : styles.statusToggleDraft
+                                  }`}
+                                  onClick={() => toggleRoomStatus(room.id)}
+                                >
+                                  <span className={styles.statusToggleDot} />
+                                  {room.status === 'published' ? 'Publicado' : 'Rascunho'}
+                                </button>
+                              </div>
+
                               <div className={styles.infoGroup}>
                                 <label className={styles.infoLabel}>Descrição curta</label>
                                 <textarea
                                   className={styles.infoEditable}
                                   rows={2}
-                                  value={edits.shortDescription ?? room.shortDescription ?? ''}
+                                  value={
+                                    (edits.shortDescription as string) ??
+                                    room.shortDescription ??
+                                    ''
+                                  }
                                   onChange={(e) =>
                                     updateRoomField(room.id, 'shortDescription', e.target.value)
                                   }
@@ -789,7 +1361,9 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                                 <textarea
                                   className={styles.infoEditable}
                                   rows={4}
-                                  value={edits.longDescription ?? room.longDescription ?? ''}
+                                  value={
+                                    (edits.longDescription as string) ?? room.longDescription ?? ''
+                                  }
                                   onChange={(e) =>
                                     updateRoomField(room.id, 'longDescription', e.target.value)
                                   }
@@ -801,12 +1375,73 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                                 <input
                                   className={styles.infoEditable}
                                   type="text"
-                                  value={edits.startingPrice ?? room.startingPrice ?? ''}
+                                  value={
+                                    (edits.startingPrice as string) ?? room.startingPrice ?? ''
+                                  }
                                   onChange={(e) =>
                                     updateRoomField(room.id, 'startingPrice', e.target.value)
                                   }
-                                  style={{ width: '220px' }}
                                 />
+                              </div>
+
+                              {/* Capacity */}
+                              <div className={styles.infoGroup}>
+                                <label className={styles.infoLabel}>Capacidade</label>
+                                <input
+                                  className={styles.infoEditable}
+                                  type="text"
+                                  placeholder="Ex: 1-2 adultos"
+                                  value={
+                                    (edits.capacityLabel as string) ?? room.capacityLabel ?? ''
+                                  }
+                                  onChange={(e) =>
+                                    updateRoomField(room.id, 'capacityLabel', e.target.value)
+                                  }
+                                />
+                                <div className={styles.infoRow}>
+                                  <div className={styles.infoGroup}>
+                                    <label className={styles.infoLabel}>Adultos</label>
+                                    <input
+                                      className={styles.infoEditable}
+                                      type="number"
+                                      min={1}
+                                      value={
+                                        (capacityEdits.adults as number) ??
+                                        room.capacity?.adults ??
+                                        2
+                                      }
+                                      onChange={(e) =>
+                                        updateRoomNestedField(
+                                          room.id,
+                                          'capacity',
+                                          'adults',
+                                          parseInt(e.target.value, 10) || 0
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div className={styles.infoGroup}>
+                                    <label className={styles.infoLabel}>Crianças</label>
+                                    <input
+                                      className={styles.infoEditable}
+                                      type="number"
+                                      min={0}
+                                      value={
+                                        (capacityEdits.children as number) ??
+                                        room.capacity?.children ??
+                                        1
+                                      }
+                                      onChange={(e) =>
+                                        updateRoomNestedField(
+                                          room.id,
+                                          'capacity',
+                                          'children',
+                                          parseInt(e.target.value, 10) || 0
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
                               </div>
 
                               <div className={styles.infoRow}>
@@ -814,26 +1449,107 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                                   <div className={styles.infoLabel}>Tamanho</div>
                                   <div className={styles.infoValue}>{room.size}m²</div>
                                 </div>
-                                <div className={styles.infoGroup}>
-                                  <div className={styles.infoLabel}>Capacidade</div>
-                                  <div className={styles.infoValue}>
-                                    {room.capacityLabel || `${room.capacity?.adults || 2} adultos`}
-                                  </div>
+                              </div>
+
+                              {/* Amenities management */}
+                              <div className={styles.infoGroup}>
+                                <div className={styles.infoLabel}>Amenidades</div>
+                                <div className={styles.amenityList}>
+                                  {room.amenities?.map((a, i) => (
+                                    <span key={i} className={styles.amenityTagEditable}>
+                                      {getAmenityIcon(a.icon, a.name)} {a.name}
+                                      <button
+                                        className={styles.amenityRemove}
+                                        onClick={() => removeAmenity(room.id, i)}
+                                        title="Remover"
+                                      >
+                                        ✕
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                                <div className={styles.amenityAddRow}>
+                                  <input
+                                    className={styles.amenityAddInput}
+                                    type="text"
+                                    placeholder="Nova amenidade..."
+                                    value={amenityInput[room.id] || ''}
+                                    onChange={(e) =>
+                                      setAmenityInput((prev) => ({
+                                        ...prev,
+                                        [room.id]: e.target.value,
+                                      }))
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        addAmenity(room.id, amenityInput[room.id] || '');
+                                      }
+                                    }}
+                                  />
+                                  <button
+                                    className={styles.btnSecondary}
+                                    onClick={() => addAmenity(room.id, amenityInput[room.id] || '')}
+                                  >
+                                    + Adicionar
+                                  </button>
                                 </div>
                               </div>
 
-                              {room.amenities && room.amenities.length > 0 && (
-                                <div className={styles.infoGroup}>
-                                  <div className={styles.infoLabel}>Amenidades</div>
-                                  <div className={styles.amenityList}>
-                                    {room.amenities.map((a, i) => (
-                                      <span key={i} className={styles.amenityTag}>
-                                        {getAmenityIcon(a.icon, a.name)} {a.name}
-                                      </span>
-                                    ))}
+                              {/* SEO collapsible */}
+                              <div className={styles.seoSection}>
+                                <button
+                                  className={styles.seoToggle}
+                                  onClick={() =>
+                                    setSeoOpenRooms((prev) => ({
+                                      ...prev,
+                                      [room.id]: !prev[room.id],
+                                    }))
+                                  }
+                                >
+                                  <span>🔍 SEO</span>
+                                  <span
+                                    className={`${styles.seoChevron} ${seoOpen ? styles.seoChevronOpen : ''}`}
+                                  >
+                                    ▼
+                                  </span>
+                                </button>
+                                {seoOpen && (
+                                  <div className={styles.seoBody}>
+                                    <div className={styles.infoGroup}>
+                                      <label className={styles.infoLabel}>SEO Title</label>
+                                      <input
+                                        className={styles.infoEditable}
+                                        type="text"
+                                        value={seoEdits.title ?? room.seo?.title ?? ''}
+                                        onChange={(e) =>
+                                          updateRoomNestedField(
+                                            room.id,
+                                            'seo',
+                                            'title',
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className={styles.infoGroup}>
+                                      <label className={styles.infoLabel}>SEO Description</label>
+                                      <textarea
+                                        className={styles.infoEditable}
+                                        rows={3}
+                                        value={seoEdits.description ?? room.seo?.description ?? ''}
+                                        onChange={(e) =>
+                                          updateRoomNestedField(
+                                            room.id,
+                                            'seo',
+                                            'description',
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
 
                               <div className={styles.roomCardFooter}>
                                 <div className={styles.saveIndicator}>
@@ -863,8 +1579,8 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
             </div>
           )}
 
-          {/* ═══ GALLERY TAB ═══ */}
-          {activeTab === 'gallery' && (
+          {/* ═══ GALLERY SECTION ═══ */}
+          {activeSection === 'gallery' && (
             <div>
               <div className={styles.dragHint}>
                 ↕️ Arraste as fotos para reordenar dentro de cada categoria. A ordem aqui define a
@@ -881,6 +1597,16 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                   setDropzoneTarget({ type: 'gallery', category: 'common' });
                   setDropzoneOpen(true);
                 }}
+                onDelete={deleteGalleryItem}
+                editingTitleId={editingGalleryTitle}
+                titleDraft={galleryTitleDraft}
+                onStartEditTitle={(id, title) => {
+                  setEditingGalleryTitle(id);
+                  setGalleryTitleDraft(title);
+                }}
+                onChangeTitleDraft={setGalleryTitleDraft}
+                onSaveTitle={saveGalleryTitle}
+                onCancelEditTitle={() => setEditingGalleryTitle(null)}
               />
 
               {/* Restaurante */}
@@ -893,6 +1619,16 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                   setDropzoneTarget({ type: 'gallery', category: 'restaurant' });
                   setDropzoneOpen(true);
                 }}
+                onDelete={deleteGalleryItem}
+                editingTitleId={editingGalleryTitle}
+                titleDraft={galleryTitleDraft}
+                onStartEditTitle={(id, title) => {
+                  setEditingGalleryTitle(id);
+                  setGalleryTitleDraft(title);
+                }}
+                onChangeTitleDraft={setGalleryTitleDraft}
+                onSaveTitle={saveGalleryTitle}
+                onCancelEditTitle={() => setEditingGalleryTitle(null)}
               />
 
               {/* Quartos overview */}
@@ -904,16 +1640,15 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                       {rooms.reduce((acc, r) => acc + (r.gallery?.length || 0), 0)} fotos
                     </span>
                   </div>
-                  <span className={styles.categoryHint}>Gerencie na aba "Quartos"</span>
+                  <span className={styles.categoryHint}>Gerencie na aba &quot;Quartos&quot;</span>
                 </div>
                 <div className={styles.galleryGrid}>
                   {rooms.map((room) => (
                     <div
                       key={room.id}
                       className={styles.galleryItem}
-                      style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        setActiveTab('rooms');
+                        setActiveSection('rooms');
                         setExpandedRoom(room.id);
                       }}
                     >
@@ -934,6 +1669,559 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ EXPERIENCES SECTION ═══ */}
+          {activeSection === 'experiences' && (
+            <div>
+              {experiences.length === 0 && (
+                <div className={styles.emptyState}>
+                  <span className={styles.emptyStateIcon}>🌟</span>
+                  <p>Nenhuma experiência cadastrada.</p>
+                  <a href="/admin/collections/experiences/create" className={styles.btnSecondary}>
+                    + Criar no Payload
+                  </a>
+                </div>
+              )}
+
+              {experiences.map((exp) => {
+                const isExpanded = expandedExperience === exp.id;
+                const edits2 = editFields[exp.id] || {};
+                const photoCount = exp.gallery?.length || 0;
+
+                return (
+                  <div
+                    key={exp.id}
+                    className={`${styles.roomCard} ${isExpanded ? styles.roomCardExpanded : ''}`}
+                  >
+                    {/* Card header */}
+                    <div
+                      className={styles.roomCardHeader}
+                      onClick={() => setExpandedExperience(isExpanded ? null : exp.id)}
+                    >
+                      <div className={styles.roomThumb}>
+                        {exp.featuredImage && typeof exp.featuredImage !== 'number' ? (
+                          <img src={getMediaUrl(exp.featuredImage, 'thumbnail')} alt={exp.name} />
+                        ) : (
+                          <span className={styles.roomThumbEmpty}>🌟</span>
+                        )}
+                      </div>
+                      <div className={styles.roomCardInfo}>
+                        <div className={styles.roomCardName}>
+                          {exp.name}
+                          {exp.category && (
+                            <span className={styles.categoryBadge}>
+                              {CATEGORY_ICONS[exp.category] || ''}{' '}
+                              {CATEGORY_LABELS[exp.category] || exp.category}
+                            </span>
+                          )}
+                          <span
+                            className={
+                              exp.status === 'published'
+                                ? styles.statusPublished
+                                : styles.statusDraft
+                            }
+                          >
+                            {exp.status === 'published' ? 'Publicado' : 'Rascunho'}
+                          </span>
+                        </div>
+                        <div className={styles.roomCardMeta}>
+                          {exp.shortDescription && (
+                            <span>
+                              {exp.shortDescription.length > 60
+                                ? exp.shortDescription.slice(0, 60) + '...'
+                                : exp.shortDescription}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.roomCardStats}>
+                        <div className={styles.stat}>
+                          <div
+                            className={`${styles.statValue} ${photoCount >= 1 ? styles.photoCountOk : styles.photoCountWarn}`}
+                          >
+                            {photoCount}
+                          </div>
+                          <div className={styles.statLabel}>Fotos</div>
+                        </div>
+                      </div>
+                      <div
+                        className={`${styles.expandIcon} ${isExpanded ? styles.expandIconOpen : ''}`}
+                      >
+                        ▼
+                      </div>
+                    </div>
+
+                    {/* Expanded body */}
+                    {isExpanded && (
+                      <div className={styles.roomCardBody}>
+                        <div className={styles.roomBodyGrid}>
+                          {/* Left: Photos */}
+                          <div>
+                            <div className={styles.photoSectionHeader}>
+                              <span className={styles.photoSectionTitle}>Fotos ({photoCount})</span>
+                              <div className={styles.photoSectionActions}>
+                                <button
+                                  className={styles.btnSecondary}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDropzoneTarget({
+                                      type: 'experience',
+                                      experienceId: exp.id,
+                                    });
+                                    setDropzoneOpen(true);
+                                  }}
+                                >
+                                  + Upload
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className={styles.dragHint}>
+                              ↕️ Arraste as fotos para reordenar.
+                            </div>
+
+                            <div className={styles.photoGrid}>
+                              {exp.gallery?.map((item, idx) => {
+                                const media = item.image as MediaItem;
+                                return (
+                                  <div
+                                    key={item.id || idx}
+                                    className={styles.photoItem}
+                                    draggable
+                                    onDragStart={() => {
+                                      dragItem.current = idx;
+                                    }}
+                                    onDragEnter={() => {
+                                      dragOverItem.current = idx;
+                                    }}
+                                    onDragEnd={() => {
+                                      if (
+                                        dragItem.current !== null &&
+                                        dragOverItem.current !== null &&
+                                        dragItem.current !== dragOverItem.current
+                                      ) {
+                                        reorderExperienceGallery(
+                                          exp.id,
+                                          dragItem.current,
+                                          dragOverItem.current
+                                        );
+                                      }
+                                      dragItem.current = null;
+                                      dragOverItem.current = null;
+                                    }}
+                                    onDragOver={(e) => e.preventDefault()}
+                                  >
+                                    <img
+                                      src={getMediaUrl(media, 'thumbnail')}
+                                      alt={getMediaAlt(media)}
+                                    />
+                                    <div className={styles.photoItemOverlay}>
+                                      <div />
+                                      <div className={styles.photoItemActions}>
+                                        <button
+                                          className={`${styles.photoActionBtn} ${styles.photoActionDelete}`}
+                                          title="Remover"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeFromExperienceGallery(exp.id, idx);
+                                          }}
+                                        >
+                                          🗑️
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div className={styles.photoOrder}>{idx + 1}</div>
+                                  </div>
+                                );
+                              })}
+
+                              <div
+                                className={styles.photoAdd}
+                                onClick={() => {
+                                  setDropzoneTarget({
+                                    type: 'experience',
+                                    experienceId: exp.id,
+                                  });
+                                  setDropzoneOpen(true);
+                                }}
+                              >
+                                <span className={styles.photoAddPlus}>+</span>
+                                <span>Adicionar fotos</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Info Panel */}
+                          <div className={styles.infoPanel}>
+                            <div className={styles.infoGroup}>
+                              <label className={styles.infoLabel}>Descrição curta</label>
+                              <textarea
+                                className={styles.infoEditable}
+                                rows={3}
+                                value={
+                                  (edits2.shortDescription as string) ?? exp.shortDescription ?? ''
+                                }
+                                onChange={(e) =>
+                                  updateExperienceField(exp.id, 'shortDescription', e.target.value)
+                                }
+                              />
+                            </div>
+
+                            <div className={styles.infoGroup}>
+                              <label className={styles.infoLabel}>Categoria</label>
+                              <select
+                                className={styles.infoEditable}
+                                value={(edits2.category as string) ?? exp.category ?? ''}
+                                onChange={(e) =>
+                                  updateExperienceField(exp.id, 'category', e.target.value)
+                                }
+                              >
+                                <option value="">Selecione...</option>
+                                <option value="gastronomy">Gastronomia</option>
+                                <option value="leisure">Lazer</option>
+                                <option value="wellness">Bem-estar</option>
+                                <option value="adventure">Aventura</option>
+                                <option value="cultural">Cultural</option>
+                              </select>
+                            </div>
+
+                            <div className={styles.infoGroup}>
+                              <label className={styles.infoLabel}>Status</label>
+                              <button
+                                className={`${styles.statusToggle} ${
+                                  exp.status === 'published'
+                                    ? styles.statusTogglePublished
+                                    : styles.statusToggleDraft
+                                }`}
+                                onClick={() => toggleExperienceStatus(exp.id)}
+                              >
+                                <span className={styles.statusToggleDot} />
+                                {exp.status === 'published' ? 'Publicado' : 'Rascunho'}
+                              </button>
+                            </div>
+
+                            <div className={styles.roomCardFooter}>
+                              <div className={styles.saveIndicator}>
+                                {saving === exp.id ? (
+                                  <>
+                                    <span className={styles.dotSaving} /> Salvando...
+                                  </>
+                                ) : savedId === exp.id ? (
+                                  <>
+                                    <span className={styles.dotSaved} /> Salvo
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className={styles.dotIdle} /> Pronto
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ═══ SETTINGS SECTION ═══ */}
+          {activeSection === 'settings' && (
+            <div className={styles.settingsGrid}>
+              {/* Hotel Info */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardTitle}>🏨 Informações do Hotel</div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Nome do Hotel</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('hotelName')}
+                    onChange={(e) => updateSettingsField('hotelName', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Tagline</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('tagline')}
+                    onChange={(e) => updateSettingsField('tagline', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardTitle}>📞 Contato</div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Telefone</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('contact.phone')}
+                    onChange={(e) => updateSettingsField('contact.phone', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>E-mail</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="email"
+                    value={getSettingsValue('contact.email')}
+                    onChange={(e) => updateSettingsField('contact.email', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>WhatsApp</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('contact.whatsapp')}
+                    onChange={(e) => updateSettingsField('contact.whatsapp', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Endereço</label>
+                  <textarea
+                    className={styles.infoEditable}
+                    rows={3}
+                    value={getSettingsValue('contact.address')}
+                    onChange={(e) => updateSettingsField('contact.address', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Social */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardTitle}>🌐 Redes Sociais</div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Instagram</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('social.instagram')}
+                    onChange={(e) => updateSettingsField('social.instagram', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Facebook</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('social.facebook')}
+                    onChange={(e) => updateSettingsField('social.facebook', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>TripAdvisor</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('social.tripadvisor')}
+                    onChange={(e) => updateSettingsField('social.tripadvisor', e.target.value)}
+                  />
+                </div>
+                <div className={styles.infoGroup}>
+                  <label className={styles.infoLabel}>Booking</label>
+                  <input
+                    className={styles.infoEditable}
+                    type="text"
+                    value={getSettingsValue('social.booking')}
+                    onChange={(e) => updateSettingsField('social.booking', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Hours */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardTitle}>🕐 Horários</div>
+                <div className={styles.infoRow}>
+                  <div className={styles.infoGroup}>
+                    <label className={styles.infoLabel}>Check-in</label>
+                    <input
+                      className={styles.infoEditable}
+                      type="text"
+                      value={getSettingsValue('policies.checkinTime')}
+                      onChange={(e) => updateSettingsField('policies.checkinTime', e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.infoGroup}>
+                    <label className={styles.infoLabel}>Check-out</label>
+                    <input
+                      className={styles.infoEditable}
+                      type="text"
+                      value={getSettingsValue('policies.checkoutTime')}
+                      onChange={(e) => updateSettingsField('policies.checkoutTime', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Logo/Favicon */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardTitle}>🖼️ Logo e Favicon</div>
+                <div className={styles.settingsMediaRow}>
+                  <div className={styles.settingsMediaItem}>
+                    <div className={styles.infoLabel}>Logo</div>
+                    {settings.logo && typeof settings.logo !== 'number' ? (
+                      <img
+                        className={styles.settingsMediaPreview}
+                        src={getMediaUrl(settings.logo, 'thumbnail')}
+                        alt="Logo"
+                      />
+                    ) : (
+                      <div className={styles.settingsMediaEmpty}>Sem logo</div>
+                    )}
+                  </div>
+                  <div className={styles.settingsMediaItem}>
+                    <div className={styles.infoLabel}>Favicon</div>
+                    {settings.favicon && typeof settings.favicon !== 'number' ? (
+                      <img
+                        className={styles.settingsMediaPreviewSmall}
+                        src={getMediaUrl(settings.favicon, 'thumbnail')}
+                        alt="Favicon"
+                      />
+                    ) : (
+                      <div className={styles.settingsMediaEmpty}>Sem favicon</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Save indicator */}
+              <div className={styles.settingsFooter}>
+                <div className={styles.saveIndicator}>
+                  {savingGlobal ? (
+                    <>
+                      <span className={styles.dotSaving} /> Salvando...
+                    </>
+                  ) : savedGlobal ? (
+                    <>
+                      <span className={styles.dotSaved} /> Salvo
+                    </>
+                  ) : (
+                    <>
+                      <span className={styles.dotIdle} /> Pronto
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ MEDIA SECTION ═══ */}
+          {activeSection === 'media' && (
+            <div>
+              <div className={styles.mediaSectionHeader}>
+                <span className={styles.photoSectionTitle}>
+                  Biblioteca de Mídias ({mediaItems.length})
+                </span>
+                <button
+                  className={styles.btnSecondary}
+                  onClick={() => {
+                    setDropzoneTarget({ type: 'media' });
+                    setDropzoneOpen(true);
+                  }}
+                >
+                  + Upload
+                </button>
+              </div>
+
+              {!mediaLoaded && (
+                <div className={styles.emptyState}>
+                  <p>Carregando mídias...</p>
+                </div>
+              )}
+
+              {mediaLoaded && mediaItems.length === 0 && (
+                <div className={styles.emptyState}>
+                  <span className={styles.emptyStateIcon}>📁</span>
+                  <p>Nenhuma mídia encontrada.</p>
+                </div>
+              )}
+
+              <div className={styles.mediaGrid}>
+                {mediaItems.map((item) => {
+                  const isEditingAlt = editingMediaAlt === item.id;
+                  return (
+                    <div key={item.id} className={styles.mediaCard}>
+                      <div className={styles.mediaCardImage}>
+                        <img
+                          src={getMediaUrl(item, 'thumbnail')}
+                          alt={item.alt || item.filename || ''}
+                        />
+                        <div className={styles.mediaCardOverlay}>
+                          <button
+                            className={`${styles.photoActionBtn} ${styles.photoActionDelete}`}
+                            title="Excluir"
+                            onClick={() => deleteMediaItem(item.id)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                      <div className={styles.mediaCardInfo}>
+                        <div className={styles.mediaCardFilename}>
+                          {item.filename || `media-${item.id}`}
+                        </div>
+                        <div className={styles.mediaCardMeta}>
+                          {item.width && item.height && (
+                            <span>
+                              {item.width}×{item.height}
+                            </span>
+                          )}
+                          {item.filesize && <span>{formatBytes(item.filesize)}</span>}
+                        </div>
+                        {isEditingAlt ? (
+                          <div className={styles.mediaAltEdit}>
+                            <input
+                              className={styles.mediaAltInput}
+                              type="text"
+                              value={mediaAltDraft}
+                              onChange={(e) => setMediaAltDraft(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  saveMediaAlt(item.id, mediaAltDraft);
+                                }
+                                if (e.key === 'Escape') {
+                                  setEditingMediaAlt(null);
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <button
+                              className={styles.btnSecondary}
+                              onClick={() => saveMediaAlt(item.id, mediaAltDraft)}
+                            >
+                              Salvar
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            className={styles.mediaAltText}
+                            onClick={() => {
+                              setEditingMediaAlt(item.id);
+                              setMediaAltDraft(item.alt || '');
+                            }}
+                            title="Clique para editar texto alternativo"
+                          >
+                            {item.alt ? (
+                              <span>Alt: {item.alt}</span>
+                            ) : (
+                              <span className={styles.mediaAltEmpty}>+ Adicionar alt text</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -975,7 +2263,7 @@ export function ContentManagerClient({ initialRooms, initialGallery }: Props) {
                 type="file"
                 multiple
                 accept="image/*"
-                style={{ display: 'none' }}
+                className={styles.hiddenInput}
                 onChange={(e) => {
                   if (e.target.files?.length) handleUpload(e.target.files);
                 }}
@@ -1090,15 +2378,29 @@ function GalleryCategorySection({
   category,
   onReorder,
   onUpload,
+  onDelete,
+  editingTitleId,
+  titleDraft,
+  onStartEditTitle,
+  onChangeTitleDraft,
+  onSaveTitle,
+  onCancelEditTitle,
 }: {
   title: string;
   items: GalleryItem[];
   category: string;
   onReorder: (category: string, from: number, to: number) => void;
   onUpload: () => void;
+  onDelete: (id: number) => void;
+  editingTitleId: number | null;
+  titleDraft: string;
+  onStartEditTitle: (id: number, title: string) => void;
+  onChangeTitleDraft: (val: string) => void;
+  onSaveTitle: (id: number, title: string) => void;
+  onCancelEditTitle: () => void;
 }) {
-  const dragItem = useRef<number | null>(null);
-  const dragOverItem = useRef<number | null>(null);
+  const dragRef = useRef<number | null>(null);
+  const dragOverRef = useRef<number | null>(null);
 
   return (
     <div className={styles.categorySection}>
@@ -1114,34 +2416,73 @@ function GalleryCategorySection({
       <div className={styles.galleryGrid}>
         {items.map((item, idx) => {
           const media = item.image as MediaItem;
+          const isEditingTitle = editingTitleId === item.id;
           return (
             <div
               key={item.id}
               className={styles.galleryItem}
               draggable
               onDragStart={() => {
-                dragItem.current = idx;
+                dragRef.current = idx;
               }}
               onDragEnter={() => {
-                dragOverItem.current = idx;
+                dragOverRef.current = idx;
               }}
               onDragEnd={() => {
                 if (
-                  dragItem.current !== null &&
-                  dragOverItem.current !== null &&
-                  dragItem.current !== dragOverItem.current
+                  dragRef.current !== null &&
+                  dragOverRef.current !== null &&
+                  dragRef.current !== dragOverRef.current
                 ) {
-                  onReorder(category, dragItem.current, dragOverItem.current);
+                  onReorder(category, dragRef.current, dragOverRef.current);
                 }
-                dragItem.current = null;
-                dragOverItem.current = null;
+                dragRef.current = null;
+                dragOverRef.current = null;
               }}
               onDragOver={(e) => e.preventDefault()}
             >
               <img src={getMediaUrl(media, 'thumbnail')} alt={getMediaAlt(media)} />
               <div className={styles.galleryDragHandle}>⠿</div>
               <div className={styles.galleryItemOverlay}>
-                <div className={styles.galleryItemTitle}>{item.title}</div>
+                {isEditingTitle ? (
+                  <input
+                    className={styles.galleryTitleInput}
+                    type="text"
+                    value={titleDraft}
+                    onChange={(e) => onChangeTitleDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onSaveTitle(item.id, titleDraft);
+                      }
+                      if (e.key === 'Escape') {
+                        onCancelEditTitle();
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                ) : (
+                  <div
+                    className={styles.galleryItemTitle}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onStartEditTitle(item.id, item.title);
+                    }}
+                    title="Clique para editar título"
+                  >
+                    {item.title}
+                  </div>
+                )}
+                <button
+                  className={`${styles.galleryDeleteBtn}`}
+                  title="Excluir"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(item.id);
+                  }}
+                >
+                  🗑️
+                </button>
               </div>
             </div>
           );

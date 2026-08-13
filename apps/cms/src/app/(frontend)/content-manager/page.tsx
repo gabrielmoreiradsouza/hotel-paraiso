@@ -16,8 +16,8 @@ export default async function ContentManagerPage() {
     redirect('/admin/login');
   }
 
-  // Pre-fetch rooms and gallery server-side for fast initial render
-  const [roomsResult, galleryResult] = await Promise.all([
+  // Pre-fetch rooms, gallery, experiences, and settings server-side for fast initial render
+  const [roomsResult, galleryResult, experiencesResult, settingsResult] = await Promise.all([
     payload.find({
       collection: 'rooms',
       depth: 2,
@@ -32,6 +32,17 @@ export default async function ContentManagerPage() {
       sort: 'order',
       limit: 200,
     }),
+    payload.find({
+      collection: 'experiences',
+      depth: 2,
+      locale: 'pt',
+      sort: 'name',
+      limit: 50,
+    }),
+    payload.findGlobal({
+      slug: 'settings',
+      locale: 'pt',
+    }),
   ]);
 
   return (
@@ -43,6 +54,14 @@ export default async function ContentManagerPage() {
         galleryResult.docs as unknown as Parameters<
           typeof ContentManagerClient
         >[0]['initialGallery']
+      }
+      initialExperiences={
+        experiencesResult.docs as unknown as Parameters<
+          typeof ContentManagerClient
+        >[0]['initialExperiences']
+      }
+      initialSettings={
+        settingsResult as unknown as Parameters<typeof ContentManagerClient>[0]['initialSettings']
       }
     />
   );

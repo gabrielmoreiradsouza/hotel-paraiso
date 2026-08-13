@@ -58,6 +58,7 @@
 
 .sidebarNav {
   flex: 1;
+  overflow-y: auto;
 }
 
 .sidebarSection {
@@ -174,6 +175,7 @@
   display: flex;
   border-bottom: 1px solid #e5e5e5;
   margin-bottom: 24px;
+  overflow-x: auto;
 }
 
 .tab {
@@ -187,6 +189,7 @@
   background: none;
   font-family: inherit;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .tab:hover {
@@ -336,6 +339,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .roomCardMeta {
@@ -642,6 +646,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  margin-top: 8px;
 }
 
 .infoLabel {
@@ -693,6 +698,55 @@
   border-radius: 99px;
 }
 
+.amenityTagEditable {
+  font-size: 12px;
+  padding: 4px 10px;
+  background: #f5f0e8;
+  color: #404040;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.amenityRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a3a3a3;
+  font-size: 11px;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.amenityRemove:hover {
+  color: #ef4444;
+}
+
+.amenityAddRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.amenityAddInput {
+  flex: 1;
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.amenityAddInput:focus {
+  outline: none;
+  border-color: #c9a96e;
+  box-shadow: 0 0 0 3px #f5ebcf;
+}
+
 .roomCardFooter {
   margin-top: 20px;
   padding-top: 16px;
@@ -737,6 +791,112 @@
   }
 }
 
+/* ─── Status toggle ─── */
+.statusToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e5e5e5;
+  background: #f5f5f5;
+  color: #737373;
+  font-family: inherit;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusToggleDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusTogglePublished {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.statusTogglePublished:hover {
+  background: #bbf7d0;
+}
+
+.statusToggleDraft {
+  background: #f5f5f5;
+  border-color: #d4d4d4;
+  color: #737373;
+}
+
+.statusToggleDraft:hover {
+  background: #e5e5e5;
+}
+
+/* ─── SEO section ─── */
+.seoSection {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seoToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: #fafafa;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #525252;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.seoToggle:hover {
+  background: #f5f5f5;
+}
+
+.seoChevron {
+  font-size: 11px;
+  transition: transform 0.2s;
+  color: #a3a3a3;
+}
+
+.seoChevronOpen {
+  transform: rotate(180deg);
+}
+
+.seoBody {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* ─── Category badge ─── */
+.categoryBadge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
 /* ─── Preview panel ─── */
 .previewPanel {
   background: #fff;
@@ -761,6 +921,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.previewDevices {
+  display: flex;
+  gap: 4px;
 }
 
 .previewDot {
@@ -987,6 +1152,7 @@
   color: #fff;
   font-size: 12px;
   font-weight: 500;
+  cursor: text;
 }
 
 .galleryItemEmpty {
@@ -1021,6 +1187,45 @@
 
 .galleryItem:hover .galleryDragHandle {
   opacity: 1;
+}
+
+.galleryDeleteBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #404040;
+  transition: all 0.1s;
+}
+
+.galleryDeleteBtn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.galleryTitleInput {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #c9a96e;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a1a;
+  font-family: inherit;
+}
+
+.galleryTitleInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #f5ebcf;
 }
 
 .galleryAdd {
@@ -1136,6 +1341,10 @@
   margin-top: 16px;
   font-size: 11px;
   color: #a3a3a3;
+}
+
+.hiddenInput {
+  display: none;
 }
 
 /* ─── Upload progress panel ─── */
@@ -1303,12 +1512,212 @@
   font-weight: 600;
 }
 
+/* ─── Settings section ─── */
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.settingsCard {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settingsCardTitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.settingsMediaRow {
+  display: flex;
+  gap: 24px;
+}
+
+.settingsMediaItem {
+  flex: 1;
+}
+
+.settingsMediaPreview {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  object-fit: contain;
+  background: #fafafa;
+}
+
+.settingsMediaPreviewSmall {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  object-fit: contain;
+  background: #fafafa;
+}
+
+.settingsMediaEmpty {
+  font-size: 13px;
+  color: #a3a3a3;
+  padding: 16px;
+  text-align: center;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #e5e5e5;
+}
+
+.settingsFooter {
+  grid-column: 1 / -1;
+  padding-top: 8px;
+}
+
+/* ─── Media library ─── */
+.mediaSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.mediaCard {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.mediaCard:hover {
+  border-color: #dfc47a;
+  box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08);
+}
+
+.mediaCardImage {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: #f5f5f5;
+}
+
+.mediaCardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mediaCardOverlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.mediaCard:hover .mediaCardOverlay {
+  opacity: 1;
+}
+
+.mediaCardInfo {
+  padding: 10px 12px;
+}
+
+.mediaCardFilename {
+  font-size: 12px;
+  font-weight: 500;
+  color: #262626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mediaCardMeta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #a3a3a3;
+  margin-top: 2px;
+}
+
+.mediaAltText {
+  font-size: 11px;
+  color: #737373;
+  margin-top: 4px;
+  cursor: pointer;
+  padding: 2px 0;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s;
+}
+
+.mediaAltText:hover {
+  border-bottom-color: #c9a96e;
+  color: #525252;
+}
+
+.mediaAltEmpty {
+  color: #a3a3a3;
+  font-style: italic;
+}
+
+.mediaAltEdit {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mediaAltInput {
+  flex: 1;
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid #c9a96e;
+  border-radius: 4px;
+  background: #fff;
+  font-family: inherit;
+}
+
+.mediaAltInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #f5ebcf;
+}
+
+/* ─── Empty state ─── */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: #737373;
+  font-size: 14px;
+}
+
+.emptyStateIcon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 1024px) {
   .roomBodyGrid {
     grid-template-columns: 1fr;
   }
   .roomBodyGridPreview {
+    grid-template-columns: 1fr;
+  }
+  .settingsGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -1326,7 +1735,13 @@
   .galleryGrid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
+  .mediaGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
   .roomCardStats {
     display: none;
+  }
+  .settingsGrid {
+    grid-template-columns: 1fr;
   }
 }
