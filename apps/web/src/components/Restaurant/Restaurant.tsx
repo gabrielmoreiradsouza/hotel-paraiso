@@ -33,8 +33,8 @@ export function Restaurant() {
             </div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
               <Image
-                src="/images/common/salao-cafe.jpg"
-                alt="Café da manhã — Salão"
+                src="/images/restaurant/salao-buffet.jpg"
+                alt="Café da manhã — Buffet"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 50vw, 25vw"
