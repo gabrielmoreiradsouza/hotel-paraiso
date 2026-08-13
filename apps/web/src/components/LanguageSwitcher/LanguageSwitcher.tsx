@@ -18,10 +18,20 @@ export function LanguageSwitcher({ locale }: { locale: string }) {
     <button
       type="button"
       onClick={() => switchLocale(locale === 'pt' ? 'en' : 'pt')}
-      className="text-xs font-medium text-beige-400 transition-colors hover:text-brand-gold"
+      className="flex flex-col items-center gap-0.5 text-xs font-medium text-beige-400 transition-colors hover:text-brand-gold"
       aria-label="Switch language"
     >
-      {locale === 'pt' ? 'EN' : 'PT'}
+      {locale === 'pt' ? (
+        <>
+          <span className="text-base leading-none">🇺🇸</span>
+          <span>EN</span>
+        </>
+      ) : (
+        <>
+          <span className="text-base leading-none">🇧🇷</span>
+          <span>PT</span>
+        </>
+      )}
     </button>
   );
 }

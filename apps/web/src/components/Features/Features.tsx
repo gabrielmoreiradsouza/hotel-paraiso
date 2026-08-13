@@ -23,7 +23,7 @@ export function Features() {
           <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
             {t('title')}
           </h2>
-          <p className="mt-4 text-beige-700">{t('subtitle')}</p>
+          {t('subtitle') && <p className="mt-4 text-beige-700">{t('subtitle')}</p>}
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
