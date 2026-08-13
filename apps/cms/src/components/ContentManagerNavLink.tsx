@@ -5,7 +5,7 @@ import React from 'react';
 export const ContentManagerNavLink: React.FC = () => {
   return (
     <a
-      href="/admin/content-manager"
+      href="/content-manager"
       style={{
         display: 'flex',
         alignItems: 'center',
