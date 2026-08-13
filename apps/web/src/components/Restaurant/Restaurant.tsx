@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { UtensilsCrossed, Clock, Coffee } from 'lucide-react';
 
@@ -8,95 +7,63 @@ export function Restaurant() {
   const t = useTranslations('restaurant');
 
   return (
-    <section id="restaurante" className="bg-brand-white py-16 sm:py-24">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="grid gap-12 lg:grid-cols-2 items-center">
-          {/* Images */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-              <Image
-                src="/images/restaurant/prato-1.jpg"
-                alt="Gastronomia — Bife com batata"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 50vw, 25vw"
-              />
-            </div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-              <Image
-                src="/images/restaurant/prato-2.jpg"
-                alt="Gastronomia mineira"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 50vw, 25vw"
-              />
-            </div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-              <Image
-                src="/images/restaurant/salao-buffet.jpg"
-                alt="Café da manhã — Buffet"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 50vw, 25vw"
-              />
-            </div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-              <Image
-                src="/images/restaurant/salao-cafe-3.jpg"
-                alt="Café da manhã — Mesa"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 50vw, 25vw"
-              />
-            </div>
-          </div>
+    <section
+      id="restaurante"
+      className="relative py-16 sm:py-24 bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: "url('/images/restaurant/salao-buffet.jpg')" }}
+    >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-brand-black/65" />
 
+      <div className="relative z-10 mx-auto max-w-6xl px-4">
+        <div className="grid gap-12 lg:grid-cols-2 items-center">
           {/* Content */}
           <div>
-            <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-              {t('title')}
-            </h2>
-            <p className="mt-4 text-beige-700 leading-relaxed">{t('description')}</p>
+            <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">{t('title')}</h2>
+            <p className="mt-4 text-white/75 leading-relaxed">{t('description')}</p>
 
             <div className="mt-8 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-50 text-brand-gold">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-gold/10 text-brand-gold">
                   <Coffee className="h-5 w-5" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="font-semibold text-brand-black">{t('breakfast')}</p>
-                  <p className="text-sm text-beige-700">{t('breakfastTime')}</p>
+                  <p className="font-semibold text-white">{t('breakfast')}</p>
+                  <p className="text-sm text-white/85">{t('breakfastTime')}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-50 text-brand-gold">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-gold/10 text-brand-gold">
                   <UtensilsCrossed className="h-5 w-5" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="font-semibold text-brand-black">{t('dinner')}</p>
-                  <p className="text-sm text-beige-700">{t('dinnerTime')}</p>
+                  <p className="font-semibold text-white">{t('dinner')}</p>
+                  <p className="text-sm text-white/85">{t('dinnerTime')}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-50 text-brand-gold">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-gold/10 text-brand-gold">
                   <Clock className="h-5 w-5" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="font-semibold text-brand-black">{t('included')}</p>
-                  <p className="text-sm text-beige-700">{t('includedDesc')}</p>
+                  <p className="font-semibold text-white">{t('included')}</p>
+                  <p className="text-sm text-white/85">{t('includedDesc')}</p>
                 </div>
               </div>
             </div>
 
             <a
               href="/galeria"
-              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand-gold transition-colors hover:text-gold-700"
+              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand-gold transition-colors hover:text-gold-400"
             >
               {t('gallery')} →
             </a>
           </div>
+
+          {/* Right side — empty for visual balance */}
+          <div className="hidden lg:block" />
         </div>
       </div>
     </section>

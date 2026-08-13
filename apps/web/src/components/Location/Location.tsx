@@ -6,18 +6,16 @@ export function Location() {
   const t = useTranslations('location');
 
   return (
-    <section id="contato" className="bg-brand-white py-16 sm:py-24">
+    <section id="contato" className="bg-brand-black py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-12 text-center">
-          <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-            {t('title')}
-          </h2>
-          <p className="mt-4 text-beige-700">{t('city')}</p>
+          <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">{t('title')}</h2>
+          <p className="mt-4 text-white/50">{t('city')}</p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Map */}
-          <div className="aspect-video overflow-hidden rounded-sm bg-beige-100">
+          <div className="aspect-video overflow-hidden rounded-sm bg-white/5">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3738.5!2d-42.9078!3d-20.4167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zUi4gUGFkcmUgSm9zw6kgQWx2YXJlbmdhLCA1MCAtIFBhcmHDrXNvLCBQb250ZSBOb3ZhIC0gTUcsIDM1NDMwLTMwMw!5e0!3m2!1spt-BR!2sbr"
               width="100%"
@@ -32,30 +30,30 @@ export function Location() {
 
           {/* Info */}
           <div className="flex flex-col justify-center">
-            <h3 className="font-display text-2xl font-bold text-brand-black">{t('howToGet')}</h3>
+            <h3 className="font-display text-2xl font-bold text-white">{t('howToGet')}</h3>
 
             <div className="mt-6 space-y-4">
               <div className="flex items-start gap-3">
                 <span className="mt-1 text-brand-gold">{'\u{1F4CD}'}</span>
                 <div>
-                  <p className="font-medium text-brand-black">{t('address')}</p>
-                  <p className="text-sm text-beige-700">{t('neighborhood')}</p>
-                  <p className="text-sm text-beige-600">{t('cep')}</p>
+                  <p className="font-medium text-white">{t('address')}</p>
+                  <p className="text-sm text-white/50">{t('neighborhood')}</p>
+                  <p className="text-sm text-white/50">{t('cep')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-brand-gold">{'\u{1F697}'}</span>
-                <span className="text-sm text-beige-800">{t('distance')}</span>
+                <span className="text-sm text-white/80">{t('distance')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-brand-gold">{'\u{1F4DE}'}</span>
-                <span className="text-sm text-beige-800">{t('reception')}</span>
+                <span className="text-sm text-white/80">{t('reception')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-brand-gold">{'\u2709\uFE0F'}</span>
                 <a
                   href="mailto:hotelrparaiso@gmail.com"
-                  className="text-sm text-beige-800 transition-colors hover:text-brand-gold"
+                  className="text-sm text-white/80 transition-colors hover:text-brand-gold"
                 >
                   hotelrparaiso@gmail.com
                 </a>

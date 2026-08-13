@@ -7,8 +7,12 @@ export function HomeCta() {
   const t = useTranslations('cta');
 
   return (
-    <section className="bg-brand-black py-16 text-center sm:py-24">
-      <div className="mx-auto max-w-3xl px-4">
+    <section
+      className="relative bg-brand-black bg-cover bg-center bg-fixed py-16 text-center sm:py-24"
+      style={{ backgroundImage: "url('/images/common/fachada.jpg')" }}
+    >
+      <div className="absolute inset-0 bg-brand-black/70" />
+      <div className="relative z-10 mx-auto max-w-3xl px-4">
         <h2 className="font-display text-3xl font-bold text-brand-white sm:text-4xl">
           {t('title')}
         </h2>

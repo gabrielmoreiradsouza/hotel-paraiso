@@ -34,15 +34,16 @@
   --color-beige-950: #1a1c19;
 
   /* Fonts */
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-display: 'Raleway', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Base styles */
 body {
   font-family: var(--font-body);
+  font-weight: 300;
   color: var(--color-brand-black);
-  background-color: var(--color-beige-50);
+  background-color: var(--color-brand-black);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -59,4 +60,62 @@ h6 {
 ::selection {
   background-color: color-mix(in srgb, var(--color-brand-gold) 30%, transparent);
   color: var(--color-brand-black);
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Room modal animations */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gallery animations */
+@keyframes galleryFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes galleryCrossfade {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: galleryFadeIn 0.25s ease-out both;
+}
+
+.animate-crossfade {
+  animation: galleryCrossfade 0.3s ease-out both;
 }

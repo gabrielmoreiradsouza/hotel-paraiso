@@ -20,16 +20,14 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="bg-brand-white py-16 sm:py-24">
+    <section className="bg-brand-black py-16 sm:py-24">
       <div className="mx-auto max-w-3xl px-4">
         <div className="mb-12 text-center">
-          <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-            {t('title')}
-          </h2>
-          <p className="mt-4 text-beige-700">{t('subtitle')}</p>
+          <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">{t('title')}</h2>
+          <p className="mt-4 text-white/50">{t('subtitle')}</p>
         </div>
 
-        <div className="divide-y divide-beige-200 rounded-lg border border-beige-200">
+        <div className="divide-y divide-white/10 rounded-lg border border-white/10">
           {faqKeys.map((key, index) => {
             const isOpen = openIndex === index;
             return (
@@ -37,21 +35,21 @@ export function FAQ() {
                 <button
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? null : index)}
-                  className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors hover:bg-beige-50"
+                  className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors hover:bg-white/[0.04]"
                   aria-expanded={isOpen}
                 >
-                  <span className="pr-4 font-display text-base font-semibold text-brand-black sm:text-lg">
+                  <span className="pr-4 font-display text-base font-semibold text-white sm:text-lg">
                     {t(`${key}Q`)}
                   </span>
                   <ChevronDown
-                    className={`h-5 w-5 shrink-0 text-beige-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    className={`h-5 w-5 shrink-0 text-white/40 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                     strokeWidth={2}
                   />
                 </button>
                 <div
                   className={`overflow-hidden transition-all duration-200 ${isOpen ? 'max-h-40 pb-5' : 'max-h-0'}`}
                 >
-                  <p className="px-6 text-sm leading-relaxed text-beige-700">{t(`${key}A`)}</p>
+                  <p className="px-6 text-sm leading-relaxed text-white/60">{t(`${key}A`)}</p>
                 </div>
               </div>
             );

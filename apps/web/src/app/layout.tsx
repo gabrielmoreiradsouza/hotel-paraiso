@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Inter } from 'next/font/google';
+import { Raleway, Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import './globals.css';
@@ -9,7 +9,7 @@ import { Header } from '@/components/Header/Header';
 import { Analytics } from '@/components/Analytics/Analytics';
 import { WhatsAppButton } from '@/components/WhatsAppButton/WhatsAppButton';
 
-const playfair = Playfair_Display({
+const raleway = Raleway({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
@@ -19,6 +19,7 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
+  weight: ['300', '400', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -85,7 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${playfair.variable} ${inter.variable}`}>
+    <html lang={locale} className={`${raleway.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"

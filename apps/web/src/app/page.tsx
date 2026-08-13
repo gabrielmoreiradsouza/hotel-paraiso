@@ -1,5 +1,4 @@
 import { Hero } from '@/components/Hero/Hero';
-import { BookingWidget } from '@/components/BookingWidget/BookingWidget';
 import { RoomCards } from '@/components/RoomCards/RoomCards';
 import { Features } from '@/components/Features/Features';
 import { Location } from '@/components/Location/Location';
@@ -12,7 +11,6 @@ export default async function Home() {
   return (
     <>
       <Hero />
-      <BookingWidget />
       <RoomCards />
       <Restaurant />
       <Features />

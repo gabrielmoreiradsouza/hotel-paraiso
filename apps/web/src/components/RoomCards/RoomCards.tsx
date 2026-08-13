@@ -1,132 +1,182 @@
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { getRooms, getMediaUrl } from '@/lib/cms';
+import { RoomCarousel } from './RoomCarousel';
 
-const fallbackRooms = [
+export type RoomCardData = {
+  slug: string;
+  name: string;
+  description: string;
+  longDescription: string;
+  price: string;
+  image: string;
+  images: string[];
+  capacity: string;
+  size: string;
+  amenities: string[];
+};
+
+const fallbackRooms: RoomCardData[] = [
   {
     slug: 'confort',
     name: 'Confort',
     description: 'Acomodação acessível com ventilador. Individual, duplo ou casal.',
+    longDescription:
+      'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponível em três opções: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e café da manhã incluso.',
     price: 'A partir de R$ 130',
     image: '/images/rooms/standard.jpg',
+    images: [
+      '/images/rooms/standard.jpg',
+      '/images/rooms/standard-2.jpg',
+      '/images/rooms/standard-bath.jpg',
+    ],
     capacity: '1–2 adultos',
-    amenities: ['Wi-Fi', 'Ventilador', 'TV', 'Frigobar'],
+    size: '15m²',
+    amenities: [
+      'Wi-Fi de alta velocidade',
+      'Ventilador de teto',
+      'TV LED 32"',
+      'Frigobar',
+      'Chuveiro quente',
+      'Toalhas e roupas de cama',
+      'Tomadas USB ao lado da cama',
+    ],
   },
   {
     slug: 'standard',
     name: 'Standard',
     description: 'Conforto com ar condicionado. Individual, casal ou triplo.',
+    longDescription:
+      'Quarto funcional e bem equipado com ar-condicionado para quem precisa de uma base confortável em Ponte Nova. Disponível como Suite Standard (individual ou casal) e Suite Triplo Standard (casal + 1 box solteiro ou 3 box solteiro). Wi-Fi rápido, mesa de trabalho e café da manhã incluso.',
     price: 'A partir de R$ 180',
     image: '/images/rooms/standard.jpg',
+    images: [
+      '/images/rooms/standard.jpg',
+      '/images/rooms/standard-2.jpg',
+      '/images/rooms/standard-bath.jpg',
+      '/images/rooms/standard-triplo.jpg',
+      '/images/rooms/standard-triplo-2.jpg',
+      '/images/rooms/standard-pet.jpg',
+    ],
     capacity: '1–3 adultos',
-    amenities: ['Wi-Fi', 'Ar condicionado', 'TV', 'Frigobar'],
+    size: '18m²',
+    amenities: [
+      'Wi-Fi de alta velocidade',
+      'Ar-condicionado split silencioso',
+      'TV LED 32"',
+      'Frigobar',
+      'Chuveiro quente',
+      'Toalhas e roupas de cama premium',
+      'Mesa de trabalho',
+      'Tomadas USB ao lado da cama',
+    ],
   },
   {
     slug: 'luxo',
     name: 'Luxo',
     description: 'Espaço amplo com acabamentos premium e ventilador de teto.',
+    longDescription:
+      'Ambiente amplo com 25m² de acabamentos premium. TV 50", frigobar e chuveiro com ducha dupla. Ventilador de teto silencioso. Disponível como Suite Luxo individual ou casal (cama casal ou 2 box solteiro). O quarto Luxo é a escolha certa para quem quer mais conforto — perfeito para casais ou estadias mais longas.',
     price: 'A partir de R$ 280',
     image: '/images/rooms/luxo.jpg',
+    images: [
+      '/images/rooms/luxo.jpg',
+      '/images/rooms/luxo-2.jpg',
+      '/images/rooms/luxo-bath.jpg',
+      '/images/rooms/luxo-triplo.jpg',
+      '/images/rooms/luxo-casal.jpg',
+      '/images/rooms/luxo-casal-3.jpg',
+      '/images/rooms/luxo-triplo-3.jpg',
+    ],
     capacity: '2 adultos',
-    amenities: ['Wi-Fi', 'Ventilador', 'TV 50"', 'Frigobar'],
+    size: '25m²',
+    amenities: [
+      'Wi-Fi de alta velocidade',
+      'Ventilador de teto silencioso',
+      'TV LED 50"',
+      'Frigobar',
+      'Roupão e chinelos',
+      'Chuveiro com ducha dupla',
+      'Amenities premium',
+      'Mesa de trabalho',
+      'Tomadas USB ao lado da cama',
+    ],
   },
   {
     slug: 'master',
     name: 'Suíte Master',
     description: 'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
+    longDescription:
+      'A Suíte Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais ou simplesmente para quem merece o melhor que Ponte Nova tem a oferecer.',
     price: 'A partir de R$ 420',
     image: '/images/rooms/master.jpg',
+    images: [
+      '/images/rooms/master.jpg',
+      '/images/rooms/master-2.jpg',
+      '/images/rooms/master-3.jpg',
+      '/images/rooms/master-bath.jpg',
+      '/images/rooms/master-suite.jpg',
+      '/images/rooms/master-casal.jpg',
+    ],
     capacity: '1–3 adultos',
-    amenities: ['Wi-Fi', 'Ar condicionado', 'TV 55"', 'Sala de estar'],
+    size: '35m²',
+    amenities: [
+      'Wi-Fi de alta velocidade',
+      'Ar-condicionado split silencioso',
+      'TV LED 55"',
+      'Frigobar',
+      'Sala de estar separada',
+      'Roupão e chinelos',
+      'Amenities premium',
+      'Room service',
+      'Vista privilegiada',
+    ],
   },
 ];
 
 export async function RoomCards() {
   const t = await getTranslations('rooms');
 
-  let rooms = fallbackRooms;
+  let rooms: RoomCardData[] = fallbackRooms;
   try {
     const cmsRooms = await getRooms();
     if (cmsRooms.length > 0) {
-      rooms = cmsRooms.map((r) => ({
-        slug: r.slug,
-        name: r.name,
-        description: r.shortDescription ?? '',
-        price: r.startingPrice ?? '',
-        image:
-          getMediaUrl(typeof r.featuredImage === 'number' ? undefined : r.featuredImage) ||
-          '/images/rooms/standard.jpg',
-        capacity: r.capacityLabel ?? '',
-        amenities: (r.amenities?.map((a) => a.name) ?? []).slice(0, 4),
-      }));
+      rooms = cmsRooms.map((r) => {
+        const galleryImages =
+          r.gallery
+            ?.map((g) => getMediaUrl(typeof g.image === 'number' ? undefined : g.image))
+            .filter(Boolean) ?? [];
+        const featuredUrl = getMediaUrl(
+          typeof r.featuredImage === 'number' ? undefined : r.featuredImage
+        );
+        if (featuredUrl && !galleryImages.includes(featuredUrl)) {
+          galleryImages.unshift(featuredUrl);
+        }
+        const mainImage = featuredUrl || galleryImages[0] || '/images/rooms/standard.jpg';
+
+        return {
+          slug: r.slug,
+          name: r.name,
+          description: r.shortDescription ?? '',
+          longDescription: r.longDescription ?? '',
+          price: r.startingPrice ?? '',
+          image: mainImage,
+          images: galleryImages.length > 0 ? galleryImages : [mainImage],
+          capacity: r.capacityLabel ?? '',
+          size: r.size ? `${r.size}m²` : '',
+          amenities: r.amenities?.map((a) => a.name) ?? [],
+        };
+      });
     }
   } catch {
     // CMS unavailable — use fallbackRooms
   }
 
   return (
-    <section id="quartos" className="bg-brand-white py-16 sm:py-24">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="mb-12 text-center">
-          <h2 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-            {t('title')}
-          </h2>
-          <p className="mt-4 text-beige-700">{t('subtitle')}</p>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {rooms.map((room) => (
-            <article
-              key={room.slug}
-              className="group overflow-hidden rounded-sm border border-beige-200 bg-brand-white shadow-sm transition-shadow hover:shadow-lg"
-            >
-              {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden bg-beige-100">
-                <Image
-                  src={room.image}
-                  alt={room.name}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  unoptimized={room.image.startsWith('http')}
-                />
-              </div>
-
-              {/* Info */}
-              <div className="p-6">
-                <h3 className="font-display text-xl font-bold text-brand-black">{room.name}</h3>
-                <p className="mt-2 text-sm text-beige-700">{room.description}</p>
-
-                {/* Amenities */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {room.amenities.map((amenity) => (
-                    <span
-                      key={amenity}
-                      className="rounded-sm bg-beige-100 px-2 py-1 text-xs text-beige-800"
-                    >
-                      {amenity}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Capacity + Price */}
-                <div className="mt-6 flex items-end justify-between border-t border-beige-200 pt-4">
-                  <span className="text-xs text-beige-600">{room.capacity}</span>
-                  <span className="font-display text-lg font-bold text-gold-700">{room.price}</span>
-                </div>
-
-                {/* CTA */}
-                <a
-                  href={`/quartos/${room.slug}`}
-                  className="mt-4 block w-full rounded-sm border border-brand-gold py-2.5 text-center text-sm font-semibold uppercase tracking-wider text-brand-gold transition-colors hover:bg-brand-gold hover:text-brand-black"
-                >
-                  {t('details')}
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
+    <RoomCarousel
+      rooms={rooms}
+      title={t('title')}
+      subtitle={t('subtitle')}
+      detailsLabel={t('details')}
+    />
   );
 }

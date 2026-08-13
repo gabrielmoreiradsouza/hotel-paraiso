@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { BookingWidget, BookingSentinel } from '@/components/BookingWidget/BookingWidget';
 
 const heroImages = [
   { src: '/images/common/recepcao.jpg', alt: 'Hotel e Restaurante Paraíso — Recepção' },
@@ -112,6 +113,10 @@ export function Hero() {
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>
       </div>
+
+      {/* Booking widget — glass state inside hero, docks on scroll */}
+      <BookingWidget />
+      <BookingSentinel />
     </section>
   );
 }
