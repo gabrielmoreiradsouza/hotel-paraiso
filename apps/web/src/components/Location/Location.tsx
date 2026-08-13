@@ -1,20 +1,17 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { MapPin, Car, Phone, Mail } from 'lucide-react';
 
-export function Location() {
-  const t = useTranslations('location');
+export async function Location() {
+  const t = await getTranslations('location');
 
   return (
     <section id="contato" className="bg-brand-black">
       <div className="grid lg:grid-cols-2">
         {/* Map — full bleed left */}
-        <div className="min-h-[350px] lg:min-h-[500px]">
+        <div className="h-[350px] lg:h-[500px]">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3738.5!2d-42.9078!3d-20.4167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zUi4gUGFkcmUgSm9zw6kgQWx2YXJlbmdhLCA1MCAtIFBhcmHDrXNvLCBQb250ZSBOb3ZhIC0gTUcsIDM1NDMwLTMwMw!5e0!3m2!1spt-BR!2sbr"
-            width="100%"
-            height="100%"
+            className="block h-full w-full"
             style={{ border: 0 }}
             allowFullScreen
             loading="lazy"
