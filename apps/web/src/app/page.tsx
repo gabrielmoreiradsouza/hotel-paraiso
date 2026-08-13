@@ -14,9 +14,9 @@ export default async function Home() {
       <RoomCards />
       <Restaurant />
       <Features />
+      <HomeCta />
       <FAQ />
       <Location />
-      <HomeCta />
       <Footer />
     </>
   );
