@@ -1,0 +1,2234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Paraíso — Admin Content Manager (Mockup)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════
+     DESIGN TOKENS — Hotel Paraíso
+     ═══════════════════════════════════════════════ */
+  :root {
+    /* Brand */
+    --black: #1A1A1A;
+    --white: #FFFFFF;
+    --beige: #F5F0E8;
+    --gold: #C9A96E;
+
+    /* Gold scale */
+    --gold-50: #FBF7EF;
+    --gold-100: #F5EBCF;
+    --gold-200: #EADAA5;
+    --gold-300: #DFC47A;
+    --gold-400: #D4AF5F;
+    --gold-500: #C9A96E;
+    --gold-600: #B8944D;
+    --gold-700: #96763D;
+    --gold-800: #745A2F;
+    --gold-900: #523F21;
+
+    /* Beige scale */
+    --beige-50: #FDFCFA;
+    --beige-100: #FAF8F4;
+    --beige-200: #F5F0E8;
+    --beige-300: #EDE5D5;
+    --beige-400: #E0D4BD;
+    --beige-500: #D1C3A5;
+
+    /* Neutral */
+    --neutral-50: #FAFAFA;
+    --neutral-100: #F5F5F5;
+    --neutral-200: #E5E5E5;
+    --neutral-300: #D4D4D4;
+    --neutral-400: #A3A3A3;
+    --neutral-500: #737373;
+    --neutral-600: #525252;
+    --neutral-700: #404040;
+    --neutral-800: #262626;
+    --neutral-900: #1A1A1A;
+
+    /* Semantic */
+    --success: #22C55E;
+    --warning: #EAB308;
+    --error: #EF4444;
+    --info: #3B82F6;
+
+    /* Typography */
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* Shadows */
+    --shadow-card: 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-card-hover: 0 8px 16px -4px rgb(0 0 0 / 0.10), 0 4px 8px -2px rgb(0 0 0 / 0.04);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  }
+
+  /* ═══════════════════════════════════════════════
+     RESET & BASE
+     ═══════════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--neutral-100);
+    color: var(--neutral-900);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ═══════════════════════════════════════════════
+     LAYOUT — Sidebar + Main
+     ═══════════════════════════════════════════════ */
+  .app-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 240px;
+    background: var(--neutral-900);
+    color: var(--white);
+    padding: 24px 0;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--neutral-700);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo h1 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.025em;
+  }
+
+  .sidebar-logo span {
+    font-size: 11px;
+    color: var(--neutral-400);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .sidebar-nav { flex: 1; }
+
+  .sidebar-section {
+    padding: 0 12px;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--neutral-500);
+    padding: 8px 8px 4px;
+    font-weight: 600;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    color: var(--neutral-300);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .sidebar-link:hover { background: var(--neutral-800); color: var(--white); }
+  .sidebar-link.active { background: var(--gold-900); color: var(--gold-100); }
+  .sidebar-link .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .main-content {
+    flex: 1;
+    margin-left: 240px;
+    min-height: 100vh;
+  }
+
+  /* ═══════════════════════════════════════════════
+     TOP BAR
+     ═══════════════════════════════════════════════ */
+  .top-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--neutral-200);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--neutral-500);
+  }
+
+  .breadcrumb a { color: var(--neutral-500); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--neutral-700); }
+  .breadcrumb .current { color: var(--neutral-900); font-weight: 500; }
+
+  .cmd-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    color: var(--neutral-400);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .cmd-search:hover { border-color: var(--neutral-300); }
+
+  .cmd-search kbd {
+    font-family: var(--font-body);
+    font-size: 11px;
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     PAGE CONTENT
+     ═══════════════════════════════════════════════ */
+  .page { padding: 32px; max-width: 1400px; }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--neutral-900);
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--neutral-500);
+    margin-top: 4px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     TABS
+     ═══════════════════════════════════════════════ */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--neutral-200);
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--neutral-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: var(--font-body);
+  }
+
+  .tab:hover { color: var(--neutral-700); }
+  .tab.active { color: var(--gold-700); border-bottom-color: var(--gold-500); }
+
+  .tab-badge {
+    background: var(--neutral-200);
+    color: var(--neutral-600);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 99px;
+    margin-left: 6px;
+  }
+
+  .tab.active .tab-badge { background: var(--gold-100); color: var(--gold-800); }
+
+  /* ═══════════════════════════════════════════════
+     BUTTONS
+     ═══════════════════════════════════════════════ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    font-family: var(--font-body);
+  }
+
+  .btn-primary { background: var(--gold-500); color: var(--white); }
+  .btn-primary:hover { background: var(--gold-600); }
+
+  .btn-secondary { background: var(--white); color: var(--neutral-700); border: 1px solid var(--neutral-200); }
+  .btn-secondary:hover { background: var(--neutral-50); border-color: var(--neutral-300); }
+
+  .btn-ghost { background: transparent; color: var(--neutral-600); }
+  .btn-ghost:hover { background: var(--neutral-100); }
+
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-icon { padding: 6px; width: 32px; height: 32px; justify-content: center; }
+
+  /* ═══════════════════════════════════════════════
+     ROOM CARDS — Expandable Accordion
+     ═══════════════════════════════════════════════ */
+  .room-card {
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+
+  .room-card:hover { box-shadow: var(--shadow-card-hover); }
+  .room-card.expanded { box-shadow: var(--shadow-lg); border-color: var(--gold-300); }
+
+  .room-card-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    gap: 16px;
+    user-select: none;
+  }
+
+  .room-card-header:hover { background: var(--beige-50); }
+
+  .room-thumb {
+    width: 80px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .room-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .room-card-info { flex: 1; min-width: 0; }
+
+  .room-card-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .room-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--neutral-500);
+  }
+
+  .room-card-meta .sep { color: var(--neutral-300); }
+
+  .status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-published { background: #DCFCE7; color: #166534; }
+  .status-draft { background: var(--neutral-100); color: var(--neutral-500); }
+
+  .room-card-stats {
+    display: flex;
+    gap: 24px;
+    flex-shrink: 0;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--neutral-900);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--neutral-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .photo-count-warning { color: var(--warning); }
+  .photo-count-ok { color: var(--success); }
+
+  .expand-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    color: var(--neutral-400);
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  .room-card.expanded .expand-icon { transform: rotate(180deg); color: var(--gold-600); }
+
+  /* ═══════════════════════════════════════════════
+     ROOM CARD — Expanded Content
+     ═══════════════════════════════════════════════ */
+  .room-card-body {
+    display: none;
+    border-top: 1px solid var(--neutral-200);
+    padding: 24px;
+    background: var(--beige-50);
+  }
+
+  .room-card.expanded .room-card-body { display: block; }
+
+  .room-body-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+  }
+
+  /* Photo gallery in expanded card */
+  .photo-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .photo-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-700);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .photo-item {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: grab;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    group: true;
+  }
+
+  .photo-item:hover { border-color: var(--gold-300); }
+  .photo-item.is-cover { border-color: var(--gold-500); }
+
+  .photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-item-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.5) 100%);
+    opacity: 0;
+    transition: opacity 0.15s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+  }
+
+  .photo-item:hover .photo-item-overlay { opacity: 1; }
+  .photo-item.is-cover .photo-item-overlay { opacity: 1; }
+
+  .photo-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  .photo-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--neutral-700);
+    transition: all 0.1s;
+  }
+
+  .photo-action-btn:hover { background: var(--white); }
+  .photo-action-btn.delete:hover { background: var(--error); color: var(--white); }
+
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gold-500);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    align-self: flex-start;
+  }
+
+  .photo-order {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    background: rgba(0,0,0,0.6);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 600;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .photo-add {
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-md);
+    aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--neutral-400);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--white);
+    font-size: 12px;
+  }
+
+  .photo-add:hover {
+    border-color: var(--gold-400);
+    color: var(--gold-600);
+    background: var(--gold-50);
+  }
+
+  .photo-add .plus { font-size: 24px; line-height: 1; }
+
+  /* Drag state */
+  .photo-item.dragging {
+    opacity: 0.4;
+    border-color: var(--gold-500);
+    border-style: dashed;
+  }
+
+  .photo-item.drag-over {
+    border-color: var(--gold-500);
+    transform: scale(1.03);
+  }
+
+  /* Info panel (right side) */
+  .info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .info-group { }
+
+  .info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .info-value {
+    font-size: 14px;
+    color: var(--neutral-800);
+    line-height: 1.5;
+  }
+
+  .info-editable {
+    width: 100%;
+    font-size: 14px;
+    color: var(--neutral-800);
+    line-height: 1.5;
+    padding: 8px 12px;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    font-family: var(--font-body);
+    resize: vertical;
+    transition: border-color 0.15s;
+  }
+
+  .info-editable:focus {
+    outline: none;
+    border-color: var(--gold-500);
+    box-shadow: 0 0 0 3px var(--gold-100);
+  }
+
+  .amenity-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .amenity-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: var(--beige-200);
+    color: var(--neutral-700);
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .capacity-grid {
+    display: flex;
+    gap: 16px;
+  }
+
+  .capacity-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--neutral-700);
+  }
+
+  .room-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--neutral-200);
+  }
+
+  .save-indicator {
+    font-size: 12px;
+    color: var(--neutral-400);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .save-indicator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+
+  /* ═══════════════════════════════════════════════
+     GALLERY TAB — Category Grid View
+     ═══════════════════════════════════════════════ */
+  .gallery-tab { display: none; }
+  .gallery-tab.active { display: block; }
+
+  .rooms-tab { display: none; }
+  .rooms-tab.active { display: block; }
+
+  .category-section {
+    margin-bottom: 32px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+
+  .category-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--neutral-800);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .category-count {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--neutral-500);
+    background: var(--neutral-100);
+    padding: 2px 10px;
+    border-radius: 99px;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .gallery-item {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: grab;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    background: var(--neutral-100);
+  }
+
+  .gallery-item:hover {
+    border-color: var(--gold-300);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gallery-item-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.6) 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+  }
+
+  .gallery-item:hover .gallery-item-overlay { opacity: 1; }
+
+  .gallery-item-title {
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 500;
+    align-self: flex-start;
+    margin-top: auto;
+  }
+
+  .gallery-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  .gallery-drag-handle {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 28px;
+    height: 28px;
+    background: rgba(255,255,255,0.9);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--neutral-500);
+    opacity: 0;
+    transition: opacity 0.15s;
+    cursor: grab;
+  }
+
+  .gallery-item:hover .gallery-drag-handle { opacity: 1; }
+
+  .gallery-add {
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-lg);
+    aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--neutral-400);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--white);
+  }
+
+  .gallery-add:hover {
+    border-color: var(--gold-400);
+    color: var(--gold-600);
+    background: var(--gold-50);
+  }
+
+  .gallery-add .plus { font-size: 28px; line-height: 1; }
+  .gallery-add .label { font-size: 12px; font-weight: 500; }
+
+  /* ═══════════════════════════════════════════════
+     DRAG HINT
+     ═══════════════════════════════════════════════ */
+  .drag-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--beige-100);
+    border: 1px solid var(--beige-400);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--neutral-600);
+    margin-bottom: 16px;
+  }
+
+  .drag-hint .icon { font-size: 16px; }
+
+  /* ═══════════════════════════════════════════════
+     ALERT BANNERS
+     ═══════════════════════════════════════════════ */
+  .alert-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .alert-bar.warning {
+    background: #FEF9C3;
+    border: 1px solid #FDE047;
+    color: #854D0E;
+  }
+
+  .alert-bar .icon { font-size: 16px; }
+  .alert-bar .dismiss {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+    font-size: 16px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     TOOLTIP
+     ═══════════════════════════════════════════════ */
+  [data-tooltip] {
+    position: relative;
+  }
+
+  [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: var(--neutral-800);
+    color: var(--white);
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+
+  [data-tooltip]:hover::after { opacity: 1; }
+
+  /* ═══════════════════════════════════════════════
+     PREVIEW SIDE-BY-SIDE
+     ═══════════════════════════════════════════════ */
+  .preview-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--neutral-200);
+    background: var(--white);
+    color: var(--neutral-600);
+    transition: all 0.15s;
+  }
+
+  .preview-toggle:hover { border-color: var(--gold-400); color: var(--gold-700); }
+  .preview-toggle.active { background: var(--gold-50); border-color: var(--gold-400); color: var(--gold-700); }
+
+  .room-body-grid.with-preview {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .preview-panel {
+    display: none;
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .preview-panel.visible { display: block; }
+
+  .preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--neutral-50);
+    border-bottom: 1px solid var(--neutral-200);
+    font-size: 11px;
+    color: var(--neutral-500);
+  }
+
+  .preview-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-device-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--neutral-500);
+    transition: all 0.1s;
+  }
+
+  .preview-device-btn:hover { border-color: var(--neutral-400); }
+  .preview-device-btn.active { border-color: var(--gold-500); color: var(--gold-700); background: var(--gold-50); }
+
+  .preview-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .preview-body {
+    padding: 0;
+    min-height: 500px;
+    overflow-y: auto;
+    max-height: 600px;
+  }
+
+  /* Simulated site card inside preview */
+  .site-room-card {
+    max-width: 100%;
+    font-family: var(--font-body);
+  }
+
+  .site-room-hero {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+  }
+
+  .site-room-gallery-strip {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    overflow-x: auto;
+    background: var(--neutral-900);
+  }
+
+  .site-room-gallery-strip img {
+    width: 64px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 3px;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  .site-room-gallery-strip img:first-child { opacity: 1; border: 2px solid var(--gold-500); }
+  .site-room-gallery-strip img:hover { opacity: 1; }
+
+  .site-room-content {
+    padding: 20px;
+  }
+
+  .site-room-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 4px;
+  }
+
+  .site-room-price {
+    font-size: 14px;
+    color: var(--gold-600);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .site-room-desc {
+    font-size: 13px;
+    color: var(--neutral-600);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .site-room-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .site-amenity {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: var(--beige-200);
+    border-radius: 99px;
+    color: var(--neutral-700);
+  }
+
+  .site-room-cta {
+    width: 100%;
+    padding: 12px;
+    background: var(--gold-500);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: default;
+  }
+
+  .preview-update-flash {
+    animation: flash-update 0.6s ease;
+  }
+
+  @keyframes flash-update {
+    0% { background: var(--gold-100); }
+    100% { background: transparent; }
+  }
+
+  /* ═══════════════════════════════════════════════
+     BULK UPLOAD DROPZONE
+     ═══════════════════════════════════════════════ */
+  .dropzone-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 26, 26, 0.7);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .dropzone-overlay.visible { display: flex; }
+
+  .dropzone-box {
+    width: 500px;
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    padding: 48px;
+    text-align: center;
+    border: 3px dashed var(--gold-400);
+    position: relative;
+  }
+
+  .dropzone-box.drag-active {
+    border-color: var(--gold-500);
+    background: var(--gold-50);
+    transform: scale(1.02);
+    transition: all 0.15s;
+  }
+
+  .dropzone-icon { font-size: 48px; margin-bottom: 16px; }
+
+  .dropzone-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 8px;
+  }
+
+  .dropzone-subtitle {
+    font-size: 13px;
+    color: var(--neutral-500);
+    margin-bottom: 24px;
+  }
+
+  .dropzone-browse {
+    display: inline-flex;
+    padding: 10px 24px;
+    background: var(--gold-500);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: background 0.15s;
+  }
+
+  .dropzone-browse:hover { background: var(--gold-600); }
+
+  .dropzone-formats {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--neutral-400);
+  }
+
+  .dropzone-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--neutral-100);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--neutral-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Upload progress list */
+  .upload-progress-panel {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 380px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+    z-index: 90;
+    overflow: hidden;
+  }
+
+  .upload-progress-panel.visible { display: block; }
+
+  .upload-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--neutral-50);
+    border-bottom: 1px solid var(--neutral-200);
+  }
+
+  .upload-progress-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-800);
+  }
+
+  .upload-progress-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .upload-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--neutral-100);
+  }
+
+  .upload-file:last-child { border-bottom: none; }
+
+  .upload-file-thumb {
+    width: 44px;
+    height: 33px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .upload-file-info { flex: 1; min-width: 0; }
+
+  .upload-file-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--neutral-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .upload-file-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--neutral-400);
+    margin-top: 2px;
+  }
+
+  .compression-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .compression-badge.good { background: #DCFCE7; color: #166534; }
+  .compression-badge.great { background: #D1FAE5; color: #065F46; }
+  .compression-badge.warn { background: #FEF9C3; color: #854D0E; }
+
+  .upload-file-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--neutral-200);
+    border-radius: 99px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .upload-file-bar-fill {
+    height: 100%;
+    background: var(--gold-500);
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  .upload-file-bar-fill.done { background: var(--success); }
+
+  .upload-file-status {
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .upload-summary {
+    padding: 10px 16px;
+    background: var(--beige-50);
+    border-top: 1px solid var(--neutral-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--neutral-600);
+  }
+
+  .upload-summary strong {
+    color: var(--success);
+  }
+
+  .resolution-warning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--warning);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════════════ */
+  @media (max-width: 1024px) {
+    .room-body-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-content { margin-left: 0; }
+    .photo-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .room-card-stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Hotel Paraíso</h1>
+      <span>Painel Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Principal</div>
+        <a class="sidebar-link" href="#"><span class="icon">📊</span> Dashboard</a>
+        <a class="sidebar-link" href="#"><span class="icon">📅</span> Reservas</a>
+        <a class="sidebar-link" href="#"><span class="icon">👥</span> Hóspedes</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Conteúdo</div>
+        <a class="sidebar-link active" href="#"><span class="icon">🏨</span> Quartos</a>
+        <a class="sidebar-link" href="#"><span class="icon">🖼️</span> Galeria</a>
+        <a class="sidebar-link" href="#"><span class="icon">📝</span> Páginas</a>
+        <a class="sidebar-link" href="#"><span class="icon">☕</span> Experiências</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Sistema</div>
+        <a class="sidebar-link" href="#"><span class="icon">📈</span> Analytics</a>
+        <a class="sidebar-link" href="#"><span class="icon">⚙️</span> Configurações</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-content">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="breadcrumb">
+          <a href="#">Admin</a>
+          <span>/</span>
+          <span class="current">Conteúdo</span>
+        </div>
+      </div>
+      <div class="cmd-search">
+        <span>🔍</span>
+        Buscar quartos, fotos...
+        <kbd>⌘K</kbd>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page">
+
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Gestão de Conteúdo</h2>
+          <p class="page-subtitle">Gerencie quartos, fotos e informações do hotel</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary">
+            <span>👁️</span> Ver no site
+          </button>
+          <button class="btn btn-primary">
+            <span>+</span> Novo quarto
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('rooms')">
+          Quartos <span class="tab-badge">4</span>
+        </button>
+        <button class="tab" onclick="switchTab('gallery')">
+          Galeria Geral <span class="tab-badge">10</span>
+        </button>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           TAB: QUARTOS (Expandable Cards)
+           ═══════════════════════════════════════ -->
+      <div class="rooms-tab active" id="rooms-tab">
+
+        <!-- Alert: fotos faltando -->
+        <div class="alert-bar warning">
+          <span class="icon">⚠️</span>
+          <strong>Confort</strong> tem apenas 0 fotos. Recomendamos pelo menos 3 fotos por categoria.
+          <button class="dismiss">✕</button>
+        </div>
+
+        <!-- ─── Suite Master (EXPANDED example) ─── -->
+        <div class="room-card expanded" id="room-master">
+          <div class="room-card-header" onclick="toggleRoom('room-master')">
+            <div class="room-thumb">
+              <img src="https://images.unsplash.com/photo-1590490360182-c33d7f9d02f0?w=160&h=112&fit=crop" alt="Suite Master">
+            </div>
+            <div class="room-card-info">
+              <div class="room-card-name">
+                Suite Master
+                <span class="status-badge status-published">Publicado</span>
+              </div>
+              <div class="room-card-meta">
+                35m² <span class="sep">·</span>
+                1-3 adultos <span class="sep">·</span>
+                A partir de R$ 420 <span class="sep">·</span>
+                9 amenidades
+              </div>
+            </div>
+            <div class="room-card-stats">
+              <div class="stat">
+                <div class="stat-value photo-count-ok">7</div>
+                <div class="stat-label">Fotos</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Variações</div>
+              </div>
+            </div>
+            <div class="expand-icon">▼</div>
+          </div>
+
+          <div class="room-card-body">
+            <div class="room-body-grid">
+
+              <!-- Left: Photo Gallery -->
+              <div>
+                <div class="photo-section-header">
+                  <span class="photo-section-title">Fotos (7)</span>
+                  <div style="display:flex; gap:6px;">
+                    <button class="preview-toggle" onclick="togglePreview()" id="preview-btn">
+                      👁️ Preview do site
+                    </button>
+                    <button class="btn btn-sm btn-ghost">Selecionar várias</button>
+                    <button class="btn btn-sm btn-secondary" onclick="openDropzone()"><span>+</span> Upload</button>
+                  </div>
+                </div>
+
+                <div class="drag-hint">
+                  <span class="icon">↕️</span>
+                  Arraste as fotos para reordenar. Clique na ★ para definir como capa.
+                </div>
+
+                <div class="photo-grid">
+                  <!-- Photo 1 — COVER -->
+                  <div class="photo-item is-cover" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1590490360182-c33d7f9d02f0?w=300&h=225&fit=crop" alt="Master suite vista geral">
+                    <div class="photo-item-overlay">
+                      <div class="cover-badge">★ Capa</div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">1</div>
+                  </div>
+
+                  <!-- Photo 2 -->
+                  <div class="photo-item" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=300&h=225&fit=crop" alt="Master cama casal">
+                    <div class="photo-item-overlay">
+                      <div></div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Definir como capa">★</button>
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">2</div>
+                  </div>
+
+                  <!-- Photo 3 -->
+                  <div class="photo-item" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300&h=225&fit=crop" alt="Master banheiro">
+                    <div class="photo-item-overlay">
+                      <div></div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Definir como capa">★</button>
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">3</div>
+                  </div>
+
+                  <!-- Photo 4 -->
+                  <div class="photo-item" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=300&h=225&fit=crop" alt="Master sala de estar">
+                    <div class="photo-item-overlay">
+                      <div></div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Definir como capa">★</button>
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">4</div>
+                  </div>
+
+                  <!-- Photo 5 -->
+                  <div class="photo-item" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=300&h=225&fit=crop" alt="Master hidromassagem">
+                    <div class="photo-item-overlay">
+                      <div></div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Definir como capa">★</button>
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">5</div>
+                  </div>
+
+                  <!-- Photo 6 -->
+                  <div class="photo-item" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=300&h=225&fit=crop" alt="Master detalhe">
+                    <div class="photo-item-overlay">
+                      <div></div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Definir como capa">★</button>
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">6</div>
+                  </div>
+
+                  <!-- Photo 7 -->
+                  <div class="photo-item" draggable="true">
+                    <img src="https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=300&h=225&fit=crop" alt="Master hidro 2">
+                    <div class="photo-item-overlay">
+                      <div></div>
+                      <div class="photo-item-actions">
+                        <button class="photo-action-btn" data-tooltip="Definir como capa">★</button>
+                        <button class="photo-action-btn" data-tooltip="Editar alt text">✏️</button>
+                        <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                      </div>
+                    </div>
+                    <div class="photo-order">7</div>
+                  </div>
+
+                  <!-- Add more -->
+                  <div class="photo-add">
+                    <span class="plus">+</span>
+                    <span>Adicionar fotos</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Info Panel -->
+              <div class="info-panel" id="info-panel">
+                <div class="info-group">
+                  <div class="info-label">Descrição curta</div>
+                  <textarea class="info-editable" rows="2" oninput="updatePreviewField('short-desc', this.value)">Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.</textarea>
+                </div>
+
+                <div class="info-group">
+                  <div class="info-label">Descrição completa</div>
+                  <textarea class="info-editable" rows="4" oninput="updatePreviewField('long-desc', this.value)">A Suite Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais.</textarea>
+                </div>
+
+                <div class="info-group">
+                  <div class="info-label">Preço inicial</div>
+                  <input class="info-editable" type="text" value="A partir de R$ 420" style="width: 200px;" oninput="updatePreviewField('price', this.value)">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="info-group">
+                    <div class="info-label">Tamanho</div>
+                    <div class="info-value">35m²</div>
+                  </div>
+                  <div class="info-group">
+                    <div class="info-label">Capacidade</div>
+                    <div class="capacity-grid">
+                      <div class="capacity-item">👤 1-3 adultos</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="info-group">
+                  <div class="info-label">Amenidades</div>
+                  <div class="amenity-list">
+                    <span class="amenity-tag">📶 Wi-Fi</span>
+                    <span class="amenity-tag">❄️ Ar-condicionado</span>
+                    <span class="amenity-tag">📺 TV 55"</span>
+                    <span class="amenity-tag">🍷 Minibar</span>
+                    <span class="amenity-tag">🛋️ Sala de estar</span>
+                    <span class="amenity-tag">👘 Roupão</span>
+                    <span class="amenity-tag">✨ Amenities premium</span>
+                    <span class="amenity-tag">🍽️ Room service</span>
+                    <span class="amenity-tag">🌄 Vista privilegiada</span>
+                  </div>
+                </div>
+
+                <div class="room-card-footer">
+                  <div class="save-indicator">
+                    <span class="dot"></span>
+                    Salvo automaticamente
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm btn-ghost">Descartar</button>
+                    <button class="btn btn-sm btn-primary">Salvar alterações</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Preview Panel (hidden by default, replaces info panel position) -->
+              <div class="preview-panel" id="preview-panel">
+                <div class="preview-toolbar">
+                  <div class="preview-toolbar-left">
+                    <div class="preview-dot"></div>
+                    <span>Preview ao vivo</span>
+                  </div>
+                  <div style="display:flex; gap:4px;">
+                    <button class="preview-device-btn active" data-tooltip="Desktop">🖥️</button>
+                    <button class="preview-device-btn" data-tooltip="Mobile">📱</button>
+                  </div>
+                </div>
+                <div class="preview-body">
+                  <div class="site-room-card">
+                    <img class="site-room-hero" id="preview-hero"
+                      src="https://images.unsplash.com/photo-1590490360182-c33d7f9d02f0?w=800&h=450&fit=crop"
+                      alt="Suite Master">
+                    <div class="site-room-gallery-strip">
+                      <img src="https://images.unsplash.com/photo-1590490360182-c33d7f9d02f0?w=128&h=96&fit=crop" alt="">
+                      <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=128&h=96&fit=crop" alt="">
+                      <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=128&h=96&fit=crop" alt="">
+                      <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=128&h=96&fit=crop" alt="">
+                      <img src="https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=128&h=96&fit=crop" alt="">
+                      <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=128&h=96&fit=crop" alt="">
+                      <img src="https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=128&h=96&fit=crop" alt="">
+                    </div>
+                    <div class="site-room-content">
+                      <div class="site-room-name">Suite Master</div>
+                      <div class="site-room-price" id="preview-price">A partir de R$ 420</div>
+                      <div class="site-room-desc" id="preview-short-desc">Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.</div>
+                      <div class="site-room-desc" id="preview-long-desc" style="font-size:12px; color: var(--neutral-500);">A Suite Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais.</div>
+                      <div class="site-room-amenities">
+                        <span class="site-amenity">📶 Wi-Fi</span>
+                        <span class="site-amenity">❄️ Ar-condicionado</span>
+                        <span class="site-amenity">📺 TV 55"</span>
+                        <span class="site-amenity">🍷 Minibar</span>
+                        <span class="site-amenity">🛋️ Sala de estar</span>
+                        <span class="site-amenity">👘 Roupão</span>
+                        <span class="site-amenity">✨ Premium</span>
+                        <span class="site-amenity">🍽️ Room service</span>
+                        <span class="site-amenity">🌄 Vista</span>
+                      </div>
+                      <button class="site-room-cta">Reservar agora</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Luxo (COLLAPSED) ─── -->
+        <div class="room-card" id="room-luxo">
+          <div class="room-card-header" onclick="toggleRoom('room-luxo')">
+            <div class="room-thumb">
+              <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=160&h=112&fit=crop" alt="Luxo">
+            </div>
+            <div class="room-card-info">
+              <div class="room-card-name">
+                Luxo
+                <span class="status-badge status-published">Publicado</span>
+              </div>
+              <div class="room-card-meta">
+                25m² <span class="sep">·</span>
+                2 adultos <span class="sep">·</span>
+                A partir de R$ 280 <span class="sep">·</span>
+                9 amenidades
+              </div>
+            </div>
+            <div class="room-card-stats">
+              <div class="stat">
+                <div class="stat-value photo-count-ok">6</div>
+                <div class="stat-label">Fotos</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Variações</div>
+              </div>
+            </div>
+            <div class="expand-icon">▼</div>
+          </div>
+          <div class="room-card-body">
+            <!-- Same structure as Master when expanded -->
+          </div>
+        </div>
+
+        <!-- ─── Standard (COLLAPSED) ─── -->
+        <div class="room-card" id="room-standard">
+          <div class="room-card-header" onclick="toggleRoom('room-standard')">
+            <div class="room-thumb">
+              <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=160&h=112&fit=crop" alt="Standard">
+            </div>
+            <div class="room-card-info">
+              <div class="room-card-name">
+                Standard
+                <span class="status-badge status-published">Publicado</span>
+              </div>
+              <div class="room-card-meta">
+                18m² <span class="sep">·</span>
+                1-3 adultos <span class="sep">·</span>
+                A partir de R$ 180 <span class="sep">·</span>
+                8 amenidades
+              </div>
+            </div>
+            <div class="room-card-stats">
+              <div class="stat">
+                <div class="stat-value photo-count-ok">6</div>
+                <div class="stat-label">Fotos</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Variações</div>
+              </div>
+            </div>
+            <div class="expand-icon">▼</div>
+          </div>
+          <div class="room-card-body"></div>
+        </div>
+
+        <!-- ─── Confort (COLLAPSED + Warning) ─── -->
+        <div class="room-card" id="room-confort">
+          <div class="room-card-header" onclick="toggleRoom('room-confort')">
+            <div class="room-thumb" style="background: var(--neutral-200); display: flex; align-items: center; justify-content: center; color: var(--neutral-400); font-size: 20px;">
+              📷
+            </div>
+            <div class="room-card-info">
+              <div class="room-card-name">
+                Confort
+                <span class="status-badge status-draft">Rascunho</span>
+              </div>
+              <div class="room-card-meta">
+                15m² <span class="sep">·</span>
+                1-2 adultos <span class="sep">·</span>
+                A partir de R$ 130 <span class="sep">·</span>
+                7 amenidades
+              </div>
+            </div>
+            <div class="room-card-stats">
+              <div class="stat">
+                <div class="stat-value photo-count-warning">0</div>
+                <div class="stat-label">Fotos</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Variações</div>
+              </div>
+            </div>
+            <div class="expand-icon">▼</div>
+          </div>
+          <div class="room-card-body"></div>
+        </div>
+
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           TAB: GALERIA GERAL (Category Grid)
+           ═══════════════════════════════════════ -->
+      <div class="gallery-tab" id="gallery-tab">
+
+        <div class="drag-hint">
+          <span class="icon">↕️</span>
+          Arraste as fotos para reordenar dentro de cada categoria. A ordem aqui define a ordem no site.
+        </div>
+
+        <!-- Category: Áreas Comuns -->
+        <div class="category-section">
+          <div class="category-header">
+            <div class="category-title">
+              🏨 Áreas Comuns
+              <span class="category-count">6 fotos</span>
+            </div>
+            <button class="btn btn-sm btn-secondary"><span>+</span> Upload</button>
+          </div>
+          <div class="gallery-grid">
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=360&h=270&fit=crop" alt="Fachada">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Fachada</div>
+              </div>
+            </div>
+
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=360&h=270&fit=crop" alt="Fachada 2">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Fachada 2</div>
+              </div>
+            </div>
+
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=360&h=270&fit=crop" alt="Recepção">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Recepção</div>
+              </div>
+            </div>
+
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=360&h=270&fit=crop" alt="Piscina">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Área de lazer</div>
+              </div>
+            </div>
+
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=360&h=270&fit=crop" alt="Estacionamento">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Carregador veicular</div>
+              </div>
+            </div>
+
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=360&h=270&fit=crop" alt="Pista de eventos">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Pista de eventos</div>
+              </div>
+            </div>
+
+            <div class="gallery-add">
+              <span class="plus">+</span>
+              <span class="label">Adicionar fotos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Restaurante -->
+        <div class="category-section">
+          <div class="category-header">
+            <div class="category-title">
+              🍽️ Restaurante
+              <span class="category-count">2 fotos</span>
+            </div>
+            <button class="btn btn-sm btn-secondary"><span>+</span> Upload</button>
+          </div>
+          <div class="gallery-grid">
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=360&h=270&fit=crop" alt="Prato 1">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Gastronomia</div>
+              </div>
+            </div>
+
+            <div class="gallery-item" draggable="true">
+              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=360&h=270&fit=crop" alt="Prato 2">
+              <div class="gallery-drag-handle">⠿</div>
+              <div class="gallery-item-overlay">
+                <div class="gallery-item-actions">
+                  <button class="photo-action-btn" data-tooltip="Editar">✏️</button>
+                  <button class="photo-action-btn delete" data-tooltip="Remover">🗑️</button>
+                </div>
+                <div class="gallery-item-title">Cozinha mineira</div>
+              </div>
+            </div>
+
+            <div class="gallery-add">
+              <span class="plus">+</span>
+              <span class="label">Adicionar fotos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Quartos (overview) -->
+        <div class="category-section">
+          <div class="category-header">
+            <div class="category-title">
+              🛏️ Quartos
+              <span class="category-count">13 fotos</span>
+            </div>
+            <span style="font-size: 12px; color: var(--neutral-500);">Gerencie fotos de quartos na aba "Quartos" acima</span>
+          </div>
+          <div class="gallery-grid">
+            <div class="gallery-item">
+              <img src="https://images.unsplash.com/photo-1590490360182-c33d7f9d02f0?w=360&h=270&fit=crop" alt="Master">
+              <div class="gallery-item-overlay" style="opacity: 1; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);">
+                <div></div>
+                <div class="gallery-item-title">Suite Master · 7 fotos</div>
+              </div>
+            </div>
+            <div class="gallery-item">
+              <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=360&h=270&fit=crop" alt="Luxo">
+              <div class="gallery-item-overlay" style="opacity: 1; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);">
+                <div></div>
+                <div class="gallery-item-title">Luxo · 6 fotos</div>
+              </div>
+            </div>
+            <div class="gallery-item">
+              <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=360&h=270&fit=crop" alt="Standard">
+              <div class="gallery-item-overlay" style="opacity: 1; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);">
+                <div></div>
+                <div class="gallery-item-title">Standard · 6 fotos</div>
+              </div>
+            </div>
+            <div class="gallery-item" style="border: 2px dashed var(--warning); background: #FFFBEB;">
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:4px; color: #92400E;">
+                <span style="font-size: 20px;">⚠️</span>
+                <span style="font-size: 12px; font-weight: 600;">Confort</span>
+                <span style="font-size: 11px;">0 fotos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ BULK UPLOAD DROPZONE ═══════════════ -->
+<div class="dropzone-overlay" id="dropzone-overlay">
+  <div class="dropzone-box" id="dropzone-box">
+    <button class="dropzone-close" onclick="closeDropzone()">✕</button>
+    <div class="dropzone-icon">📸</div>
+    <div class="dropzone-title">Arraste suas fotos aqui</div>
+    <div class="dropzone-subtitle">Solte até 20 fotos de uma vez. Elas serão adicionadas ao final da galeria.</div>
+    <button class="dropzone-browse" onclick="simulateUpload()">Escolher arquivos</button>
+    <div class="dropzone-formats">JPG, PNG, WebP — max 10MB por arquivo — min 1200px de largura</div>
+  </div>
+</div>
+
+<!-- ═══════════════ UPLOAD PROGRESS PANEL ═══════════════ -->
+<div class="upload-progress-panel" id="upload-panel">
+  <div class="upload-progress-header">
+    <span class="upload-progress-title">Upload — 4 arquivos</span>
+    <button class="btn btn-sm btn-ghost" onclick="document.getElementById('upload-panel').classList.remove('visible')">✕</button>
+  </div>
+  <div class="upload-progress-list">
+
+    <!-- File 1: done -->
+    <div class="upload-file">
+      <img class="upload-file-thumb" src="https://images.unsplash.com/photo-1590490360182-c33d7f9d02f0?w=88&h=66&fit=crop" alt="">
+      <div class="upload-file-info">
+        <div class="upload-file-name">master-vista-geral.jpg</div>
+        <div class="upload-file-meta">
+          <span>4.2 MB → 380 KB</span>
+          <span class="compression-badge great">↓ 91%</span>
+        </div>
+        <div class="upload-file-bar"><div class="upload-file-bar-fill done" style="width:100%"></div></div>
+      </div>
+      <div class="upload-file-status">✅</div>
+    </div>
+
+    <!-- File 2: done -->
+    <div class="upload-file">
+      <img class="upload-file-thumb" src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=88&h=66&fit=crop" alt="">
+      <div class="upload-file-info">
+        <div class="upload-file-name">master-cama-casal.jpg</div>
+        <div class="upload-file-meta">
+          <span>3.8 MB → 420 KB</span>
+          <span class="compression-badge great">↓ 89%</span>
+        </div>
+        <div class="upload-file-bar"><div class="upload-file-bar-fill done" style="width:100%"></div></div>
+      </div>
+      <div class="upload-file-status">✅</div>
+    </div>
+
+    <!-- File 3: in progress -->
+    <div class="upload-file">
+      <img class="upload-file-thumb" src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=88&h=66&fit=crop" alt="">
+      <div class="upload-file-info">
+        <div class="upload-file-name">master-banheiro.png</div>
+        <div class="upload-file-meta">
+          <span>5.1 MB → comprimindo...</span>
+          <span class="compression-badge good">↓ ~85%</span>
+        </div>
+        <div class="upload-file-bar"><div class="upload-file-bar-fill" style="width:65%"></div></div>
+      </div>
+      <div class="upload-file-status" style="font-size:12px; color: var(--gold-600);">65%</div>
+    </div>
+
+    <!-- File 4: warning (low resolution) -->
+    <div class="upload-file">
+      <img class="upload-file-thumb" src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=88&h=66&fit=crop" alt="">
+      <div class="upload-file-info">
+        <div class="upload-file-name">foto-celular.jpg</div>
+        <div class="upload-file-meta">
+          <span>1.2 MB → 190 KB</span>
+          <span class="compression-badge warn">↓ 84%</span>
+        </div>
+        <div class="resolution-warning">⚠️ 960×640px — pode ficar pixelada no hero</div>
+        <div class="upload-file-bar"><div class="upload-file-bar-fill done" style="width:100%"></div></div>
+      </div>
+      <div class="upload-file-status">⚠️</div>
+    </div>
+
+  </div>
+  <div class="upload-summary">
+    <span>Total: <strong>14.3 MB → 990 KB</strong> economizados</span>
+    <span style="color: var(--success); font-weight: 600;">93% menor</span>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.rooms-tab, .gallery-tab').forEach(t => t.classList.remove('active'));
+
+    if (tab === 'rooms') {
+      document.querySelectorAll('.tab')[0].classList.add('active');
+      document.getElementById('rooms-tab').classList.add('active');
+    } else {
+      document.querySelectorAll('.tab')[1].classList.add('active');
+      document.getElementById('gallery-tab').classList.add('active');
+    }
+  }
+
+  // Room card expand/collapse
+  function toggleRoom(id) {
+    const card = document.getElementById(id);
+    card.classList.toggle('expanded');
+  }
+
+  // ═══════════════ PREVIEW SIDE-BY-SIDE ═══════════════
+  let previewOpen = false;
+
+  function togglePreview() {
+    previewOpen = !previewOpen;
+    const btn = document.getElementById('preview-btn');
+    const panel = document.getElementById('preview-panel');
+    const grid = panel.closest('.room-body-grid');
+    const infoPanel = document.getElementById('info-panel');
+
+    if (previewOpen) {
+      btn.classList.add('active');
+      btn.textContent = '✕ Fechar preview';
+      panel.classList.add('visible');
+      grid.classList.add('with-preview');
+      infoPanel.style.display = 'none';
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = '👁️ Preview do site';
+      panel.classList.remove('visible');
+      grid.classList.remove('with-preview');
+      infoPanel.style.display = '';
+    }
+  }
+
+  // Debounced preview update
+  let updateTimer = null;
+  function updatePreviewField(field, value) {
+    clearTimeout(updateTimer);
+    updateTimer = setTimeout(() => {
+      const el = document.getElementById('preview-' + field);
+      if (el) {
+        el.textContent = value;
+        el.classList.add('preview-update-flash');
+        setTimeout(() => el.classList.remove('preview-update-flash'), 600);
+      }
+    }, 300); // 300ms debounce
+  }
+
+  // ═══════════════ BULK UPLOAD DROPZONE ═══════════════
+  function openDropzone() {
+    document.getElementById('dropzone-overlay').classList.add('visible');
+  }
+
+  function closeDropzone() {
+    document.getElementById('dropzone-overlay').classList.remove('visible');
+  }
+
+  function simulateUpload() {
+    closeDropzone();
+    document.getElementById('upload-panel').classList.add('visible');
+  }
+
+  // Close dropzone on overlay click
+  document.getElementById('dropzone-overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeDropzone();
+  });
+
+  // Escape key closes dropzone
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDropzone();
+    }
+  });
+
+  // Simulate drag-over effect on dropzone box
+  const dropzoneBox = document.getElementById('dropzone-box');
+  dropzoneBox.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzoneBox.classList.add('drag-active');
+  });
+  dropzoneBox.addEventListener('dragleave', () => {
+    dropzoneBox.classList.remove('drag-active');
+  });
+  dropzoneBox.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzoneBox.classList.remove('drag-active');
+    simulateUpload();
+  });
+
+  // Basic drag and drop demo
+  document.querySelectorAll('.photo-item[draggable], .gallery-item[draggable]').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const dragging = document.querySelector('.dragging');
+      if (dragging !== item) {
+        item.classList.add('drag-over');
+      }
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over');
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const dragging = document.querySelector('.dragging');
+      if (dragging && dragging !== item) {
+        const parent = item.parentNode;
+        const allItems = [...parent.querySelectorAll('[draggable]')];
+        const dragIdx = allItems.indexOf(dragging);
+        const dropIdx = allItems.indexOf(item);
+        if (dragIdx < dropIdx) {
+          parent.insertBefore(dragging, item.nextSibling);
+        } else {
+          parent.insertBefore(dragging, item);
+        }
+        // Update order numbers
+        parent.querySelectorAll('.photo-order').forEach((el, i) => {
+          el.textContent = i + 1;
+        });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

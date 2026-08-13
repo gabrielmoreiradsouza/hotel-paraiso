@@ -15,6 +15,9 @@ export default buildConfig({
     meta: {
       titleSuffix: ' — Hotel Paraíso',
     },
+    components: {
+      afterNavLinks: ['/components/ContentManagerNavLink#ContentManagerNavLink'],
+    },
   },
 
   collections: [Rooms, Experiences, Gallery, Pages, BlogPosts, Media],
