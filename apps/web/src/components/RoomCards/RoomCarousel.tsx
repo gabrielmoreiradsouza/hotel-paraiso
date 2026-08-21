@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { RoomCardData } from './RoomCards';
+import { RoomBookingInline } from '@/components/RoomBooking/RoomBookingInline';
 
 /* ------------------------------------------------------------------ */
 /*  Room Detail Modal                                                  */
@@ -135,14 +136,15 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
             </div>
           </div>
 
+          {/* Inline booking */}
+          <RoomBookingInline
+            roomSlug={room.slug}
+            roomName={room.name}
+            pricePerNight={parseInt(room.price.replace(/\D/g, ''), 10) || 0}
+          />
+
           {/* Action buttons */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href={`/reservar?room=${encodeURIComponent(room.slug)}`}
-              className="flex-1 rounded-lg bg-brand-gold py-3.5 text-center text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
-            >
-              Reservar agora
-            </a>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <a
               href={`/quartos/${room.slug}`}
               className="flex-1 rounded-lg border border-beige-300 py-3.5 text-center text-sm font-semibold text-beige-800 transition-colors hover:border-beige-400 hover:bg-beige-50"

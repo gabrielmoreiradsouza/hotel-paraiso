@@ -142,9 +142,21 @@ export interface Room {
   name: string;
   slug: string;
   /**
-   * room_type_id na Artax PMS (opcional)
+   * Legado: mantido temporariamente para migração segura. Use as categorias abaixo.
    */
   artaxRoomTypeId?: number | null;
+  /**
+   * Categorias (room_type_id) da Artax PMS vinculadas a este quarto.
+   */
+  artaxCategoryIds?:
+    | {
+        /**
+         * ID real da categoria no Artax PMS
+         */
+        categoryId: number;
+        id?: string | null;
+      }[]
+    | null;
   status?: ('draft' | 'published') | null;
   /**
    * Preço de exibição (ex: "A partir de R$ 130")
@@ -511,6 +523,12 @@ export interface RoomsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   artaxRoomTypeId?: T;
+  artaxCategoryIds?:
+    | T
+    | {
+        categoryId?: T;
+        id?: T;
+      };
   status?: T;
   startingPrice?: T;
   shortDescription?: T;

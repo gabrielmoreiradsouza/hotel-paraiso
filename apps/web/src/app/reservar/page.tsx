@@ -231,7 +231,32 @@ function BookingContent() {
         room_name: selectedRoom.cmsName,
         value: selectedRoom.price,
         nights,
+        adults: guests,
+        guest_email: guestEmail,
+        guest_phone: guestPhone,
+        room_slug: selectedRoom.cmsSlug,
+        checkin,
+        checkout,
       });
+
+      if (typeof window !== 'undefined' && window.dataLayer) {
+        window.dataLayer.push({
+          event: 'purchase',
+          booking_id: String(data.booking_id),
+          guest_name: guestName,
+          guest_email: guestEmail,
+          guest_phone: guestPhone,
+          room_name: selectedRoom.cmsName,
+          room_slug: selectedRoom.cmsSlug,
+          checkin,
+          checkout,
+          nights,
+          adults: guests,
+          total_price: selectedRoom.price,
+          currency: 'BRL',
+        });
+      }
+
       setIsSubmitting(false);
       setStep('confirmed');
       clearBookingState();
@@ -244,65 +269,193 @@ function BookingContent() {
 
   // Step 3: Confirmation
   if (step === 'confirmed' && selectedRoom) {
+    const formatDateWithDay = (dateStr: string) => {
+      const d = new Date(dateStr + 'T12:00:00');
+      const day = d.toLocaleDateString('pt-BR');
+      const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
+      return `${day} (${weekday})`;
+    };
+
+    const whatsappText = encodeURIComponent(
+      `Olá! Sou ${guestName}, protocolo ${bookingId}. Confirma minha reserva?`
+    );
+
+    const nextSteps = [
+      `Email de confirmação enviado para ${guestEmail}`,
+      ...(guestPhone ? [`O hotel confirmará pelo WhatsApp para ${guestPhone}`] : []),
+      'Apresente-se na recepção no check-in a partir das 14h com documento',
+      'Cancelamento gratuito até 48h antes do check-in',
+    ];
+
     return (
       <main className="bg-brand-black pt-24 pb-16">
-        <div className="mx-auto max-w-2xl px-4 text-center">
-          <div className="mb-8 text-6xl text-brand-gold">✓</div>
-          <h1 className="font-display text-3xl font-bold text-white">Reserva confirmada!</h1>
-          <p className="mt-4 text-white/70">
-            Sua reserva foi registrada com sucesso no sistema do hotel.
-          </p>
-          {bookingId && <p className="mt-2 text-sm text-white/50">Protocolo: {bookingId}</p>}
+        <div className="mx-auto max-w-2xl px-4">
+          {/* Success header */}
+          <div className="text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-brand-gold bg-brand-gold/15">
+              <svg
+                className="h-10 w-10 text-brand-gold"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="mt-6 font-display text-3xl font-bold text-white">Reserva confirmada!</h1>
+            <p className="mt-3 text-white/70">Sua reserva foi registrada com sucesso.</p>
+            {bookingId && (
+              <p className="mt-2 text-sm font-semibold text-brand-gold">
+                Protocolo: #HP-{bookingId}
+              </p>
+            )}
+          </div>
 
-          <div className="mt-8 rounded-sm border border-white/[0.08] bg-white/[0.04] p-6 text-left">
-            <h3 className="font-display text-lg font-bold text-white">Resumo</h3>
-            <div className="mt-4 space-y-2 text-sm text-white/70">
+          {/* Reservation detail card */}
+          <div className="mt-8 rounded-xl border border-white/[0.08] bg-white/[0.04] p-6">
+            {/* Header row: room photo + name + meta */}
+            <div className="flex gap-4">
+              <div className="relative h-20 w-[120px] shrink-0 overflow-hidden rounded-lg">
+                <Image
+                  src={selectedRoom.cmsImage || '/images/rooms/standard.jpg'}
+                  alt={selectedRoom.cmsName}
+                  fill
+                  className="object-cover"
+                  unoptimized={selectedRoom.cmsImage.startsWith('http')}
+                />
+              </div>
+              <div>
+                <h3 className="font-display text-lg font-bold text-white">
+                  {selectedRoom.cmsName}
+                </h3>
+                <p className="mt-1 text-sm text-white/50">
+                  Até {selectedRoom.capacity.adults} adulto
+                  {selectedRoom.capacity.adults !== 1 ? 's' : ''}
+                  {selectedRoom.capacity.kids > 0
+                    ? ` + ${selectedRoom.capacity.kids} crianças`
+                    : ''}
+                </p>
+                {selectedRoom.cmsAmenities.length > 0 && (
+                  <p className="mt-0.5 text-xs text-white/40">
+                    {selectedRoom.cmsAmenities.slice(0, 4).join(' · ')}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Detail rows */}
+            <div className="mt-5 space-y-3 text-sm">
               <div className="flex justify-between">
-                <span>Quarto</span>
-                <span className="font-medium">{selectedRoom.cmsName}</span>
+                <span className="text-white/50">Hóspede</span>
+                <span className="font-medium text-white">{guestName}</span>
               </div>
               <div className="flex justify-between">
-                <span>Check-in</span>
-                <span className="font-medium">
-                  {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')}
+                <span className="text-white/50">Email</span>
+                <span className="font-medium text-white">{guestEmail}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Telefone</span>
+                <span className="font-medium text-white">{guestPhone || 'Não informado'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Adultos</span>
+                <span className="font-medium text-white">
+                  {guests} adulto{guests !== 1 ? 's' : ''}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Check-out</span>
-                <span className="font-medium">
-                  {new Date(checkout + 'T12:00:00').toLocaleDateString('pt-BR')}
+                <span className="text-white/50">Check-in</span>
+                <span className="font-medium text-white">
+                  {formatDateWithDay(checkin)} &mdash; 14h
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Hóspedes</span>
-                <span className="font-medium">{guests}</span>
+                <span className="text-white/50">Check-out</span>
+                <span className="font-medium text-white">
+                  {formatDateWithDay(checkout)} &mdash; 12h
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Noites</span>
+                <span className="font-medium text-white">
+                  {nights} noite{nights !== 1 ? 's' : ''}
+                </span>
               </div>
               {wantsHydro && (
-                <div className="flex justify-between text-brand-gold">
-                  <span>Hidromassagem</span>
-                  <span className="font-medium">Solicitada (sujeito a disp.)</span>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Hidromassagem</span>
+                  <span className="font-semibold text-brand-gold">Solicitada</span>
                 </div>
               )}
-              <div className="flex justify-between border-t border-white/[0.08] pt-2">
-                <span className="font-bold">Total</span>
-                <span className="font-display text-lg font-bold text-brand-gold">
+              <div className="flex justify-between border-t border-white/[0.08] pt-3">
+                <span className="text-base font-bold text-white">Total</span>
+                <span className="font-display text-xl font-bold text-brand-gold">
                   R$ {selectedRoom.price.toLocaleString('pt-BR')}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 space-y-3 text-sm text-white/50">
-            <p>Um email de confirmação será enviado para {guestEmail}</p>
-            <p>Dúvidas? (31) 3881-8049 ou WhatsApp</p>
+          {/* Próximos passos */}
+          <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
+            <h3 className="font-display text-base font-bold text-white">Próximos passos</h3>
+            <ol className="mt-4 space-y-3">
+              {nextSteps.map((text, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 bg-brand-gold/10 text-xs font-bold text-brand-gold">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm text-white/60">{text}</span>
+                </li>
+              ))}
+            </ol>
           </div>
 
-          <Link
-            href="/"
-            className="mt-8 inline-block rounded-sm bg-brand-gold px-8 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
-          >
-            Voltar ao início
-          </Link>
+          {/* Contact buttons */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href={`https://wa.me/553138818049?text=${whatsappText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500"
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.553 4.12 1.522 5.857L.063 23.488a.5.5 0 00.611.611l5.631-1.459A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.586l-.386-.232-3.342.867.884-3.29-.254-.403A9.96 9.96 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z" />
+              </svg>
+              WhatsApp
+            </a>
+            <a
+              href={`mailto:hotelrparaiso@gmail.com?subject=Reserva ${bookingId}`}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/[0.08]"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                />
+              </svg>
+              Email
+            </a>
+          </div>
+
+          {/* Voltar ao início */}
+          <div className="mt-8 text-center">
+            <Link
+              href="/"
+              className="text-sm text-white/50 underline underline-offset-4 transition-colors hover:text-white/70"
+            >
+              Voltar ao início
+            </Link>
+          </div>
         </div>
       </main>
     );
