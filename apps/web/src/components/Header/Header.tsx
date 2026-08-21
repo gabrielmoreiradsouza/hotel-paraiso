@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -9,7 +9,19 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher/LanguageSwitcher
 export function Header({ locale }: { locale: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
   const t = useTranslations('nav');
+
+  // Set inert attribute via ref (not supported as JSX prop in current React types)
+  useEffect(() => {
+    const el = mobileNavRef.current;
+    if (!el) return;
+    if (menuOpen) {
+      el.removeAttribute('inert');
+    } else {
+      el.setAttribute('inert', '');
+    }
+  }, [menuOpen]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80);
@@ -68,6 +80,8 @@ export function Header({ locale }: { locale: string }) {
             className="text-brand-white md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
           >
             <svg
               width="24"
@@ -85,6 +99,9 @@ export function Header({ locale }: { locale: string }) {
 
       {/* Mobile fullscreen overlay (O13) */}
       <div
+        ref={mobileNavRef}
+        id="mobile-nav"
+        aria-hidden={!menuOpen}
         className={`fixed inset-0 z-[60] bg-brand-black/92 backdrop-blur-2xl transition-opacity duration-300 md:hidden ${
           menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}

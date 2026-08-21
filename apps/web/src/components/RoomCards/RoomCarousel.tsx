@@ -32,6 +32,37 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
+  // Focus trap
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    el.focus();
+
+    const focusable = el.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    }
+
+    el.addEventListener('keydown', handleTab);
+    return () => el.removeEventListener('keydown', handleTab);
+  }, []);
+
   const prevPhoto = () => setPhotoIdx((i) => (i === 0 ? room.images.length - 1 : i - 1));
   const nextPhoto = () => setPhotoIdx((i) => (i === room.images.length - 1 ? 0 : i + 1));
 
@@ -39,6 +70,7 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby="room-detail-title"
       tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === 'Escape') onClose();
@@ -53,7 +85,8 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
     >
       <div
         ref={contentRef}
-        className="relative mx-4 w-full max-w-[900px] overflow-y-auto overflow-x-hidden rounded-xl bg-brand-white shadow-2xl max-h-[90vh]"
+        tabIndex={-1}
+        className="relative mx-4 w-full max-w-[900px] overflow-y-auto overflow-x-hidden rounded-xl bg-brand-white shadow-2xl max-h-[90vh] outline-none"
         style={{ animation: 'modalSlideUp 300ms ease-out both' }}
       >
         {/* Photo section */}
@@ -105,7 +138,10 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
           {/* Header row */}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="font-display text-2xl font-bold text-brand-black sm:text-3xl">
+              <h3
+                id="room-detail-title"
+                className="font-display text-2xl font-bold text-brand-black sm:text-3xl"
+              >
                 {room.name}
               </h3>
               <p className="mt-1 text-sm text-beige-700">
@@ -137,11 +173,7 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
           </div>
 
           {/* Inline booking */}
-          <RoomBookingInline
-            roomSlug={room.slug}
-            roomName={room.name}
-            pricePerNight={parseInt(room.price.replace(/\D/g, ''), 10) || 0}
-          />
+          <RoomBookingInline roomSlug={room.slug} roomName={room.name} />
 
           {/* Action buttons */}
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -165,8 +197,16 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
 function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }) {
   return (
     <article
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="group relative flex-none w-[340px] cursor-pointer overflow-hidden rounded-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl scroll-snap-align-start"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="group relative flex-none w-[340px] cursor-pointer overflow-hidden rounded-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl scroll-snap-align-start focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
       style={{ scrollSnapAlign: 'start' }}
       aria-label={`Ver detalhes de ${room.name}`}
     >
@@ -193,7 +233,7 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
           </div>
 
           {/* Hover reveal: description + amenities + CTA */}
-          <div className="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-h-[300px] group-hover:opacity-100">
+          <div className="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-h-[300px] group-hover:opacity-100 group-focus-within:max-h-[300px] group-focus-within:opacity-100">
             <p className="text-sm leading-relaxed text-white/80">{room.description}</p>
 
             {/* Amenity pills */}
@@ -209,7 +249,7 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
             </div>
 
             {/* CTA */}
-            <span className="mt-4 block w-full rounded-lg border border-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-gold transition-colors group-hover:bg-brand-gold group-hover:text-brand-black">
+            <span className="mt-4 block w-full rounded-lg border border-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-gold transition-colors group-hover:bg-brand-gold group-hover:text-brand-black group-focus-within:bg-brand-gold group-focus-within:text-brand-black">
               Ver detalhes
             </span>
           </div>

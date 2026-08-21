@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -29,6 +29,15 @@ interface AvailableRoom {
   allots: number;
   price: number;
   capacity: { adults: number; kids: number };
+}
+
+function getTodayBR(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 }
 
 function BookingContent() {
@@ -59,6 +68,14 @@ function BookingContent() {
   const [bookingId, setBookingId] = useState<string | null>(null);
 
   const STORAGE_KEY = 'hp_booking_state';
+  const availAbortRef = useRef<AbortController | null>(null);
+
+  // Abort availability fetch on unmount
+  useEffect(() => {
+    return () => {
+      availAbortRef.current?.abort();
+    };
+  }, []);
 
   // Restore state from sessionStorage on mount
   useEffect(() => {
@@ -72,7 +89,24 @@ function BookingContent() {
         guestEmail?: string;
         guestPhone?: string;
         wantsHydro?: boolean;
+        checkin?: string;
+        checkout?: string;
+        guests?: number;
       };
+
+      // If saved context doesn't match current URL params, reset
+      const contextMismatch =
+        (checkinParam && state.checkin && state.checkin !== checkinParam) ||
+        (checkoutParam && state.checkout && state.checkout !== checkoutParam) ||
+        (guestsParam && state.guests != null && state.guests !== Number(guestsParam));
+
+      if (contextMismatch) {
+        sessionStorage.removeItem(STORAGE_KEY);
+        setStep('search');
+        setSelectedRoom(null);
+        return;
+      }
+
       if (state.step && state.step !== 'confirmed') setStep(state.step);
       if (state.selectedRoom) setSelectedRoom(state.selectedRoom);
       if (state.guestName) setGuestName(state.guestName);
@@ -105,6 +139,9 @@ function BookingContent() {
           guestEmail: overrides?.guestEmail ?? guestEmail,
           guestPhone: overrides?.guestPhone ?? guestPhone,
           wantsHydro: overrides?.wantsHydro ?? wantsHydro,
+          checkin,
+          checkout,
+          guests,
         })
       );
     } catch {
@@ -131,14 +168,22 @@ function BookingContent() {
       : 0;
 
   // Fetch availability when dates change
-  const today = new Date().toISOString().split('T')[0];
-  const minCheckOut = checkin || today;
+  const today = getTodayBR();
+  const minCheckOut = checkin
+    ? new Date(new Date(checkin + 'T12:00:00').getTime() + 86400000).toISOString().slice(0, 10)
+    : today;
 
   async function fetchAvailability() {
     if (!checkin || !checkout) return;
     setLoading(true);
     setSearched(true);
     setApiError(false);
+
+    // Abort any in-flight request
+    availAbortRef.current?.abort();
+    const controller = new AbortController();
+    availAbortRef.current = controller;
+
     try {
       const params = new URLSearchParams({
         arrival_date: checkin,
@@ -146,7 +191,7 @@ function BookingContent() {
         adults: String(guests),
         kids: '0',
       });
-      const res = await fetch(`/api/availability?${params}`);
+      const res = await fetch(`/api/availability?${params}`, { signal: controller.signal });
       if (!res.ok) {
         setApiError(true);
         setRooms([]);
@@ -159,11 +204,12 @@ function BookingContent() {
       );
       setRooms(availableRooms);
       trackAvailabilityViewed(availableRooms.length);
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setApiError(true);
       setRooms([]);
     }
-    setLoading(false);
+    if (!controller.signal.aborted) setLoading(false);
   }
 
   useEffect(() => {
@@ -244,8 +290,6 @@ function BookingContent() {
         value: selectedRoom.price,
         nights,
         adults: guests,
-        guest_email: guestEmail,
-        guest_phone: guestPhone,
         room_slug: selectedRoom.cmsSlug,
         checkin,
         checkout,
@@ -573,7 +617,10 @@ function BookingContent() {
               )}
 
               {error && (
-                <div className="mt-6 rounded-sm bg-red-900/20 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+                <div
+                  role="alert"
+                  className="mt-6 rounded-sm bg-red-900/20 border border-red-500/30 px-4 py-3 text-sm text-red-400"
+                >
                   {error}
                 </div>
               )}
@@ -736,7 +783,7 @@ function BookingContent() {
         </div>
 
         {/* Results */}
-        <div className="mt-8">
+        <div className="mt-8" aria-live="polite">
           {loading && (
             <div className="py-12 text-center text-white/50">
               Consultando disponibilidade no hotel...
@@ -744,7 +791,10 @@ function BookingContent() {
           )}
 
           {!loading && searched && apiError && (
-            <div className="rounded-sm bg-red-900/20 border border-red-500/30 py-12 text-center">
+            <div
+              role="alert"
+              className="rounded-sm bg-red-900/20 border border-red-500/30 py-12 text-center"
+            >
               <p className="text-lg text-red-400">Erro ao consultar disponibilidade.</p>
               <p className="mt-2 text-sm text-red-400/70">
                 Tente novamente em alguns instantes ou ligue: (31) 3881-8049
@@ -801,7 +851,7 @@ function BookingContent() {
                     <div className="mt-4 flex items-end justify-between">
                       <div>
                         <span className="font-display text-2xl font-bold text-white">
-                          A partir de R$ {(room.minPrice ?? room.price).toLocaleString('pt-BR')}
+                          R$ {room.price.toLocaleString('pt-BR')}
                         </span>
                         <span className="text-sm text-white/50"> / estadia</span>
                       </div>

@@ -283,7 +283,7 @@ export default async function RoomPage({ params }: Props) {
           )}
 
           {/* Inline booking */}
-          <RoomBookingInline roomSlug={slug} roomName={room.name} pricePerNight={priceNum} />
+          <RoomBookingInline roomSlug={slug} roomName={room.name} />
         </div>
       </section>
 

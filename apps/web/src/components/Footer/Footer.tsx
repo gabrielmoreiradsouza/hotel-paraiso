@@ -128,17 +128,11 @@ export function Footer() {
           &copy; {new Date().getFullYear()} Hotel e Restaurante Paraíso. {t('rights')}
         </p>
         <div className="flex items-center gap-4 text-xs">
-          <span className="text-white/40 transition-colors hover:text-brand-gold cursor-pointer">
-            Termos
-          </span>
+          <span className="text-white/30">Termos</span>
           <span className="text-white/20">|</span>
-          <span className="text-white/40 transition-colors hover:text-brand-gold cursor-pointer">
-            Privacidade
-          </span>
+          <span className="text-white/30">Privacidade</span>
           <span className="text-white/20">|</span>
-          <span className="text-white/40 transition-colors hover:text-brand-gold cursor-pointer">
-            Cookies
-          </span>
+          <span className="text-white/30">Cookies</span>
         </div>
       </div>
     </footer>

@@ -148,8 +148,6 @@ export function trackReservationCreated(params: {
   value: number;
   nights: number;
   adults: number;
-  guest_email: string;
-  guest_phone: string;
   room_slug: string;
   checkin: string;
   checkout: string;

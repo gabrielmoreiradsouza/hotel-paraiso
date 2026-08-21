@@ -17,6 +17,15 @@ export function BookingSentinel() {
   );
 }
 
+function getTodayBR(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
 export function BookingWidget() {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -25,7 +34,7 @@ export function BookingWidget() {
   const router = useRouter();
   const widgetRef = useRef<HTMLDivElement>(null);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayBR();
   const minCheckOut = checkIn || today;
   const isValid = checkIn >= today && checkOut > checkIn;
 

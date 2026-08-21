@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Loader2 } from 'lucide-react';
 
@@ -20,15 +20,16 @@ type CheckResult =
   | { status: 'available'; roomName: string; nights: number; total: number }
   | { status: 'unavailable'; roomName: string };
 
-export function RoomBookingInline({
-  roomSlug,
-  roomName,
-  pricePerNight: _pricePerNight,
-}: {
-  roomSlug: string;
-  roomName: string;
-  pricePerNight: number;
-}) {
+function getTodayBR(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; roomName: string }) {
   const router = useRouter();
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
@@ -36,9 +37,17 @@ export function RoomBookingInline({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Minimum date is today
-  const today = new Date().toISOString().split('T')[0];
+  // Abort on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  // Minimum date is today (São Paulo timezone)
+  const today = getTodayBR();
   const minCheckout = checkin
     ? new Date(new Date(checkin + 'T12:00:00').getTime() + 86400000).toISOString().slice(0, 10)
     : today;
@@ -59,13 +68,18 @@ export function RoomBookingInline({
     setResult(null);
     setError(null);
 
+    // Abort any in-flight request
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const params = new URLSearchParams({
         arrival_date: checkin,
         departure_date: checkout,
         adults,
       });
-      const res = await fetch(`/api/availability?${params}`);
+      const res = await fetch(`/api/availability?${params}`, { signal: controller.signal });
 
       if (!res.ok) {
         setError('Erro ao verificar. Tente novamente.');
@@ -97,10 +111,11 @@ export function RoomBookingInline({
           roomName: roomName,
         });
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setError('Erro ao verificar. Tente novamente.');
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }
 
@@ -213,7 +228,7 @@ export function RoomBookingInline({
 
       {/* Error */}
       {error && (
-        <div className="mt-5">
+        <div className="mt-5" role="alert">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <p className="font-semibold text-red-800">{error}</p>
           </div>

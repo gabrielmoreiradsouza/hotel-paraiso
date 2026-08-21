@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { BookingWidget, BookingSentinel } from '@/components/BookingWidget/BookingWidget';
@@ -17,14 +17,9 @@ export function Hero() {
   const t = useTranslations('hero');
   const [current, setCurrent] = useState(0);
   const [loaded, setLoaded] = useState<Set<number>>(new Set([0]));
-  const prevRef = useRef(0);
 
   const next = useCallback(() => {
-    setCurrent((prev) => {
-      const nextIdx = (prev + 1) % heroImages.length;
-      prevRef.current = prev;
-      return nextIdx;
-    });
+    setCurrent((prev) => (prev + 1) % heroImages.length);
   }, []);
 
   // Preload next slide

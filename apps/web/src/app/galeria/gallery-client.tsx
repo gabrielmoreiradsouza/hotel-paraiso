@@ -82,12 +82,12 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
 
   // Lock body scroll when lightbox is open
   useEffect(() => {
-    if (lightboxIndex !== null) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
+    if (lightboxIndex === null) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
   }, [lightboxIndex]);
 
   function handleTouchStart(e: React.TouchEvent) {
@@ -239,7 +239,7 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
             Reserve direto conosco e garanta a melhor tarifa
           </p>
           <Link
-            href="/reservas"
+            href="/reservar"
             className="inline-flex items-center gap-2 bg-brand-gold text-brand-black font-semibold px-8 py-3 rounded-full hover:bg-brand-gold/90 transition-colors shadow-lg shadow-brand-gold/20"
           >
             Reserve agora
