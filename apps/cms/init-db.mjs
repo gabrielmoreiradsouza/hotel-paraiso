@@ -21,7 +21,8 @@ async function run() {
   );
 
   if (parseInt(check.rows[0].c, 10) > 0) {
-    console.log('[init-db] Tables already exist, skipping migration.');
+    console.log('[init-db] Tables already exist, checking incremental updates...');
+    await applyIncrementalUpdates(client);
     await client.end();
     return;
   }
@@ -430,7 +431,35 @@ async function run() {
   `);
 
   console.log('[init-db] All CMS tables created successfully.');
+
+  // Incremental schema updates (new fields added after initial deploy)
+  await applyIncrementalUpdates(client);
+
   await client.end();
+}
+
+async function applyIncrementalUpdates(client) {
+  // v2: rooms_artax_category_ids table (added for CMS-Artax mapping)
+  const check = await client.query(
+    `SELECT COUNT(*) as c FROM information_schema.tables WHERE table_schema = 'cms' AND table_name = 'rooms_artax_category_ids'`
+  );
+  if (parseInt(check.rows[0].c, 10) === 0) {
+    console.log('[init-db] Creating rooms_artax_category_ids table...');
+    await client.query(`
+      CREATE TABLE "cms"."rooms_artax_category_ids" (
+        "_order" integer NOT NULL,
+        "_parent_id" integer NOT NULL,
+        "id" varchar PRIMARY KEY NOT NULL,
+        "category_id" numeric NOT NULL
+      );
+      CREATE INDEX "rooms_artax_category_ids_order_idx" ON "cms"."rooms_artax_category_ids" USING btree ("_order");
+      CREATE INDEX "rooms_artax_category_ids_parent_id_idx" ON "cms"."rooms_artax_category_ids" USING btree ("_parent_id");
+      ALTER TABLE "cms"."rooms_artax_category_ids" ADD CONSTRAINT "rooms_artax_category_ids_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "cms"."rooms"("id") ON DELETE cascade ON UPDATE no action;
+    `);
+    console.log('[init-db] rooms_artax_category_ids created.');
+  } else {
+    console.log('[init-db] rooms_artax_category_ids already exists.');
+  }
 }
 
 run().catch((err) => {
