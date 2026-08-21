@@ -146,7 +146,7 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
           {/* Action buttons */}
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <a
-              href={`/quartos/${room.slug}`}
+              href={`/quartos/${encodeURIComponent(room.slug)}`}
               className="flex-1 rounded-lg border border-beige-300 py-3.5 text-center text-sm font-semibold text-beige-800 transition-colors hover:border-beige-400 hover:bg-beige-50"
             >
               Ver página completa →

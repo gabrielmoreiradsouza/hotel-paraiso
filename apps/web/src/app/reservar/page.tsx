@@ -36,6 +36,8 @@ function BookingContent() {
   const checkinParam = searchParams?.get('checkin') ?? '';
   const checkoutParam = searchParams?.get('checkout') ?? '';
   const guestsParam = searchParams?.get('guests') ?? '2';
+  const roomParam = searchParams?.get('room') ?? '';
+  const stepParam = searchParams?.get('step') ?? '';
 
   const [checkin, setCheckin] = useState(checkinParam);
   const [checkout, setCheckout] = useState(checkoutParam);
@@ -170,6 +172,16 @@ function BookingContent() {
     }
   }, [checkinParam, checkoutParam]);
 
+  // Auto-select room when navigating from room detail page with ?room=slug&step=details
+  useEffect(() => {
+    if (roomParam && stepParam === 'details' && rooms.length > 0 && !selectedRoom) {
+      const match = rooms.find((r) => r.cmsSlug === roomParam);
+      if (match) {
+        handleSelectRoom(match);
+      }
+    }
+  }, [rooms, roomParam, stepParam]);
+
   function handleSearch() {
     if (checkout <= checkin) return;
     fetchAvailability();
@@ -243,9 +255,6 @@ function BookingContent() {
         window.dataLayer.push({
           event: 'purchase',
           booking_id: String(data.booking_id),
-          guest_name: guestName,
-          guest_email: guestEmail,
-          guest_phone: guestPhone,
           room_name: selectedRoom.cmsName,
           room_slug: selectedRoom.cmsSlug,
           checkin,
@@ -427,7 +436,7 @@ function BookingContent() {
               WhatsApp
             </a>
             <a
-              href={`mailto:hotelrparaiso@gmail.com?subject=Reserva ${bookingId}`}
+              href={`mailto:hotelrparaiso@gmail.com?subject=Reserva ${encodeURIComponent(bookingId ?? '')}`}
               className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/[0.08]"
             >
               <svg
