@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { Droplets } from 'lucide-react';
 import { RoomViewTracker } from './tracker';
 import { getRoom, getRoomSlugs, getMediaUrl, type CmsRoom } from '@/lib/cms';
 
@@ -218,7 +219,7 @@ export default async function RoomPage({ params }: Props) {
   const priceNum = parseInt(room.price.replace(/\D/g, ''), 10) || 0;
 
   return (
-    <main className="pt-16">
+    <main className="bg-brand-black pt-16">
       <RoomViewTracker slug={slug} name={room.name} price={priceNum} />
       {/* Photo grid — padrão Airbnb */}
       <section className="mx-auto max-w-6xl px-4 py-8">
@@ -261,25 +262,23 @@ export default async function RoomPage({ params }: Props) {
         <div className="grid gap-12 lg:grid-cols-3">
           {/* Info */}
           <div className="lg:col-span-2">
-            <h1 className="font-display text-3xl font-bold text-brand-black sm:text-4xl">
-              {room.name}
-            </h1>
-            <div className="mt-2 flex gap-4 text-sm text-beige-700">
+            <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">{room.name}</h1>
+            <div className="mt-2 flex gap-4 text-sm text-white/70">
               <span>{room.capacity}</span>
               <span>·</span>
               <span>{room.size}</span>
             </div>
 
-            <p className="mt-6 text-lg leading-relaxed text-beige-800">{room.longDescription}</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/70">{room.longDescription}</p>
 
             {/* Amenities */}
             <div className="mt-10">
-              <h2 className="font-display text-xl font-bold text-brand-black">
+              <h2 className="font-display text-xl font-bold text-white">
                 O que este quarto oferece
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {room.amenities.map((amenity) => (
-                  <div key={amenity} className="flex items-center gap-3 text-beige-800">
+                  <div key={amenity} className="flex items-center gap-3 text-white/70">
                     <span className="text-brand-gold">✓</span>
                     {amenity}
                   </div>
@@ -289,17 +288,17 @@ export default async function RoomPage({ params }: Props) {
 
             {/* Hydromassage upsell — only for Master */}
             {slug === 'master' && (
-              <div className="mt-8 rounded-lg border-2 border-dashed border-brand-gold/40 bg-gold-50/50 p-5">
+              <div className="mt-8 rounded-lg border border-white/[0.08] bg-white/[0.04] p-5">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">♨</span>
+                  <Droplets className="h-6 w-6 text-brand-gold" strokeWidth={1.5} />
                   <div>
-                    <h3 className="font-display text-lg font-bold text-brand-black">
+                    <h3 className="font-display text-lg font-bold text-white">
                       Hidromassagem — Upgrade disponível
                     </h3>
-                    <p className="mt-1 text-sm text-beige-700">
+                    <p className="mt-1 text-sm text-white/70">
                       Adicione banheira de hidromassagem à sua estadia por{' '}
-                      <span className="font-semibold text-gold-700">R$ 120–150/noite</span>. Sujeito
-                      a disponibilidade (2 unidades). Solicite na reserva ou no check-in.
+                      <span className="font-semibold text-brand-gold">R$ 120–150/noite</span>.
+                      Sujeito a disponibilidade (2 unidades). Solicite na reserva ou no check-in.
                     </p>
                   </div>
                 </div>
@@ -309,12 +308,10 @@ export default async function RoomPage({ params }: Props) {
 
           {/* Booking card — sticky */}
           <div className="lg:col-span-1">
-            <div className="sticky top-20 rounded-sm border border-beige-200 bg-brand-white p-6 shadow-lg">
+            <div className="sticky top-20 rounded-sm border border-white/[0.08] bg-white/[0.04] p-6">
               <div className="flex items-baseline justify-between">
-                <span className="font-display text-2xl font-bold text-brand-black">
-                  {room.price}
-                </span>
-                <span className="text-sm text-beige-600">/ noite</span>
+                <span className="font-display text-2xl font-bold text-white">{room.price}</span>
+                <span className="text-sm text-white/50">/ noite</span>
               </div>
 
               <Link
@@ -324,7 +321,7 @@ export default async function RoomPage({ params }: Props) {
                 Reservar agora
               </Link>
 
-              <p className="mt-3 text-center text-xs text-beige-600">
+              <p className="mt-3 text-center text-xs text-white/50">
                 Cancelamento gratuito até 48h antes
               </p>
             </div>
@@ -333,7 +330,7 @@ export default async function RoomPage({ params }: Props) {
       </section>
 
       {/* Back link */}
-      <section className="border-t border-beige-200 py-8">
+      <section className="border-t border-white/[0.08] py-8">
         <div className="mx-auto max-w-6xl px-4">
           <Link
             href="/#quartos"

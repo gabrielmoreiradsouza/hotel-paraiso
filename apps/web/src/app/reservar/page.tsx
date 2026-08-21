@@ -245,18 +245,18 @@ function BookingContent() {
   // Step 3: Confirmation
   if (step === 'confirmed' && selectedRoom) {
     return (
-      <main className="pt-24 pb-16">
+      <main className="bg-brand-black pt-24 pb-16">
         <div className="mx-auto max-w-2xl px-4 text-center">
-          <div className="mb-8 text-6xl">✓</div>
-          <h1 className="font-display text-3xl font-bold text-brand-black">Reserva confirmada!</h1>
-          <p className="mt-4 text-beige-700">
+          <div className="mb-8 text-6xl text-brand-gold">✓</div>
+          <h1 className="font-display text-3xl font-bold text-white">Reserva confirmada!</h1>
+          <p className="mt-4 text-white/70">
             Sua reserva foi registrada com sucesso no sistema do hotel.
           </p>
-          {bookingId && <p className="mt-2 text-sm text-beige-500">Protocolo: {bookingId}</p>}
+          {bookingId && <p className="mt-2 text-sm text-white/50">Protocolo: {bookingId}</p>}
 
-          <div className="mt-8 rounded-sm border border-beige-200 bg-beige-50 p-6 text-left">
-            <h3 className="font-display text-lg font-bold text-brand-black">Resumo</h3>
-            <div className="mt-4 space-y-2 text-sm text-beige-800">
+          <div className="mt-8 rounded-sm border border-white/[0.08] bg-white/[0.04] p-6 text-left">
+            <h3 className="font-display text-lg font-bold text-white">Resumo</h3>
+            <div className="mt-4 space-y-2 text-sm text-white/70">
               <div className="flex justify-between">
                 <span>Quarto</span>
                 <span className="font-medium">{selectedRoom.cmsName}</span>
@@ -278,21 +278,21 @@ function BookingContent() {
                 <span className="font-medium">{guests}</span>
               </div>
               {wantsHydro && (
-                <div className="flex justify-between text-gold-700">
+                <div className="flex justify-between text-brand-gold">
                   <span>Hidromassagem</span>
                   <span className="font-medium">Solicitada (sujeito a disp.)</span>
                 </div>
               )}
-              <div className="flex justify-between border-t border-beige-300 pt-2">
+              <div className="flex justify-between border-t border-white/[0.08] pt-2">
                 <span className="font-bold">Total</span>
-                <span className="font-display text-lg font-bold text-gold-700">
+                <span className="font-display text-lg font-bold text-brand-gold">
                   R$ {selectedRoom.price.toLocaleString('pt-BR')}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 space-y-3 text-sm text-beige-600">
+          <div className="mt-8 space-y-3 text-sm text-white/50">
             <p>Um email de confirmação será enviado para {guestEmail}</p>
             <p>Dúvidas? (31) 3881-8049 ou WhatsApp</p>
           </div>
@@ -311,34 +311,32 @@ function BookingContent() {
   // Step 2: Guest details
   if (step === 'details' && selectedRoom) {
     return (
-      <main className="pt-24 pb-16">
+      <main className="bg-brand-black pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-4">
           <nav aria-label="Progresso da reserva" className="mb-8">
             <ol className="flex items-center justify-center gap-4 text-sm">
-              <li className="text-beige-400">1. Escolha</li>
-              <li className="text-beige-300" aria-hidden="true">
+              <li className="text-white/50">1. Escolha</li>
+              <li className="text-white/30" aria-hidden="true">
                 →
               </li>
               <li className="font-bold text-brand-gold" aria-current="step">
                 2. Seus dados
               </li>
-              <li className="text-beige-300" aria-hidden="true">
+              <li className="text-white/30" aria-hidden="true">
                 →
               </li>
-              <li className="text-beige-400">3. Confirmação</li>
+              <li className="text-white/50">3. Confirmação</li>
             </ol>
           </nav>
 
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <h1 className="font-display text-2xl font-bold text-brand-black">
-                Complete sua reserva
-              </h1>
+              <h1 className="font-display text-2xl font-bold text-white">Complete sua reserva</h1>
               <div className="mt-6 space-y-4">
                 <div>
                   <label
                     htmlFor="guest-name"
-                    className="mb-1 block text-sm font-medium text-beige-700"
+                    className="mb-1 block text-sm font-medium text-white/70"
                   >
                     Nome completo *
                   </label>
@@ -348,14 +346,14 @@ function BookingContent() {
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
                     onBlur={(e) => saveBookingState({ guestName: e.target.value })}
-                    className="w-full rounded-sm border border-beige-300 px-4 py-3 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
+                    className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40"
                     placeholder="João Silva"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="guest-email"
-                    className="mb-1 block text-sm font-medium text-beige-700"
+                    className="mb-1 block text-sm font-medium text-white/70"
                   >
                     Email *
                   </label>
@@ -365,14 +363,14 @@ function BookingContent() {
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
                     onBlur={(e) => saveBookingState({ guestEmail: e.target.value })}
-                    className="w-full rounded-sm border border-beige-300 px-4 py-3 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
+                    className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40"
                     placeholder="joao@email.com"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="guest-phone"
-                    className="mb-1 block text-sm font-medium text-beige-700"
+                    className="mb-1 block text-sm font-medium text-white/70"
                   >
                     Telefone *
                   </label>
@@ -382,7 +380,7 @@ function BookingContent() {
                     value={guestPhone}
                     onChange={(e) => setGuestPhone(e.target.value)}
                     onBlur={(e) => saveBookingState({ guestPhone: e.target.value })}
-                    className="w-full rounded-sm border border-beige-300 px-4 py-3 text-sm outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
+                    className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40"
                     placeholder="(31) 99999-9999"
                   />
                 </div>
@@ -390,7 +388,7 @@ function BookingContent() {
 
               {/* Hydromassage upsell — only for Master rooms */}
               {selectedRoom && selectedRoom.cmsName.toLowerCase().includes('master') && (
-                <div className="mt-6 rounded-lg border-2 border-dashed border-brand-gold/40 bg-gold-50/50 p-4">
+                <div className="mt-6 rounded-lg bg-white/[0.04] border border-white/[0.08] p-4">
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
                       type="checkbox"
@@ -399,13 +397,11 @@ function BookingContent() {
                         setWantsHydro(e.target.checked);
                         saveBookingState({ wantsHydro: e.target.checked });
                       }}
-                      className="mt-1 h-4 w-4 rounded border-beige-300 text-brand-gold accent-brand-gold"
+                      className="mt-1 h-4 w-4 rounded border-white/[0.12] text-brand-gold accent-brand-gold"
                     />
                     <div>
-                      <span className="font-semibold text-brand-black">
-                        Adicionar hidromassagem
-                      </span>
-                      <p className="mt-0.5 text-xs text-beige-600">
+                      <span className="font-semibold text-white">Adicionar hidromassagem</span>
+                      <p className="mt-0.5 text-xs text-white/50">
                         R$ 120–150/noite extra. Sujeito a disponibilidade (2 unidades). O hotel
                         confirmará por e-mail.
                       </p>
@@ -415,7 +411,7 @@ function BookingContent() {
               )}
 
               {error && (
-                <div className="mt-6 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mt-6 rounded-sm bg-red-900/20 border border-red-500/30 px-4 py-3 text-sm text-red-400">
                   {error}
                 </div>
               )}
@@ -426,7 +422,7 @@ function BookingContent() {
                     setStep('search');
                     saveBookingState({ step: 'search' });
                   }}
-                  className="rounded-sm border border-beige-300 px-6 py-3 text-sm text-beige-700 transition-colors hover:bg-beige-50"
+                  className="rounded-sm border border-white/[0.12] px-6 py-3 text-sm text-white/70 transition-colors hover:bg-white/[0.08]"
                 >
                   ← Voltar
                 </button>
@@ -440,7 +436,7 @@ function BookingContent() {
                 </button>
               </div>
             </div>
-            <div className="rounded-sm border border-beige-200 bg-beige-50 p-6">
+            <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] p-6">
               <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
                 <Image
                   src={selectedRoom.cmsImage || '/images/rooms/standard.jpg'}
@@ -450,8 +446,10 @@ function BookingContent() {
                   unoptimized={selectedRoom.cmsImage.startsWith('http')}
                 />
               </div>
-              <h3 className="mt-4 font-display text-lg font-bold">{selectedRoom.cmsName}</h3>
-              <div className="mt-3 space-y-1 text-sm text-beige-700">
+              <h3 className="mt-4 font-display text-lg font-bold text-white">
+                {selectedRoom.cmsName}
+              </h3>
+              <div className="mt-3 space-y-1 text-sm text-white/70">
                 <div>
                   {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')} →{' '}
                   {new Date(checkout + 'T12:00:00').toLocaleDateString('pt-BR')}
@@ -461,14 +459,14 @@ function BookingContent() {
                 </div>
               </div>
               {wantsHydro && (
-                <div className="mt-2 text-xs text-gold-700">
+                <div className="mt-2 text-xs text-brand-gold">
                   + Hidromassagem solicitada (R$ 120–150/noite)
                 </div>
               )}
-              <div className="mt-4 border-t border-beige-300 pt-4">
-                <div className="flex justify-between font-bold">
+              <div className="mt-4 border-t border-white/[0.08] pt-4">
+                <div className="flex justify-between font-bold text-white">
                   <span>Total</span>
-                  <span className="font-display text-xl text-gold-700">
+                  <span className="font-display text-xl text-brand-gold">
                     R$ {selectedRoom.price.toLocaleString('pt-BR')}
                   </span>
                 </div>
@@ -482,32 +480,32 @@ function BookingContent() {
 
   // Step 1: Search + Room selection
   return (
-    <main className="pt-24 pb-16">
+    <main className="bg-brand-black pt-24 pb-16">
       <div className="mx-auto max-w-6xl px-4">
         <nav aria-label="Progresso da reserva" className="mb-8">
           <ol className="flex items-center justify-center gap-4 text-sm">
             <li className="font-bold text-brand-gold" aria-current="step">
               1. Escolha
             </li>
-            <li className="text-beige-300" aria-hidden="true">
+            <li className="text-white/30" aria-hidden="true">
               →
             </li>
-            <li className="text-beige-400">2. Seus dados</li>
-            <li className="text-beige-300" aria-hidden="true">
+            <li className="text-white/50">2. Seus dados</li>
+            <li className="text-white/30" aria-hidden="true">
               →
             </li>
-            <li className="text-beige-400">3. Confirmação</li>
+            <li className="text-white/50">3. Confirmação</li>
           </ol>
         </nav>
 
-        <h1 className="font-display text-3xl font-bold text-brand-black">Quartos disponíveis</h1>
+        <h1 className="font-display text-3xl font-bold text-white">Quartos disponíveis</h1>
 
         {/* Search bar */}
-        <div className="mt-6 flex flex-wrap items-end gap-4 rounded-sm border border-beige-200 bg-beige-50 p-4">
+        <div className="mt-6 flex flex-wrap items-end gap-4 rounded-sm bg-white/[0.04] border border-white/[0.12] p-4">
           <div className="flex-1">
             <label
               htmlFor="search-checkin"
-              className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700"
+              className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
             >
               Check-in
             </label>
@@ -517,13 +515,13 @@ function BookingContent() {
               value={checkin}
               min={today}
               onChange={(e) => setCheckin(e.target.value)}
-              className="w-full rounded-sm border border-beige-300 bg-brand-white px-3 py-2 text-sm outline-none focus:border-brand-gold"
+              className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-3 py-2 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 [color-scheme:dark]"
             />
           </div>
           <div className="flex-1">
             <label
               htmlFor="search-checkout"
-              className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700"
+              className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
             >
               Check-out
             </label>
@@ -533,33 +531,33 @@ function BookingContent() {
               value={checkout}
               min={minCheckOut}
               onChange={(e) => setCheckout(e.target.value)}
-              className="w-full rounded-sm border border-beige-300 bg-brand-white px-3 py-2 text-sm outline-none focus:border-brand-gold"
+              className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-3 py-2 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 [color-scheme:dark]"
             />
           </div>
           <div>
             <label
               htmlFor="search-guests"
-              className="mb-1 block text-xs font-medium uppercase tracking-wider text-beige-700"
+              className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
             >
               Hóspedes
             </label>
-            <div className="flex items-center gap-3 rounded-sm border border-beige-300 bg-brand-white px-3 py-2">
+            <div className="flex items-center gap-3 rounded-sm bg-white/[0.06] border border-white/[0.12] px-3 py-2">
               <button
                 type="button"
                 aria-label="Diminuir hóspedes"
                 onClick={() => setGuests(Math.max(1, guests - 1))}
-                className="font-bold text-beige-600"
+                className="font-bold text-white/50"
               >
                 -
               </button>
-              <span id="search-guests" className="w-6 text-center text-sm">
+              <span id="search-guests" className="w-6 text-center text-sm text-white">
                 {guests}
               </span>
               <button
                 type="button"
                 aria-label="Aumentar hóspedes"
                 onClick={() => setGuests(Math.min(10, guests + 1))}
-                className="font-bold text-beige-600"
+                className="font-bold text-white/50"
               >
                 +
               </button>
@@ -578,26 +576,26 @@ function BookingContent() {
         {/* Results */}
         <div className="mt-8">
           {loading && (
-            <div className="py-12 text-center text-beige-500">
+            <div className="py-12 text-center text-white/50">
               Consultando disponibilidade no hotel...
             </div>
           )}
 
           {!loading && searched && apiError && (
-            <div className="rounded-sm border border-red-300 bg-red-50 py-12 text-center">
-              <p className="text-lg text-red-700">Erro ao consultar disponibilidade.</p>
-              <p className="mt-2 text-sm text-red-500">
+            <div className="rounded-sm bg-red-900/20 border border-red-500/30 py-12 text-center">
+              <p className="text-lg text-red-400">Erro ao consultar disponibilidade.</p>
+              <p className="mt-2 text-sm text-red-400/70">
                 Tente novamente em alguns instantes ou ligue: (31) 3881-8049
               </p>
             </div>
           )}
 
           {!loading && searched && !apiError && rooms.length === 0 && (
-            <div className="rounded-sm border border-beige-200 bg-beige-50 py-12 text-center">
-              <p className="text-lg text-beige-700">
+            <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] py-12 text-center">
+              <p className="text-lg text-white/70">
                 Nenhum quarto disponível para as datas selecionadas.
               </p>
-              <p className="mt-2 text-sm text-beige-500">
+              <p className="mt-2 text-sm text-white/50">
                 Tente outras datas ou entre em contato: (31) 3881-8049
               </p>
             </div>
@@ -608,7 +606,7 @@ function BookingContent() {
               {rooms.map((room) => (
                 <div
                   key={room.cmsRoomId}
-                  className="flex flex-col overflow-hidden rounded-sm border border-beige-200 bg-brand-white shadow-sm transition-shadow hover:shadow-md md:flex-row"
+                  className="flex flex-col overflow-hidden rounded-sm border border-white/[0.08] bg-white/[0.04] transition-colors hover:bg-white/[0.06] md:flex-row"
                 >
                   <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
                     <Image
@@ -621,31 +619,29 @@ function BookingContent() {
                   </div>
                   <div className="flex flex-1 flex-col justify-between p-6">
                     <div>
-                      <h3 className="font-display text-xl font-bold text-brand-black">
-                        {room.cmsName}
-                      </h3>
+                      <h3 className="font-display text-xl font-bold text-white">{room.cmsName}</h3>
                       {room.cmsDescription && (
-                        <p className="mt-2 text-sm text-beige-700">{room.cmsDescription}</p>
+                        <p className="mt-2 text-sm text-white/70">{room.cmsDescription}</p>
                       )}
                       {room.cmsAmenities.length > 0 && (
-                        <p className="mt-2 text-xs text-beige-600">
+                        <p className="mt-2 text-xs text-white/50">
                           {room.cmsAmenities.slice(0, 4).join(' · ')}
                         </p>
                       )}
-                      <p className="mt-1 text-sm text-beige-600">
+                      <p className="mt-1 text-sm text-white/50">
                         Até {room.capacity.adults} adultos
                         {room.capacity.kids > 0 ? ` + ${room.capacity.kids} crianças` : ''}
                       </p>
-                      <p className="mt-1 text-xs text-green-600">
+                      <p className="mt-1 text-xs text-emerald-400">
                         {room.allots} disponível{room.allots !== 1 ? 'is' : ''}
                       </p>
                     </div>
                     <div className="mt-4 flex items-end justify-between">
                       <div>
-                        <span className="font-display text-2xl font-bold text-brand-black">
+                        <span className="font-display text-2xl font-bold text-white">
                           A partir de R$ {(room.minPrice ?? room.price).toLocaleString('pt-BR')}
                         </span>
-                        <span className="text-sm text-beige-600"> / estadia</span>
+                        <span className="text-sm text-white/50"> / estadia</span>
                       </div>
                       <button
                         type="button"
@@ -670,8 +666,8 @@ export default function ReservarPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center pt-24">
-          <p className="text-beige-600">Carregando...</p>
+        <main className="flex min-h-screen items-center justify-center bg-brand-black pt-24">
+          <p className="text-white/50">Carregando...</p>
         </main>
       }
     >

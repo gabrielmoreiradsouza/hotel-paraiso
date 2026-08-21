@@ -46,11 +46,11 @@ export default async function SobrePage() {
         {/* Section 1: Text + Stats side by side */}
         <div className="grid gap-12 lg:grid-cols-5">
           <div className="lg:col-span-3">
-            <h2 className="font-display text-2xl font-bold text-brand-black sm:text-3xl">
+            <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
               {t('tradition')}
             </h2>
-            <p className="mt-4 text-beige-800 leading-relaxed">{t('p1')}</p>
-            <p className="mt-4 text-beige-800 leading-relaxed">{t('p2')}</p>
+            <p className="mt-4 text-white/70 leading-relaxed">{t('p1')}</p>
+            <p className="mt-4 text-white/70 leading-relaxed">{t('p2')}</p>
           </div>
           <div className="flex flex-col justify-center lg:col-span-2">
             <div className="grid grid-cols-2 gap-6">
@@ -60,11 +60,14 @@ export default async function SobrePage() {
                 { value: '150km', label: t('fromBH') },
                 { value: '\u2605', label: t('gastronomy') },
               ].map((stat) => (
-                <div key={stat.label} className="rounded-lg bg-beige-50 p-5 text-center">
+                <div
+                  key={stat.label}
+                  className="rounded-lg bg-white/[0.04] border border-white/[0.08] p-5 text-center"
+                >
                   <div className="font-display text-2xl font-bold text-brand-gold">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-xs text-beige-700">{stat.label}</div>
+                  <div className="mt-1 text-xs text-white/70">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -76,28 +79,26 @@ export default async function SobrePage() {
           {highlights.map(({ icon: Icon, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center gap-2 rounded-lg border border-beige-200 bg-brand-white p-4 text-center"
+              className="flex flex-col items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] p-4 text-center"
             >
               <Icon className="h-6 w-6 text-brand-gold" strokeWidth={1.5} />
-              <span className="text-xs font-medium text-beige-800">{label}</span>
+              <span className="text-xs font-medium text-white/70">{label}</span>
             </div>
           ))}
         </div>
 
         {/* Section 2: Infrastructure */}
         <div className="mt-16">
-          <h2 className="font-display text-2xl font-bold text-brand-black sm:text-3xl">
-            {t('infra')}
-          </h2>
-          <p className="mt-4 max-w-3xl text-beige-800 leading-relaxed">{t('p3')}</p>
+          <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">{t('infra')}</h2>
+          <p className="mt-4 max-w-3xl text-white/70 leading-relaxed">{t('p3')}</p>
         </div>
 
         {/* Section 3: Location */}
         <div className="mt-16">
-          <h2 className="font-display text-2xl font-bold text-brand-black sm:text-3xl">
+          <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
             {t('location')}
           </h2>
-          <p className="mt-4 max-w-3xl text-beige-800 leading-relaxed">{t('p4')}</p>
+          <p className="mt-4 max-w-3xl text-white/70 leading-relaxed">{t('p4')}</p>
         </div>
 
         {/* CTA */}
