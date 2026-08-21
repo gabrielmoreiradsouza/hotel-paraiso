@@ -3,12 +3,13 @@
 import Script from 'next/script';
 
 const GA4_ID = process.env['NEXT_PUBLIC_GA4_MEASUREMENT_ID'] ?? '';
+const GADS_ID = process.env['NEXT_PUBLIC_GOOGLE_ADS_ID'] ?? '';
 const META_PIXEL_ID = process.env['NEXT_PUBLIC_META_PIXEL_ID'] ?? '';
 
 export function Analytics() {
   return (
     <>
-      {/* Google Analytics 4 — direct tag (no GTM) */}
+      {/* Google Analytics 4 + Google Ads — direct tags (no GTM) */}
       {GA4_ID && (
         <>
           <Script
@@ -24,6 +25,7 @@ export function Analytics() {
                 send_page_view: true,
                 currency: 'BRL',
               });
+              ${GADS_ID ? `gtag('config', '${GADS_ID}');` : ''}
             `}
           </Script>
         </>

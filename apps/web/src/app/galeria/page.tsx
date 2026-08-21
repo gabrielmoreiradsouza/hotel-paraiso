@@ -1,5 +1,12 @@
+import type { Metadata } from 'next';
 import { getGalleryItems, getMediaUrl } from '@/lib/cms';
 import { GalleryClient } from './gallery-client';
+
+export const metadata: Metadata = {
+  title: 'Galeria de Fotos — Hotel e Restaurante Paraíso',
+  description:
+    'Veja fotos dos quartos, restaurante, áreas comuns e pista de eventos do Hotel Paraíso em Ponte Nova, MG. Quartos Confort, Standard, Luxo e Suíte Master.',
+};
 
 const fallbackPhotos: { src: string; alt: string; category: 'rooms' | 'common' | 'restaurant' }[] =
   [

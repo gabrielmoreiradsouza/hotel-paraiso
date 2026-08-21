@@ -10,5 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: 'https://hotelparaiso.moreirads.cloud/sitemap.xml',
+    host: 'https://hotelparaiso.moreirads.cloud',
   };
 }

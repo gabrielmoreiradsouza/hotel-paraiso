@@ -70,7 +70,19 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
   // Also fire to GA4 gtag if available
   if (typeof window !== 'undefined' && 'gtag' in window) {
     const gtag = (window as unknown as Record<string, (...args: unknown[]) => void>)['gtag'];
-    if (gtag) gtag('event', eventName, payload);
+    if (gtag) {
+      gtag('event', eventName, payload);
+
+      // Google Ads conversion on purchase
+      if (eventName === 'reservation_created') {
+        gtag('event', 'conversion', {
+          send_to: 'AW-1932233003/RESERVATION',
+          value: payload['value'],
+          currency: 'BRL',
+          transaction_id: payload['booking_id'],
+        });
+      }
+    }
   }
 
   // Also fire to Meta fbq if available (map to standard events)
@@ -135,6 +147,12 @@ export function trackReservationCreated(params: {
   room_name: string;
   value: number;
   nights: number;
+  adults: number;
+  guest_email: string;
+  guest_phone: string;
+  room_slug: string;
+  checkin: string;
+  checkout: string;
 }) {
   track('reservation_created', { ...params, category: 'macro', currency: 'BRL' });
 }

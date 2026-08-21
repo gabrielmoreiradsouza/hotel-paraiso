@@ -5,9 +5,9 @@ import { getTranslations } from 'next-intl/server';
 import { Wifi, Car, UtensilsCrossed, Zap, PawPrint, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Sobre — Hotel e Restaurante Paraíso',
+  title: 'Sobre o Hotel Paraíso — Ponte Nova, MG',
   description:
-    'Conheça o Hotel e Restaurante Paraíso em Ponte Nova, MG. Tradição, conforto e gastronomia mineira para viajantes corporativos e famílias.',
+    'Conheça o Hotel e Restaurante Paraíso em Ponte Nova, MG. Tradição em hospedagem, gastronomia mineira, Wi-Fi, estacionamento grátis, pet friendly e recepção 24h.',
 };
 
 const highlights = [
