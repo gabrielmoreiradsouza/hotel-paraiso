@@ -49,8 +49,6 @@ export const Rooms: CollectionConfig = {
     {
       name: 'artaxCategoryIds',
       type: 'array',
-      required: true,
-      minRows: 1,
       admin: {
         description: 'Categorias (room_type_id) da Artax PMS vinculadas a este quarto.',
         position: 'sidebar',
