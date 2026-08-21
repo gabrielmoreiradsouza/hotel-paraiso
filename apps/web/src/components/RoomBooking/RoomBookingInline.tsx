@@ -44,7 +44,10 @@ export function RoomBookingInline({
     : today;
 
   async function handleCheck() {
-    if (!checkin || !checkout) return;
+    if (!checkin || !checkout) {
+      setError('Selecione as datas de check-in e check-out.');
+      return;
+    }
 
     // Validate checkout > checkin
     if (checkout <= checkin) {
@@ -81,11 +84,12 @@ export function RoomBookingInline({
             (new Date(checkout).getTime() - new Date(checkin).getTime()) / (1000 * 60 * 60 * 24)
           )
         );
+        // API price is already the total for the stay, not per-night
         setResult({
           status: 'available',
           roomName: match.name,
           nights,
-          total: match.price * nights,
+          total: match.price,
         });
       } else {
         setResult({
@@ -194,8 +198,8 @@ export function RoomBookingInline({
       {/* Check button */}
       <button
         onClick={handleCheck}
-        disabled={loading || !checkin || !checkout}
-        className="mt-4 w-full rounded-lg bg-brand-black py-3 text-center text-sm font-semibold uppercase tracking-widest text-white transition-colors hover:bg-brand-black/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
+        disabled={loading}
+        className="mt-4 w-full rounded-lg bg-brand-gold py-3 text-center text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
       >
         {loading ? (
           <span className="inline-flex items-center gap-2">
