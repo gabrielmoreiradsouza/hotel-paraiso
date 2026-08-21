@@ -4,28 +4,17 @@ import { createHmac } from 'node:crypto';
 import { isRateLimited } from '@/lib/rate-limit';
 import { trackServerPurchase } from '@/lib/server-tracking';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { ArtaxClient } = require('../../../../../../packages/artax-client/src/client') as {
-  ArtaxClient: new (config: { clientId: string; clientSecret: string }) => {
-    createBooking(input: {
-      arrival_date: string;
-      departure_date: string;
-      notes?: string;
-      guests: Array<{ name: string; email: string; phone: string }>;
-      rooms: Array<{
-        room_type_id: number;
-        rate_plan_id: number;
-        adults: number;
-        children: number;
-      }>;
-    }): Promise<{ booking_id: number }>;
-    listBookings(params: { page: number }): Promise<unknown>;
-  };
-};
-
+const ARTAX_URL = 'https://artaxnet.com/pms-api/v1';
 const CLIENT_ID = process.env['ARTAX_CLIENT_ID'] ?? '';
 const CLIENT_SECRET = process.env['ARTAX_CLIENT_SECRET'] ?? '';
-const artax = new ArtaxClient({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
+
+const artaxHeaders = {
+  ClientId: CLIENT_ID,
+  ClientSecret: CLIENT_SECRET,
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+  'User-Agent': 'HotelParaiso/1.0',
+};
 
 function escapeHtml(str: string): string {
   return str
@@ -148,22 +137,40 @@ export async function POST(request: Request) {
     // Create booking in Artax if credentials + category info available
     if (CLIENT_ID && CLIENT_SECRET && categoryId && rateplanId) {
       try {
-        const artaxData = await artax.createBooking({
+        const nameParts = guestName.trim().split(' ');
+        const firstName = nameParts[0] ?? '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const artaxPayload = {
           arrival_date: checkin,
           departure_date: checkout,
-          notes: notes
+          rateplan_id: rateplanId,
+          comment: notes
             ? `Reserva via site hotelparaiso.moreirads.cloud | ${notes}`
             : 'Reserva via site hotelparaiso.moreirads.cloud',
-          guests: [{ name: guestName, email: guestEmail, phone: guestPhone ?? '' }],
-          rooms: [
-            {
-              room_type_id: categoryId,
-              rate_plan_id: rateplanId,
+          guest: {
+            first_name: firstName,
+            last_name: lastName,
+            phone: guestPhone ?? '',
+            email: guestEmail,
+            type: 'guest' as const,
+          },
+          room_units: {
+            [String(categoryId)]: {
               adults: adults ?? 2,
-              children: kids ?? 0,
+              kids: kids ?? 0,
+              guests: [{ first_name: firstName, last_name: lastName }],
             },
-          ],
+          },
+        };
+        const artaxResponse = await fetch(`${ARTAX_URL}/booking/create`, {
+          method: 'POST',
+          headers: artaxHeaders,
+          body: JSON.stringify(artaxPayload),
         });
+        if (!artaxResponse.ok) {
+          throw new Error(`Artax: ${artaxResponse.status} ${await artaxResponse.text()}`);
+        }
+        const artaxData = (await artaxResponse.json()) as { booking_id: number };
         const bid = String(artaxData.booking_id);
         sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid, notes);
 
@@ -220,6 +227,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Artax not configured' }, { status: 503 });
   }
 
-  const data = await artax.listBookings({ page: Number(page) });
+  const res = await fetch(`${ARTAX_URL}/bookings?page=${page}`, { headers: artaxHeaders });
+  const data = await res.json();
   return NextResponse.json(data);
 }

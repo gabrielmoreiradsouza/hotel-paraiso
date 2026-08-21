@@ -1,21 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRoomImageUrl, getRooms } from '@/lib/cms';
 
-// Kept as a static require so Next bundles the workspace source without widening
-// this app's TypeScript rootDir. The web package does not currently declare the
-// workspace dependency and this integration is intentionally scoped to this route.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { ArtaxClient } = require('../../../../../../packages/artax-client/src/client') as {
-  ArtaxClient: new (config: { clientId: string; clientSecret: string }) => {
-    checkAvailabilityRaw(query: {
-      arrival_date: string;
-      departure_date: string;
-      adults: number;
-      children: number;
-    }): Promise<RawAvailabilityResponse>;
-  };
-};
-
+const ARTAX_URL = 'https://artaxnet.com/pms-api/v1';
 const CLIENT_ID = process.env['ARTAX_CLIENT_ID'] ?? '';
 const CLIENT_SECRET = process.env['ARTAX_CLIENT_SECRET'] ?? '';
 
@@ -33,7 +19,29 @@ interface RawAvailabilityResponse {
   rooms?: Record<string, Record<string, RawAvailabilityRoom>>;
 }
 
-const artax = new ArtaxClient({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
+async function fetchArtaxAvailability(
+  arrivalDate: string,
+  departureDate: string,
+  adults: number,
+  kids: number
+): Promise<RawAvailabilityResponse> {
+  const params = new URLSearchParams({
+    arrival_date: arrivalDate,
+    departure_date: departureDate,
+    adults: String(adults),
+    kids: String(kids),
+  });
+  const res = await fetch(`${ARTAX_URL}/rooms/availability?${params}`, {
+    headers: {
+      ClientId: CLIENT_ID,
+      ClientSecret: CLIENT_SECRET,
+      Accept: 'application/json',
+      'User-Agent': 'HotelParaiso/1.0',
+    },
+  });
+  if (!res.ok) throw new Error(`Artax: ${res.status}`);
+  return res.json() as Promise<RawAvailabilityResponse>;
+}
 
 type ArtaxOption = RawAvailabilityRoom & { categoryId: number };
 
@@ -84,12 +92,7 @@ export async function GET(request: Request) {
 
   try {
     const [data, cmsRooms] = await Promise.all([
-      artax.checkAvailabilityRaw({
-        arrival_date: arrivalDate,
-        departure_date: departureDate,
-        adults: adultsNum,
-        children: kidsNum,
-      }),
+      fetchArtaxAvailability(arrivalDate, departureDate, adultsNum, kidsNum),
       getRooms(),
     ]);
 
