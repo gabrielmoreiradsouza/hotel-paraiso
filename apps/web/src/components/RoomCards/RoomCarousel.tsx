@@ -138,7 +138,7 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
           {/* Action buttons */}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
-              href={`/reservar?room=${room.slug}`}
+              href={`/reservar?room=${encodeURIComponent(room.slug)}`}
               className="flex-1 rounded-lg bg-brand-gold py-3.5 text-center text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
             >
               Reservar agora
@@ -166,6 +166,7 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
       onClick={onClick}
       className="group relative flex-none w-[340px] cursor-pointer overflow-hidden rounded-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl scroll-snap-align-start"
       style={{ scrollSnapAlign: 'start' }}
+      aria-label={`Ver detalhes de ${room.name}`}
     >
       {/* Image */}
       <div className="relative h-[420px] w-full overflow-hidden">

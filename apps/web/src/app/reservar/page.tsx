@@ -14,18 +14,14 @@ import {
 } from '@hotel-paraiso/tracking';
 import { useSearchParams } from 'next/navigation';
 
-// Room images mapping (by name pattern)
-function getRoomImage(name: string): string {
-  const n = name.toLowerCase();
-  if (n.includes('master')) return '/images/rooms/master.jpg';
-  if (n.includes('luxo')) return '/images/rooms/luxo.jpg';
-  if (n.includes('standard')) return '/images/rooms/standard.jpg';
-  if (n.includes('confort')) return '/images/rooms/standard.jpg';
-  if (n.includes('solteiro')) return '/images/rooms/luxo.jpg';
-  return '/images/rooms/standard.jpg';
-}
-
 interface AvailableRoom {
+  cmsRoomId: number;
+  cmsName: string;
+  cmsSlug: string;
+  cmsImage: string;
+  cmsAmenities: string[];
+  cmsDescription: string;
+  minPrice: number | null;
   category_id: number;
   rateplan_id: number;
   name: string;
@@ -156,8 +152,11 @@ function BookingContent() {
         return;
       }
       const data = await res.json();
-      setRooms(data.rooms ?? []);
-      trackAvailabilityViewed(data.rooms?.length ?? 0);
+      const availableRooms = ((data.rooms ?? []) as AvailableRoom[]).filter(
+        (room) => room.available
+      );
+      setRooms(availableRooms);
+      trackAvailabilityViewed(availableRooms.length);
     } catch {
       setApiError(true);
       setRooms([]);
@@ -178,13 +177,13 @@ function BookingContent() {
 
   function handleSelectRoom(room: AvailableRoom) {
     trackRoomSelected({
-      room_slug: String(room.category_id),
-      room_name: room.name,
+      room_slug: room.cmsSlug,
+      room_name: room.cmsName,
       price: room.price,
     });
     trackCheckoutStarted({
-      room_slug: String(room.category_id),
-      room_name: room.name,
+      room_slug: room.cmsSlug,
+      room_name: room.cmsName,
       value: room.price,
       nights,
     });
@@ -229,7 +228,7 @@ function BookingContent() {
       setBookingId(String(data.booking_id));
       trackReservationCreated({
         booking_id: String(data.booking_id),
-        room_name: selectedRoom.name,
+        room_name: selectedRoom.cmsName,
         value: selectedRoom.price,
         nights,
       });
@@ -260,7 +259,7 @@ function BookingContent() {
             <div className="mt-4 space-y-2 text-sm text-beige-800">
               <div className="flex justify-between">
                 <span>Quarto</span>
-                <span className="font-medium">{selectedRoom.name}</span>
+                <span className="font-medium">{selectedRoom.cmsName}</span>
               </div>
               <div className="flex justify-between">
                 <span>Check-in</span>
@@ -390,7 +389,7 @@ function BookingContent() {
               </div>
 
               {/* Hydromassage upsell — only for Master rooms */}
-              {selectedRoom && selectedRoom.name.toLowerCase().includes('master') && (
+              {selectedRoom && selectedRoom.cmsName.toLowerCase().includes('master') && (
                 <div className="mt-6 rounded-lg border-2 border-dashed border-brand-gold/40 bg-gold-50/50 p-4">
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
@@ -444,13 +443,14 @@ function BookingContent() {
             <div className="rounded-sm border border-beige-200 bg-beige-50 p-6">
               <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
                 <Image
-                  src={getRoomImage(selectedRoom.name)}
-                  alt={selectedRoom.name}
+                  src={selectedRoom.cmsImage || '/images/rooms/standard.jpg'}
+                  alt={selectedRoom.cmsName}
                   fill
                   className="object-cover"
+                  unoptimized={selectedRoom.cmsImage.startsWith('http')}
                 />
               </div>
-              <h3 className="mt-4 font-display text-lg font-bold">{selectedRoom.name}</h3>
+              <h3 className="mt-4 font-display text-lg font-bold">{selectedRoom.cmsName}</h3>
               <div className="mt-3 space-y-1 text-sm text-beige-700">
                 <div>
                   {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')} →{' '}
@@ -607,22 +607,31 @@ function BookingContent() {
             <div className="space-y-6">
               {rooms.map((room) => (
                 <div
-                  key={`${room.category_id}-${room.rateplan_id}`}
+                  key={room.cmsRoomId}
                   className="flex flex-col overflow-hidden rounded-sm border border-beige-200 bg-brand-white shadow-sm transition-shadow hover:shadow-md md:flex-row"
                 >
                   <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
                     <Image
-                      src={getRoomImage(room.name)}
-                      alt={room.name}
+                      src={room.cmsImage || '/images/rooms/standard.jpg'}
+                      alt={room.cmsName}
                       fill
                       className="object-cover"
+                      unoptimized={room.cmsImage.startsWith('http')}
                     />
                   </div>
                   <div className="flex flex-1 flex-col justify-between p-6">
                     <div>
                       <h3 className="font-display text-xl font-bold text-brand-black">
-                        {room.name}
+                        {room.cmsName}
                       </h3>
+                      {room.cmsDescription && (
+                        <p className="mt-2 text-sm text-beige-700">{room.cmsDescription}</p>
+                      )}
+                      {room.cmsAmenities.length > 0 && (
+                        <p className="mt-2 text-xs text-beige-600">
+                          {room.cmsAmenities.slice(0, 4).join(' · ')}
+                        </p>
+                      )}
                       <p className="mt-1 text-sm text-beige-600">
                         Até {room.capacity.adults} adultos
                         {room.capacity.kids > 0 ? ` + ${room.capacity.kids} crianças` : ''}
@@ -634,7 +643,7 @@ function BookingContent() {
                     <div className="mt-4 flex items-end justify-between">
                       <div>
                         <span className="font-display text-2xl font-bold text-brand-black">
-                          R$ {room.price.toLocaleString('pt-BR')}
+                          A partir de R$ {(room.minPrice ?? room.price).toLocaleString('pt-BR')}
                         </span>
                         <span className="text-sm text-beige-600"> / estadia</span>
                       </div>

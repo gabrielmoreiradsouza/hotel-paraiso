@@ -16,6 +16,8 @@ export interface CmsRoom {
   id: number;
   name: string;
   slug: string;
+  artaxRoomTypeId?: number;
+  artaxCategoryIds?: { categoryId: number; id?: string }[];
   status: 'draft' | 'published';
   startingPrice?: string;
   shortDescription?: string;
@@ -42,6 +44,16 @@ export function getMediaUrl(media: CmsMedia | number | undefined): string {
   if (!media || typeof media === 'number') return '';
   if (media.url.startsWith('/')) return `${CMS_URL}${media.url}`;
   return media.url;
+}
+
+export function getRoomImageUrl(room: CmsRoom): string {
+  const featured = getMediaUrl(
+    typeof room.featuredImage === 'number' ? undefined : room.featuredImage
+  );
+  const galleryImage = room.gallery?.find(
+    (item): item is { image: CmsMedia } => typeof item.image !== 'number'
+  );
+  return featured || getMediaUrl(galleryImage?.image);
 }
 
 async function cmsGet<T>(path: string, revalidate = 60): Promise<T> {

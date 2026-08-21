@@ -1,17 +1,30 @@
-import { CircuitBreaker } from './utils/circuit-breaker.js';
-import { RateLimiter } from './utils/rate-limiter.js';
-import { ArtaxApiError, withRetry } from './utils/retry.js';
+import { CircuitBreaker } from './utils/circuit-breaker';
+import { RateLimiter } from './utils/rate-limiter';
+import { ArtaxApiError, withRetry } from './utils/retry';
 
-import type { AvailabilityQuery, AvailabilityResponse } from './schemas/availability.js';
-import type { Booking, BookingListResponse, CreateBookingInput } from './schemas/booking.js';
-import type { AddPaymentInput } from './schemas/payment.js';
-import type { CreateOrderInput, UpdateUnitsStatusInput } from './schemas/housekeeping.js';
+import type { AvailabilityQuery, AvailabilityResponse } from './schemas/availability';
+import type { Booking, BookingListResponse, CreateBookingInput } from './schemas/booking';
+import type { AddPaymentInput } from './schemas/payment';
+import type { CreateOrderInput, UpdateUnitsStatusInput } from './schemas/housekeeping';
 
 export interface ArtaxClientConfig {
   baseUrl?: string;
   clientId: string;
   clientSecret: string;
   timeoutMs?: number;
+}
+
+export interface RawAvailabilityRoom {
+  room_name: string;
+  rateplan_id: number;
+  allots: number;
+  price: number;
+  capacity?: { adults: number; kids?: number; children?: number };
+}
+
+export interface RawAvailabilityResponse {
+  rooms?: Record<string, Record<string, RawAvailabilityRoom>>;
+  [key: string]: unknown;
 }
 
 export class ArtaxClient {
@@ -52,13 +65,18 @@ export class ArtaxClient {
   }
 
   async checkAvailability(query: AvailabilityQuery): Promise<AvailabilityResponse> {
+    return this.checkAvailabilityRaw(query) as unknown as Promise<AvailabilityResponse>;
+  }
+
+  /** Returns the native Artax category/rate-plan response used by the booking site. */
+  async checkAvailabilityRaw(query: AvailabilityQuery): Promise<RawAvailabilityResponse> {
     const params = new URLSearchParams({
       arrival_date: query.arrival_date,
       departure_date: query.departure_date,
     });
     if (query.adults) params.set('adults', String(query.adults));
     if (query.children) params.set('children', String(query.children));
-    return this.get<AvailabilityResponse>(`/rooms/availability?${params.toString()}`);
+    return this.get<RawAvailabilityResponse>(`/rooms/availability?${params.toString()}`);
   }
 
   async createBooking(input: CreateBookingInput): Promise<{ booking_id: number }> {
@@ -76,6 +94,10 @@ export class ArtaxClient {
       },
       room_units: {} as Record<string, unknown>,
     };
+
+    const ratePlanId = input.rooms[0]?.rate_plan_id;
+    if (ratePlanId) artaxPayload['rateplan_id'] = ratePlanId;
+    if (input.notes) artaxPayload['comment'] = input.notes;
 
     // Map rooms to Artax format: room_units[category_id] = { adults, kids, guests }
     for (const room of input.rooms) {
