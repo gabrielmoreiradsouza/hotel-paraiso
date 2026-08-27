@@ -73,10 +73,17 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
     if (gtag) {
       gtag('event', eventName, payload);
 
-      // Google Ads conversion on purchase
+      // Google Ads conversions
+      if (eventName === 'checkout_started') {
+        gtag('event', 'conversion', {
+          send_to: 'AW-18401755556/NdpyCKzawugcEKSD0sZE',
+          value: payload['value'],
+          currency: 'BRL',
+        });
+      }
       if (eventName === 'reservation_created') {
         gtag('event', 'conversion', {
-          send_to: 'AW-1932233003/RESERVATION',
+          send_to: 'AW-18401755556/6iKVCKnawugcEKSD0sZE',
           value: payload['value'],
           currency: 'BRL',
           transaction_id: payload['booking_id'],
