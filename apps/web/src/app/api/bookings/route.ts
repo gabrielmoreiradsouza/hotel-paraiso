@@ -8,6 +8,11 @@ const ARTAX_URL = 'https://artaxnet.com/pms-api/v1';
 const CLIENT_ID = process.env['ARTAX_CLIENT_ID'] ?? '';
 const CLIENT_SECRET = process.env['ARTAX_CLIENT_SECRET'] ?? '';
 
+const EVOLUTION_URL = 'https://evolution.moreirads.cloud';
+const EVOLUTION_INSTANCE = 'HRP';
+const EVOLUTION_TOKEN = process.env['EVOLUTION_API_KEY'] ?? '';
+const HOTEL_WHATSAPP = '553138818049';
+
 const artaxHeaders = {
   ClientId: CLIENT_ID,
   ClientSecret: CLIENT_SECRET,
@@ -32,6 +37,72 @@ async function isAdminAuthed(): Promise<boolean> {
   if (!session) return false;
   const expected = createHmac('sha256', adminPassword).update('admin').digest('hex');
   return session === expected;
+}
+
+function sendEvolutionMessage(phone: string, text: string) {
+  if (!EVOLUTION_TOKEN) return;
+  const number = phone.replace(/\D/g, '');
+  if (!number) return;
+
+  fetch(`${EVOLUTION_URL}/message/sendText/${EVOLUTION_INSTANCE}`, {
+    method: 'POST',
+    headers: {
+      apikey: EVOLUTION_TOKEN,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ number, text }),
+  }).catch((err) => console.error('Evolution WhatsApp error:', err));
+}
+
+function formatDateBR(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function sendWhatsAppConfirmation(
+  guestName: string,
+  guestPhone: string | undefined,
+  checkin: string,
+  checkout: string,
+  bookingId: string,
+  notes?: string
+) {
+  // Mensagem pro hóspede (se tiver telefone)
+  if (guestPhone) {
+    const guestMsg = [
+      `✅ *Reserva Confirmada — Hotel Paraíso*`,
+      ``,
+      `Olá, *${guestName}*! Sua reserva foi registrada com sucesso.`,
+      ``,
+      `📋 *Protocolo:* #HP-${bookingId}`,
+      `📅 *Check-in:* ${formatDateBR(checkin)} (a partir das 14h)`,
+      `📅 *Check-out:* ${formatDateBR(checkout)} (até 12h)`,
+      ...(notes ? [`📝 *Observação:* ${notes}`] : []),
+      ``,
+      `📍 R. Pe. José Alvarenga, 50, Paraíso — Ponte Nova/MG`,
+      `📞 (31) 3881-8049`,
+      ``,
+      `Cancelamento gratuito até 48h antes do check-in.`,
+      ``,
+      `Aguardamos você! 🏨`,
+    ].join('\n');
+    sendEvolutionMessage(guestPhone, guestMsg);
+  }
+
+  // Mensagem pro hotel (alerta de nova reserva)
+  const hotelMsg = [
+    `🔔 *Nova Reserva pelo Site*`,
+    ``,
+    `👤 *Hóspede:* ${guestName}`,
+    ...(guestPhone ? [`📱 *Telefone:* ${guestPhone}`] : []),
+    `📋 *Protocolo:* #HP-${bookingId}`,
+    `📅 *Check-in:* ${formatDateBR(checkin)}`,
+    `📅 *Check-out:* ${formatDateBR(checkout)}`,
+    ...(notes ? [`📝 *Obs:* ${notes}`] : []),
+    ``,
+    `Reserva criada via hotelparaiso.moreirads.cloud`,
+  ].join('\n');
+  sendEvolutionMessage(HOTEL_WHATSAPP, hotelMsg);
 }
 
 function sendConfirmationEmail(
@@ -173,6 +244,7 @@ export async function POST(request: Request) {
         const artaxData = (await artaxResponse.json()) as { booking_id: number };
         const bid = String(artaxData.booking_id);
         sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid, notes);
+        sendWhatsAppConfirmation(guestName, guestPhone, checkin, checkout, bid, notes);
 
         // Server-side tracking — GA4 MP + Meta CAPI (fire and forget)
         const ua = request.headers.get('user-agent');
@@ -203,6 +275,7 @@ export async function POST(request: Request) {
     // Fallback: accept locally + send email (only when Artax not configured)
     const localId = `LOCAL-${Date.now()}`;
     sendConfirmationEmail(guestName, guestEmail, checkin, checkout, localId, notes);
+    sendWhatsAppConfirmation(guestName, guestPhone, checkin, checkout, localId, notes);
     return NextResponse.json({
       success: true,
       booking_id: localId,
