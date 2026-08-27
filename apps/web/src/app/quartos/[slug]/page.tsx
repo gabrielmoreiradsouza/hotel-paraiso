@@ -38,9 +38,9 @@ const fallbackRooms: Record<
       'Tomadas USB ao lado da cama',
     ],
     images: [
-      '/images/rooms/standard.jpg',
-      '/images/rooms/standard-2.jpg',
-      '/images/rooms/standard-bath.jpg',
+      '/images/rooms/confort-1.jpg',
+      '/images/rooms/confort-2.jpg',
+      '/images/rooms/confort-3.jpg',
     ],
   },
   standard: {

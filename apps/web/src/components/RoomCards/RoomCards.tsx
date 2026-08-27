@@ -23,11 +23,11 @@ const fallbackRooms: RoomCardData[] = [
     longDescription:
       'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponível em três opções: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e café da manhã incluso.',
     price: 'A partir de R$ 130',
-    image: '/images/rooms/standard.jpg',
+    image: '/images/rooms/confort-1.jpg',
     images: [
-      '/images/rooms/standard.jpg',
-      '/images/rooms/standard-2.jpg',
-      '/images/rooms/standard-bath.jpg',
+      '/images/rooms/confort-1.jpg',
+      '/images/rooms/confort-2.jpg',
+      '/images/rooms/confort-3.jpg',
     ],
     capacity: '1–2 adultos',
     size: '15m²',
