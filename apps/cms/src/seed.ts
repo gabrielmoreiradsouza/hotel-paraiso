@@ -52,11 +52,11 @@ async function seed() {
         'Toalhas e roupas de cama',
         'Tomadas USB ao lado da cama',
       ],
-      featured: '/images/rooms/standard.jpg',
+      featured: '/images/rooms/confort-1.jpg',
       imgs: [
-        '/images/rooms/standard.jpg',
-        '/images/rooms/standard-2.jpg',
-        '/images/rooms/standard-bath.jpg',
+        '/images/rooms/confort-1.jpg',
+        '/images/rooms/confort-2.jpg',
+        '/images/rooms/confort-3.jpg',
       ],
     },
     {
