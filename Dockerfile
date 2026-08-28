@@ -2,14 +2,22 @@ FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@10.34.1 --activate
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies — copy ALL workspace package.jsons for correct resolution
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json ./apps/web/
+COPY apps/api/package.json ./apps/api/
+COPY apps/cms/package.json ./apps/cms/
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/workers/package.json ./apps/workers/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/tracking/package.json ./packages/tracking/
 COPY packages/artax-client/package.json ./packages/artax-client/
-RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/web...
+COPY packages/config/package.json ./packages/config/
+COPY packages/database/package.json ./packages/database/
+COPY packages/learning/package.json ./packages/learning/
+COPY packages/shared-types/package.json ./packages/shared-types/
+RUN pnpm install --frozen-lockfile
 
 # Build
 FROM base AS builder
