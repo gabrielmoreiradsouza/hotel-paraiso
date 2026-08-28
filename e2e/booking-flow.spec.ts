@@ -49,10 +49,32 @@ test.describe('Booking Flow', () => {
     expect(hasRooms + hasNoRooms + hasError).toBeGreaterThan(0);
   });
 
-  test('full booking flow creates real reservation', async ({ page }) => {
-    // Use dates far enough in advance
+  /**
+   * O fluxo completo roda contra POST /api/bookings INTERCEPTADO.
+   *
+   * A versão anterior criava reserva real na Artax a cada execução de CI: gerava reserva
+   * fantasma no PMS, disparava WhatsApp real para o celular do hotel, mandava conversão
+   * falsa para o Google Ads e consumia a cota da DR-001 — que desativa a chave da API
+   * permanentemente em 102 req/60s.
+   *
+   * A interceptação preserva o valor do teste (o fluxo de UI dos três passos é exercitado
+   * de verdade) e elimina o efeito colateral externo.
+   */
+  test('full booking flow completes with mocked booking API', async ({ page }) => {
     const checkin = new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10);
     const checkout = new Date(Date.now() + 47 * 86400000).toISOString().slice(0, 10);
+
+    let idempotencyKeyEnviada: string | null = null;
+
+    await page.route('**/api/bookings', async (route) => {
+      if (route.request().method() !== 'POST') return route.continue();
+      idempotencyKeyEnviada = route.request().headers()['idempotency-key'] ?? null;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, booking_id: 'E2E-MOCK-1', source: 'artax' }),
+      });
+    });
 
     await page.goto(`/reservar?checkin=${checkin}&checkout=${checkout}&guests=2`);
     await page.waitForTimeout(5000);
@@ -63,26 +85,25 @@ test.describe('Booking Flow', () => {
       return;
     }
 
-    // Step 1: Select room
+    // Passo 1: selecionar quarto
     await page.locator('button:has-text("Selecionar")').first().click();
     await page.waitForTimeout(1000);
     await expect(page.locator('text=2. Seus dados')).toBeVisible();
 
-    // Step 2: Fill guest details
+    // Passo 2: dados do hóspede
     await page.locator('#guest-name').fill('E2E Teste Playwright');
     await page.locator('#guest-email').fill('e2e@moreirads.com');
     await page.locator('#guest-phone').fill('31999998888');
 
-    // Confirm
     await page.locator('button:has-text("Confirmar reserva")').click();
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(3000);
 
-    // Step 3: Should show confirmation or error
-    const confirmed = await page.locator('text=Reserva confirmada').count();
-    const error = await page.locator('text=Não foi possível').count();
+    // A confirmação tem que aparecer — com a API mockada, não há motivo para falhar.
+    await expect(page.locator('text=Reserva confirmada')).toBeVisible();
 
-    // Either is acceptable — confirmed means Artax accepted, error means it rejected (e.g. no availability)
-    expect(confirmed + error).toBeGreaterThan(0);
+    // E o cliente precisa mandar a chave de idempotência (ADR-0011): sem ela, um
+    // double-click em produção viraria duas reservas.
+    expect(idempotencyKeyEnviada).toBeTruthy();
   });
 });
 

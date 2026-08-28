@@ -22,16 +22,15 @@ export async function withRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error;
+      console.error(`[artax] tentativa ${attempt}/${config.maxAttempts} falhou:`, error);
 
       if (attempt === config.maxAttempts) break;
 
-      // Don't retry 4xx errors (except 429)
-      if (
-        error instanceof ArtaxApiError &&
-        error.status >= 400 &&
-        error.status < 500 &&
-        error.status !== 429
-      ) {
+      // DR-001: nunca fazer retry de 4xx — 429 incluído.
+      // A Artax devolve 429 exatamente quando estamos encostando no limite que desativa
+      // a chave permanentemente (102 req/60s). Insistir nesse caso acelera o dano em vez
+      // de contorná-lo: 1 chamada lógica viraria 3 requests reais no pior momento possível.
+      if (error instanceof ArtaxApiError && error.status >= 400 && error.status < 500) {
         throw error;
       }
 

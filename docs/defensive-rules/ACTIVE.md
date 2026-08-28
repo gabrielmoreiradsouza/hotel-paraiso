@@ -15,6 +15,16 @@
 **Implementação:** `packages/artax-client/src/utils/rate-limiter.ts`
 **Documento:** [DR-001-artax-rate-limit.md](DR-001-artax-rate-limit.md)
 
+### DR-002: Toda chamada à Artax passa pelo ArtaxClient
+
+**Origem:** INC-002 (2026-08-26)
+**Status:** ativa
+**Categoria:** infrastructure
+**Resumo:** `fetch()` direto para `artaxnet.com` contorna as proteções da DR-001. Só o
+pacote `artax-client` pode citar o host — verificado por regra ESLint.
+**Implementação:** `eslint.config.js` + `apps/web/src/lib/artax.ts`
+**Documento:** [DR-002-artax-client-obrigatorio.md](DR-002-artax-client-obrigatorio.md)
+
 ## Formato de entrada (template)
 
 ```markdown

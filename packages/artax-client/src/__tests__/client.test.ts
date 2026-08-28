@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import { mockServer } from '../mocks/server.js';
 import { ArtaxClient } from '../client.js';
 
@@ -24,7 +25,32 @@ describe('ArtaxClient integration (MSW)', () => {
   it('lists bookings', async () => {
     const result = await client.listBookings();
     expect(result.bookings.length).toBeGreaterThan(0);
-    expect(result.pagination?.current_page).toBe(1);
+    expect(result.current_page).toBe(1);
+    expect(result.total_bookings).toBe(result.bookings.length);
+  });
+
+  it('reporta divergência de schema sem derrubar a chamada', async () => {
+    // Simula a Artax voltando ao formato antigo (arrival_date em vez de checkin) —
+    // exatamente o tipo de mudança que passou meses invisível.
+    mockServer.use(
+      http.get('https://artaxnet.com/pms-api/v1/bookings', () =>
+        HttpResponse.json({
+          bookings: [{ booking_id: 1, status: 2, arrival_date: '2026-08-01' }],
+          current_page: 1,
+        })
+      )
+    );
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await client.listBookings();
+
+    // Divergência vira log visível...
+    expect(spy).toHaveBeenCalled();
+    expect(String(spy.mock.calls[0]?.[0])).toContain('divergiu do schema');
+    // ...mas o dado bruto passa: reportar não pode virar indisponibilidade.
+    expect(result.bookings).toHaveLength(1);
+
+    spy.mockRestore();
   });
 
   it('gets booking by ID', async () => {

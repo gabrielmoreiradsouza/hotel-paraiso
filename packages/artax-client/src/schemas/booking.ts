@@ -18,6 +18,10 @@ export const BookingStatusSchema = z.union([
   z.literal(6),
 ]);
 
+/**
+ * Hóspede no formato de ENVIO (criação de reserva). Campo `phone`, singular.
+ * Não confundir com `BookingGuestSchema`: entrada e saída da Artax não são simétricas.
+ */
 export const GuestSchema = z.object({
   name: z.string(),
   email: z.string().email().optional(),
@@ -25,37 +29,56 @@ export const GuestSchema = z.object({
   document: z.string().optional(),
 });
 
-export const BookingSchema = z.object({
-  booking_id: z.number(),
-  status: BookingStatusSchema,
-  arrival_date: z.string(),
-  departure_date: z.string(),
-  total_amount: z.number().optional(),
-  guests: z.array(GuestSchema).optional(),
-  rooms: z
-    .array(
-      z.object({
-        room_type_id: z.number(),
-        room_type_name: z.string().optional(),
-        rate_plan_id: z.number().optional(),
-        adults: z.number().optional(),
-        children: z.number().optional(),
-      })
-    )
-    .optional(),
+/**
+ * Hóspede no formato de RESPOSTA (GET /bookings). Campo `phones`, array.
+ *
+ * O array não foi inspecionado por dentro — custaria mais uma chamada da cota da DR-001,
+ * então fica `unknown` em vez de palpite. Inventar tipo é como este arquivo divergiu da
+ * realidade da primeira vez.
+ */
+export const BookingGuestSchema = z.object({
+  name: z.string(),
+  email: z.string().optional(),
+  phones: z.array(z.unknown()).optional(),
 });
 
-export const BookingListResponseSchema = z.object({
-  bookings: z.array(BookingSchema),
-  pagination: z
-    .object({
-      current_page: z.number(),
-      total_pages: z.number(),
-      total_items: z.number(),
-      per_page: z.number(),
-    })
-    .optional(),
-});
+/**
+ * Verificado contra a API real em 2026-08-26 (GET /bookings?page=1, 20 reservas).
+ *
+ * A versão anterior descrevia `arrival_date`/`departure_date`, `rooms` e `total_amount`
+ * — campos que a Artax não devolve. Nunca falhou porque o client faz cast em vez de
+ * `.parse()`, então o tipo era ficção que o TypeScript aceitava como verdade.
+ *
+ * `.passthrough()` porque a Artax pode acrescentar campos: campo novo não deve derrubar
+ * a validação, só campo obrigatório faltando.
+ */
+export const BookingSchema = z
+  .object({
+    booking_id: z.number(),
+    status: BookingStatusSchema,
+    checkin: z.string(),
+    checkout: z.string(),
+    holder_guest: BookingGuestSchema.optional(),
+    guests: z.array(BookingGuestSchema).optional(),
+    provider: z.string().optional(),
+    // Observado como string em 20/20 reservas — não é array, apesar do nome no plural.
+    units: z.string().optional(),
+    comment: z.string().optional(),
+    webcheckin_at: z.string().nullable().optional(),
+    created: z.string().optional(),
+  })
+  .passthrough();
+
+/** Paginação vem achatada na raiz — não há objeto `pagination`. */
+export const BookingListResponseSchema = z
+  .object({
+    bookings: z.array(BookingSchema),
+    current_page: z.number().optional(),
+    total_pages: z.number().optional(),
+    total_bookings: z.number().optional(),
+    next_page: z.string().optional(),
+  })
+  .passthrough();
 
 export const CreateBookingSchema = z.object({
   arrival_date: z.string(),

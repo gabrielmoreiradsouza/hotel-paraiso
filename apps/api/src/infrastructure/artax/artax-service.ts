@@ -1,4 +1,4 @@
-import { ArtaxClient } from '@hotel-paraiso/artax-client';
+import { ArtaxClient, BookingStatus } from '@hotel-paraiso/artax-client';
 import type {
   AvailabilityQuery,
   AvailabilityResponse,
@@ -7,6 +7,18 @@ import type {
   CreateBookingInput,
 } from '@hotel-paraiso/artax-client';
 import { prisma } from '@hotel-paraiso/database';
+
+/**
+ * Converte data da Artax, devolvendo `null` em vez de `Invalid Date`.
+ *
+ * `new Date(undefined)` não lança — produz um Date inválido que o Prisma aceita e grava.
+ * Um erro que se propaga calado é pior que um que estoura; aqui ele estoura.
+ */
+function parseArtaxDate(value: unknown): Date | null {
+  if (typeof value !== 'string' || !value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
 
 export class ArtaxService {
   private readonly client: ArtaxClient;
@@ -51,7 +63,12 @@ export class ArtaxService {
     return this.client.getBooking(bookingId);
   }
 
-  async createBooking(input: CreateBookingInput): Promise<Booking> {
+  /**
+   * A Artax devolve apenas `{ booking_id }` ao criar — nunca a reserva completa.
+   * O tipo de retorno reflete isso; prometer um `Booking` inteiro fazia o chamador
+   * ler campos que nunca chegam.
+   */
+  async createBooking(input: CreateBookingInput): Promise<{ booking_id: number }> {
     const booking = await this.client.createBooking(input);
 
     // Store locally + event log
@@ -59,7 +76,10 @@ export class ArtaxService {
       await tx.booking.create({
         data: {
           id: booking.booking_id,
-          status: ((booking as Record<string, unknown>)['status'] as number) ?? 1,
+          // A criação sempre nasce como pré-reserva na Artax; o status real chega
+          // depois, via syncBooking ou webhook. Antes isto lia `booking.status`, que
+          // não existe na resposta, e caía no mesmo `1` por acidente em vez de decisão.
+          status: BookingStatus.PRE_BOOKING,
           arrivalDate: new Date(input.arrival_date),
           departureDate: new Date(input.departure_date),
           source: 'website',
@@ -83,20 +103,38 @@ export class ArtaxService {
   async syncBooking(bookingId: number): Promise<void> {
     const booking = await this.client.getBooking(bookingId);
 
+    // A Artax devolve `checkin`/`checkout`. O código anterior lia `arrival_date`/
+    // `departure_date` — campos que não existem — então gravava `new Date(undefined)`,
+    // ou seja Invalid Date, em toda sincronização. Passou despercebido porque o schema
+    // afirmava que os campos existiam e nada validava em runtime.
+    const arrivalDate = parseArtaxDate(booking.checkin);
+    const departureDate = parseArtaxDate(booking.checkout);
+
+    if (!arrivalDate || !departureDate) {
+      throw new Error(
+        `Reserva ${bookingId}: datas ausentes ou inválidas na resposta da Artax (checkin=${String(booking.checkin)}, checkout=${String(booking.checkout)})`
+      );
+    }
+
+    // `total_amount` não aparece na listagem. O endpoint singular não foi verificado,
+    // então é lido pelo passthrough sem assumir que existe.
+    const rawTotal = booking['total_amount'];
+    const totalAmount = typeof rawTotal === 'number' ? rawTotal : null;
+
     await prisma.booking.upsert({
       where: { id: booking.booking_id },
       create: {
         id: booking.booking_id,
         status: booking.status,
-        arrivalDate: new Date(booking.arrival_date),
-        departureDate: new Date(booking.departure_date),
-        totalAmount: booking.total_amount ?? null,
+        arrivalDate,
+        departureDate,
+        totalAmount,
         source: 'artax_panel',
         artaxLastSyncAt: new Date(),
       },
       update: {
         status: booking.status,
-        totalAmount: booking.total_amount ?? null,
+        totalAmount,
         artaxLastSyncAt: new Date(),
       },
     });

@@ -12,8 +12,8 @@ describe('BookingSchema', () => {
     const result = BookingSchema.safeParse({
       booking_id: 123,
       status: 2,
-      arrival_date: '2026-07-01',
-      departure_date: '2026-07-05',
+      checkin: '2026-07-01',
+      checkout: '2026-07-05',
     });
     expect(result.success).toBe(true);
   });
@@ -22,10 +22,31 @@ describe('BookingSchema', () => {
     const result = BookingSchema.safeParse({
       booking_id: 123,
       status: 99,
+      checkin: '2026-07-01',
+      checkout: '2026-07-05',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects the pre-2026-08 shape that never matched the real API', () => {
+    const result = BookingSchema.safeParse({
+      booking_id: 123,
+      status: 2,
       arrival_date: '2026-07-01',
       departure_date: '2026-07-05',
     });
     expect(result.success).toBe(false);
+  });
+
+  it('accepts unknown extra fields without breaking', () => {
+    const result = BookingSchema.safeParse({
+      booking_id: 123,
+      status: 2,
+      checkin: '2026-07-01',
+      checkout: '2026-07-05',
+      campo_novo_da_artax: 'qualquer coisa',
+    });
+    expect(result.success).toBe(true);
   });
 });
 

@@ -16,6 +16,7 @@
 | 0008 | CMS híbrido (operacional Artax + conteúdo Payload)      | planejado | —          |
 | 0009 | Cloudflare como camada de proteção e CDN                | planejado | —          |
 | 0010 | Sistema de aprendizado (3 artefatos por incidente)      | planejado | —          |
+| 0011 | Redis como estado compartilhado do `apps/web`           | aceito    | 2026-08-27 |
 
 ## Como criar novo ADR
 

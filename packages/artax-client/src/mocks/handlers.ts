@@ -23,14 +23,13 @@ export const artaxHandlers = [
       ? MOCK_BOOKINGS.filter((b) => b.status === Number(status))
       : MOCK_BOOKINGS;
 
+    // Paginação achatada na raiz — é assim que a Artax devolve, não aninhada.
     return HttpResponse.json({
       bookings,
-      pagination: {
-        current_page: 1,
-        total_pages: 1,
-        total_items: bookings.length,
-        per_page: 20,
-      },
+      current_page: 1,
+      total_pages: 1,
+      total_bookings: bookings.length,
+      next_page: '',
     });
   }),
 

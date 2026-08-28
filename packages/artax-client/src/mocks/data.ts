@@ -43,14 +43,25 @@ let bookingIdCounter = 1000;
 
 export function createMockBooking(overrides?: Partial<Booking>): Booking {
   bookingIdCounter++;
+  // Espelha o formato real de GET /bookings (verificado em 2026-08-26).
+  // Mock que não corresponde à API transforma o CI em teatro: os testes passam
+  // contra uma resposta que a Artax nunca envia.
   return {
     booking_id: bookingIdCounter,
     status: 2,
-    arrival_date: '2026-08-01',
-    departure_date: '2026-08-05',
-    total_amount: 1400,
-    guests: [{ name: 'João Silva', email: 'joao@email.com', phone: '+5521999999999' }],
-    rooms: [{ room_type_id: 1, room_type_name: 'Standard', adults: 2, children: 0 }],
+    checkin: '2026-08-01',
+    checkout: '2026-08-05',
+    holder_guest: {
+      name: 'João Silva',
+      email: 'joao@email.com',
+      phones: ['+5521999999999'],
+    },
+    guests: [{ name: 'João Silva', email: 'joao@email.com', phones: ['+5521999999999'] }],
+    provider: 'site',
+    units: 'Standard',
+    comment: 'Reserva de teste',
+    webcheckin_at: null,
+    created: '2026-07-20 10:00:00',
     ...overrides,
   };
 }

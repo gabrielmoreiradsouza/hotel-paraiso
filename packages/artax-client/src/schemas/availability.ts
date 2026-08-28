@@ -4,6 +4,9 @@ export const AvailabilityQuerySchema = z.object({
   arrival_date: z.string(),
   departure_date: z.string(),
   adults: z.number().min(1).optional(),
+  // A Artax espera `kids` na querystring. `children` é mantido como alias aceito na
+  // entrada para não quebrar chamadores existentes, mas ambos saem como `kids`.
+  kids: z.number().min(0).optional(),
   children: z.number().min(0).optional(),
 });
 

@@ -1,8 +1,8 @@
 export const ARTAX_API_VERSION = 'v1';
 
 // Client
-export { ArtaxClient } from './client.js';
-export type { ArtaxClientConfig } from './client.js';
+export { ArtaxClient } from './client';
+export type { ArtaxClientConfig, RawAvailabilityRoom, RawAvailabilityResponse } from './client';
 
 // Schemas - Booking
 export {
@@ -12,20 +12,20 @@ export {
   BookingListResponseSchema,
   CreateBookingSchema,
   GuestSchema,
-} from './schemas/booking.js';
-export type { Booking, BookingListResponse, CreateBookingInput, Guest } from './schemas/booking.js';
+} from './schemas/booking';
+export type { Booking, BookingListResponse, CreateBookingInput, Guest } from './schemas/booking';
 
 // Schemas - Availability
 export {
   AvailabilityQuerySchema,
   AvailabilityResponseSchema,
   RoomAvailabilitySchema,
-} from './schemas/availability.js';
+} from './schemas/availability';
 export type {
   AvailabilityQuery,
   AvailabilityResponse,
   RoomAvailability,
-} from './schemas/availability.js';
+} from './schemas/availability';
 
 // Schemas - Payment
 export {
@@ -34,12 +34,12 @@ export {
   CostCenterSchema,
   CostCentersResponseSchema,
   AddPaymentSchema,
-} from './schemas/payment.js';
-export type { PaymentMethod, CostCenter, AddPaymentInput } from './schemas/payment.js';
+} from './schemas/payment';
+export type { PaymentMethod, CostCenter, AddPaymentInput } from './schemas/payment';
 
 // Schemas - Webhook
-export { WebhookEventSchema } from './schemas/webhook.js';
-export type { WebhookEvent, WebhookEventType } from './schemas/webhook.js';
+export { WebhookEventSchema } from './schemas/webhook';
+export type { WebhookEvent, WebhookEventType } from './schemas/webhook';
 
 // Schemas - Housekeeping
 export {
@@ -48,10 +48,10 @@ export {
   UnitsResponseSchema,
   CreateOrderSchema,
   UpdateUnitsStatusSchema,
-} from './schemas/housekeeping.js';
-export type { Unit, CreateOrderInput, UpdateUnitsStatusInput } from './schemas/housekeeping.js';
+} from './schemas/housekeeping';
+export type { Unit, CreateOrderInput, UpdateUnitsStatusInput } from './schemas/housekeeping';
 
 // Utils
-export { ArtaxApiError } from './utils/retry.js';
-export { CircuitBreaker } from './utils/circuit-breaker.js';
-export { verifyWebhookSignature } from './utils/webhook-verifier.js';
+export { ArtaxApiError } from './utils/retry';
+export { CircuitBreaker } from './utils/circuit-breaker';
+export { verifyWebhookSignature } from './utils/webhook-verifier';

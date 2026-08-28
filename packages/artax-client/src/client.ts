@@ -3,9 +3,31 @@ import { RateLimiter } from './utils/rate-limiter';
 import { ArtaxApiError, withRetry } from './utils/retry';
 
 import type { AvailabilityQuery, AvailabilityResponse } from './schemas/availability';
+import { BookingListResponseSchema } from './schemas/booking';
 import type { Booking, BookingListResponse, CreateBookingInput } from './schemas/booking';
 import type { AddPaymentInput } from './schemas/payment';
 import type { CreateOrderInput, UpdateUnitsStatusInput } from './schemas/housekeeping';
+
+/**
+ * Validação de resposta, o antídoto para o `as T`.
+ *
+ * O cast silencioso foi o que permitiu o schema de reservas divergir da API real sem um
+ * único erro em meses: o TypeScript acreditava num formato que a Artax nunca enviou.
+ *
+ * A validação aqui **reporta mas não derruba**: divergência vira log, e o dado bruto
+ * segue adiante. É deliberado. Um `.parse()` estrito transformaria qualquer campo que a
+ * Artax mudasse — ou qualquer imprecisão remanescente nos nossos schemas — em queda total
+ * do motor de reservas. O ganho que importa agora é tornar a divergência *visível*; hoje
+ * ela é invisível. Depois de um período com log limpo, trocar para estrito é uma linha.
+ *
+ * Só endpoints com formato verificado contra a API real recebem schema. Validar contra
+ * um schema não conferido recriaria o problema em vez de resolvê-lo.
+ */
+interface ResponseSchema<T> {
+  safeParse(
+    data: unknown
+  ): { success: true; data: T } | { success: false; error: { issues?: unknown[] } };
+}
 
 export interface ArtaxClientConfig {
   baseUrl?: string;
@@ -27,14 +49,39 @@ export interface RawAvailabilityResponse {
   [key: string]: unknown;
 }
 
+export interface RawBooking {
+  booking_id?: number;
+  status?: number;
+  checkin?: string;
+  checkout?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Formato real devolvido por GET /bookings.
+ *
+ * Difere de `BookingListResponseSchema` (que descreve `arrival_date`/`departure_date` e
+ * um objeto `pagination`). O schema nunca foi validado em runtime — `request` apenas faz
+ * cast — então a divergência passou despercebida. Este tipo reflete o que a API entrega
+ * de fato; reconciliar os dois é trabalho à parte.
+ */
+export interface RawBookingListResponse {
+  bookings?: RawBooking[];
+  total_bookings?: number;
+  total_pages?: number;
+  [key: string]: unknown;
+}
+
 export class ArtaxClient {
   private readonly baseUrl: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly timeoutMs: number;
   private readonly circuitBreaker = new CircuitBreaker();
-  // Artax limit: 100/60s. We stay at 90 to be safe.
-  private readonly rateLimiter = new RateLimiter(90, 60_000);
+  // DR-001: Artax dá warning em 100 req/60s e DESATIVA a chave permanentemente em 102.
+  // O limiter é por processo — apps/web e apps/api compartilham a mesma chave, e cada
+  // réplica tem o seu contador. 50 é o teto que a DR-001 exige justamente por isso.
+  private readonly rateLimiter = new RateLimiter(50, 60_000);
 
   constructor(config: ArtaxClientConfig) {
     this.baseUrl = config.baseUrl ?? 'https://artaxnet.com/pms-api/v1';
@@ -57,7 +104,18 @@ export class ArtaxClient {
     if (params?.arrival_from) query.set('arrival_from', params.arrival_from);
     if (params?.arrival_to) query.set('arrival_to', params.arrival_to);
     const qs = query.toString();
-    return this.get<BookingListResponse>(`/bookings${qs ? `?${qs}` : ''}`);
+    // Único endpoint com formato verificado contra a API real (2026-08-26), portanto o
+    // único que valida. Os demais seguem com cast até serem conferidos do mesmo jeito.
+    return this.get<BookingListResponse>(
+      `/bookings${qs ? `?${qs}` : ''}`,
+      BookingListResponseSchema as unknown as ResponseSchema<BookingListResponse>
+    );
+  }
+
+  /** Listagem no formato nativo da Artax. Ver `RawBookingListResponse`. */
+  async listBookingsRaw(params?: { page?: number }): Promise<RawBookingListResponse> {
+    const qs = params?.page ? `?page=${params.page}` : '';
+    return this.get<RawBookingListResponse>(`/bookings${qs}`);
   }
 
   async getBooking(bookingId: number): Promise<Booking> {
@@ -75,7 +133,8 @@ export class ArtaxClient {
       departure_date: query.departure_date,
     });
     if (query.adults) params.set('adults', String(query.adults));
-    if (query.children) params.set('children', String(query.children));
+    const kids = query.kids ?? query.children;
+    if (kids !== undefined) params.set('kids', String(kids));
     return this.get<RawAvailabilityResponse>(`/rooms/availability?${params.toString()}`);
   }
 
@@ -114,6 +173,17 @@ export class ArtaxClient {
     }
 
     return this.post<{ booking_id: number }>('/booking/create', artaxPayload);
+  }
+
+  /**
+   * Cria reserva enviando o payload já no formato nativo da Artax.
+   *
+   * Existe para o motor de reservas do site, que monta o payload a partir da resposta de
+   * disponibilidade. Passa pelo mesmo pipeline protegido (rate limiter, circuit breaker,
+   * timeout) — que é o ponto: nenhuma chamada à Artax pode escapar da DR-001.
+   */
+  async createBookingRaw(payload: Record<string, unknown>): Promise<{ booking_id: number }> {
+    return this.post<{ booking_id: number }>('/booking/create', payload);
   }
 
   async webCheckin(
@@ -169,8 +239,8 @@ export class ArtaxClient {
 
   // --- HTTP internals ---
 
-  private async get<T>(path: string): Promise<T> {
-    return this.request<T>('GET', path);
+  private async get<T>(path: string, schema?: ResponseSchema<T>): Promise<T> {
+    return this.request<T>('GET', path, undefined, schema);
   }
 
   private async post<T>(path: string, body?: unknown): Promise<T> {
@@ -181,7 +251,12 @@ export class ArtaxClient {
     return this.request<T>('PATCH', path, body);
   }
 
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    schema?: ResponseSchema<T>
+  ): Promise<T> {
     if (this.circuitBreaker.isOpen) {
       throw new ArtaxApiError(503, 'Circuit breaker is open — Artax API unavailable', {
         circuitState: this.circuitBreaker.currentState,
@@ -226,7 +301,22 @@ export class ArtaxClient {
         }
 
         this.circuitBreaker.recordSuccess();
-        return (await response.json()) as T;
+        const data = await response.json();
+
+        if (schema) {
+          const result = schema.safeParse(data);
+          if (!result.success) {
+            // Reporta sem derrubar — ver nota sobre `ResponseSchema` acima.
+            console.error(
+              `[artax] resposta de ${method} ${path} divergiu do schema:`,
+              JSON.stringify(result.error.issues?.slice(0, 5))
+            );
+          } else {
+            return result.data;
+          }
+        }
+
+        return data as T;
       } catch (error) {
         if (error instanceof ArtaxApiError) throw error;
         this.circuitBreaker.recordFailure();

@@ -155,8 +155,13 @@ function checkTypeScriptStandards(files: string[]): Violation[] {
 function checkDefensiveRules(files: string[]): Violation[] {
   const violations: Violation[] = [];
 
-  // DR-001: Artax rate limit - check for unprotected Artax calls
-  const artaxFiles = files.filter((f) => f.includes('artax') || f.includes('pms'));
+  // DR-001: Artax rate limit — chamadas Artax desprotegidas.
+  // Só código. Documentação que *descreve* a regra (docs/defensive-rules, incidentes)
+  // cita `fetch()` na prosa e disparava a própria regra — um checker que acusa a própria
+  // documentação treina o time a ignorar o checker.
+  const artaxFiles = files.filter(
+    (f) => (f.endsWith('.ts') || f.endsWith('.tsx')) && (f.includes('artax') || f.includes('pms'))
+  );
   for (const file of artaxFiles) {
     const fullPath = resolve(file);
     if (!existsSync(fullPath)) continue;
