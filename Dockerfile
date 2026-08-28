@@ -2,19 +2,10 @@ FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@10.34.1 --activate
 WORKDIR /app
 
-# Install dependencies (cache-bust: v2 — added tracking + artax-client)
-FROM base AS deps
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY apps/web/package.json ./apps/web/
-COPY packages/ui/package.json ./packages/ui/
-COPY packages/tracking/package.json ./packages/tracking/
-COPY packages/artax-client/package.json ./packages/artax-client/
-RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/web...
-
-# Build
+# Install + Build in single stage (workspace packages need source during install)
 FROM base AS builder
-COPY --from=deps /app/ ./
 COPY . .
+RUN pnpm install --frozen-lockfile
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-VW178YY861
 ENV NEXT_PUBLIC_GOOGLE_ADS_ID=AW-18401755556
