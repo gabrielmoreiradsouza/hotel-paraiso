@@ -2,7 +2,7 @@ FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@10.34.1 --activate
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (cache-bust: v2 — added tracking + artax-client)
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json ./apps/web/
