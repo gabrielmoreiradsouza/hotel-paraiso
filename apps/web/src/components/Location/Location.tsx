@@ -21,7 +21,7 @@ export async function Location() {
         </div>
 
         {/* Info — right half */}
-        <div className="flex flex-col justify-center px-8 py-16 sm:px-12 lg:px-16">
+        <div className="flex flex-col justify-center px-8 py-8 sm:py-16 sm:px-12 lg:px-16">
           <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">{t('title')}</h2>
           <p className="mt-2 text-white/50">{t('city')}</p>
 

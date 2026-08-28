@@ -9,6 +9,14 @@ const GA4_API_SECRET = process.env['GA4_API_SECRET'] ?? '';
 const META_PIXEL_ID = process.env['NEXT_PUBLIC_META_PIXEL_ID'] ?? '';
 const META_ACCESS_TOKEN = process.env['META_ACCESS_TOKEN'] ?? '';
 
+/**
+ * Tracking nunca pode segurar o request de reserva.
+ *
+ * Sem `AbortSignal`, GA4 ou Meta lentos empilham conexões até esgotar o pool. A conversão
+ * é importante, mas perder uma é infinitamente melhor do que derrubar o motor de reservas.
+ */
+const TRACKING_TIMEOUT_MS = 3000;
+
 function generateEventId(): string {
   return `srv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -47,6 +55,7 @@ export async function trackGA4Purchase(params: {
             },
           ],
         }),
+        signal: AbortSignal.timeout(TRACKING_TIMEOUT_MS),
       }
     );
   } catch (err) {
@@ -104,6 +113,7 @@ export async function trackMetaPurchase(params: {
             },
           ],
         }),
+        signal: AbortSignal.timeout(TRACKING_TIMEOUT_MS),
       }
     );
   } catch (err) {
@@ -122,7 +132,12 @@ export function trackServerPurchase(params: {
   userAgent?: string;
   clientIp?: string;
 }) {
-  // Fire and forget — don't block the booking response
-  trackGA4Purchase(params).catch(() => {});
-  trackMetaPurchase(params).catch(() => {});
+  // Fire and forget — não bloqueia a resposta da reserva, mas a falha precisa aparecer:
+  // conversão perdida silenciosamente vira decisão de orçamento tomada às cegas.
+  trackGA4Purchase(params).catch((err) => {
+    console.error('[tracking] GA4 purchase falhou:', err);
+  });
+  trackMetaPurchase(params).catch((err) => {
+    console.error('[tracking] Meta purchase falhou:', err);
+  });
 }

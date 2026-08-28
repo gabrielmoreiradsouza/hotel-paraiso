@@ -1,49 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getRoomImageUrl, getRooms } from '@/lib/cms';
-
-const ARTAX_URL = 'https://artaxnet.com/pms-api/v1';
-const CLIENT_ID = process.env['ARTAX_CLIENT_ID'] ?? '';
-const CLIENT_SECRET = process.env['ARTAX_CLIENT_SECRET'] ?? '';
+import { isArtaxConfigured } from '@/lib/artax';
+import { fetchAvailability, type ArtaxOption } from '@/lib/availability';
+import { isRateLimited } from '@/lib/rate-limit';
+import { getClientIp } from '@/lib/client-ip';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-interface RawAvailabilityRoom {
-  room_name: string;
-  rateplan_id: number;
-  allots: number;
-  price: number;
-  capacity?: { adults: number; kids?: number; children?: number };
-}
-
-interface RawAvailabilityResponse {
-  rooms?: Record<string, Record<string, RawAvailabilityRoom>>;
-}
-
-async function fetchArtaxAvailability(
-  arrivalDate: string,
-  departureDate: string,
-  adults: number,
-  kids: number
-): Promise<RawAvailabilityResponse> {
-  const params = new URLSearchParams({
-    arrival_date: arrivalDate,
-    departure_date: departureDate,
-    adults: String(adults),
-    kids: String(kids),
-  });
-  const res = await fetch(`${ARTAX_URL}/rooms/availability?${params}`, {
-    headers: {
-      ClientId: CLIENT_ID,
-      ClientSecret: CLIENT_SECRET,
-      Accept: 'application/json',
-      'User-Agent': 'HotelParaiso/1.0',
-    },
-  });
-  if (!res.ok) throw new Error(`Artax: ${res.status}`);
-  return res.json() as Promise<RawAvailabilityResponse>;
-}
-
-type ArtaxOption = RawAvailabilityRoom & { categoryId: number };
 
 function selectOption(options: ArtaxOption[], adults: number): ArtaxOption | undefined {
   const target = adults === 1 ? 'individual' : adults === 2 ? 'casal' : 'triplo';
@@ -58,6 +20,14 @@ function selectOption(options: ArtaxOption[], adults: number): ArtaxOption | und
 }
 
 export async function GET(request: Request) {
+  // Endpoint mais caro e mais exposto do sistema: alvo natural de scraping, e cada miss
+  // de cache vira uma chamada à Artax, cuja chave morre permanentemente em 102 req/60s.
+  // 30/min por IP é folgado para um visitante e apertado para um raspador.
+  const ip = getClientIp(request);
+  if (await isRateLimited(`availability:${ip}`, 30, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const arrivalDate = searchParams.get('arrival_date');
   const departureDate = searchParams.get('departure_date');
@@ -86,13 +56,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Número de crianças inválido' }, { status: 422 });
   }
 
-  if (!CLIENT_ID || !CLIENT_SECRET) {
+  if (!isArtaxConfigured) {
     return NextResponse.json({ error: 'Artax not configured' }, { status: 503 });
   }
 
   try {
     const [data, cmsRooms] = await Promise.all([
-      fetchArtaxAvailability(arrivalDate, departureDate, adultsNum, kidsNum),
+      fetchAvailability(arrivalDate, departureDate, adultsNum, kidsNum),
       getRooms(),
     ]);
 

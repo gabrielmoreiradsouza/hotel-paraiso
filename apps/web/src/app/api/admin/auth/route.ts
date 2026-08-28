@@ -1,31 +1,44 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createHmac } from 'node:crypto';
 import { isRateLimited } from '@/lib/rate-limit';
+import { getClientIp } from '@/lib/client-ip';
+import {
+  ADMIN_COOKIE,
+  SESSION_COOKIE_OPTIONS,
+  createSessionToken,
+  isAdminConfigured,
+  verifyAdminPassword,
+} from '@/lib/admin-session';
 
 export async function POST(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
-  if (isRateLimited(`admin-auth:${ip}`, 5, 60_000)) {
+  const ip = getClientIp(request);
+  if (await isRateLimited(`admin-auth:${ip}`, 5, 60_000)) {
     return NextResponse.json({ error: 'Too many attempts' }, { status: 429 });
   }
 
-  const { password } = await request.json();
-  const correct = process.env['ADMIN_PASSWORD'];
-  if (!correct) {
+  if (!isAdminConfigured()) {
     return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
   }
 
-  if (password === correct) {
-    const cookieStore = await cookies();
-    const sessionValue = createHmac('sha256', correct).update('admin').digest('hex');
-    cookieStore.set('admin_session', sessionValue, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 8, // 8 hours
-      path: '/',
-    });
-    return NextResponse.json({ ok: true });
+  let password: unknown;
+  try {
+    ({ password } = await request.json());
+  } catch {
+    console.warn(`[admin-auth] corpo inválido (ip=${ip})`);
+    return NextResponse.json({ error: 'Payload inválido' }, { status: 422 });
   }
-  return NextResponse.json({ error: 'Senha incorreta' }, { status: 401 });
+
+  if (!verifyAdminPassword(password)) {
+    console.warn(`[admin-auth] tentativa de login falhou (ip=${ip})`);
+    return NextResponse.json({ error: 'Senha incorreta' }, { status: 401 });
+  }
+
+  const token = createSessionToken();
+  if (!token) {
+    return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  return NextResponse.json({ ok: true });
 }

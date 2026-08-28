@@ -8,7 +8,7 @@ export function HomeCta() {
 
   return (
     <section
-      className="relative bg-brand-black bg-cover bg-center bg-fixed py-16 text-center sm:py-24"
+      className="relative bg-brand-black bg-cover bg-center bg-scroll md:bg-fixed py-16 text-center sm:py-24"
       style={{ backgroundImage: "url('/images/common/fachada.jpg')" }}
     >
       <div className="absolute inset-0 bg-brand-black/70" />

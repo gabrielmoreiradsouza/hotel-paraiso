@@ -23,6 +23,16 @@ export function Header({ locale }: { locale: string }) {
     }
   }, [menuOpen]);
 
+  // Block body scroll when mobile menu is open
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80);
     handleScroll();
@@ -48,9 +58,10 @@ export function Header({ locale }: { locale: string }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/brand/favicon.png" alt="HRP" width={36} height={36} className="invert" />
-            <span className="hidden font-display text-lg font-semibold text-brand-white sm:block">
-              Hotel Paraíso
+            <Image src="/brand/favicon.png" alt="HRP" width={40} height={40} className="invert" />
+            <span className="font-display text-base font-semibold text-brand-white sm:text-lg">
+              <span className="sm:hidden">Paraíso</span>
+              <span className="hidden sm:inline">Hotel Paraíso</span>
             </span>
           </Link>
 
@@ -73,6 +84,14 @@ export function Header({ locale }: { locale: string }) {
               {t('book')}
             </Link>
           </nav>
+
+          {/* Mobile CTA — visible only on small screens */}
+          <Link
+            href="/reservar"
+            className="rounded-sm bg-brand-gold px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-black md:hidden"
+          >
+            Reservar
+          </Link>
 
           {/* Mobile hamburger */}
           <button
@@ -127,12 +146,17 @@ export function Header({ locale }: { locale: string }) {
 
         {/* Centered nav links */}
         <nav className="flex h-full flex-col items-center justify-center gap-6">
-          {navItems.map((item) => (
+          {navItems.map((item, i) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
-              className="font-display text-2xl font-semibold text-beige-300 transition-colors hover:text-brand-gold"
+              className="font-display text-2xl font-semibold text-beige-300 transition-all duration-300 hover:text-brand-gold motion-reduce:transition-none"
+              style={{
+                transitionDelay: menuOpen ? `${i * 60}ms` : '0ms',
+                opacity: menuOpen ? 1 : 0,
+                transform: menuOpen ? 'translateY(0)' : 'translateY(10px)',
+              }}
             >
               {item.label}
             </Link>

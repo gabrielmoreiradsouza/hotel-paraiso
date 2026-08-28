@@ -126,27 +126,32 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
 
     filtered.forEach((photo, i) => {
       items.push(
-        <button
-          key={photo.src}
-          type="button"
-          onClick={() => setLightboxIndex(i)}
-          className="group relative mb-2 break-inside-avoid overflow-hidden rounded cursor-pointer"
-          style={{ animationDelay: `${(i % 20) * 60}ms` }}
-        >
-          <Image
-            src={photo.src}
-            alt={photo.alt}
-            width={600}
-            height={400}
-            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            unoptimized={photo.src.startsWith('http')}
-          />
-          <div className="absolute inset-0 bg-brand-black/0 transition-colors duration-300 group-hover:bg-brand-black/30" />
-          <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-brand-black/70 to-transparent">
-            <p className="text-white text-xs leading-snug">{photo.alt}</p>
-          </div>
-        </button>
+        <div key={photo.src} className="gallery-item-wrap">
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(i)}
+            className="group relative mb-2 break-inside-avoid overflow-hidden rounded cursor-pointer"
+            style={{ animationDelay: `${(i % 20) * 60}ms` }}
+          >
+            <Image
+              src={photo.src}
+              alt={photo.alt}
+              width={600}
+              height={400}
+              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              unoptimized={photo.src.startsWith('http')}
+              onError={(e) => {
+                const el = (e.currentTarget as HTMLElement).closest('.gallery-item-wrap');
+                if (el) (el as HTMLElement).style.display = 'none';
+              }}
+            />
+            <div className="absolute inset-0 bg-brand-black/0 transition-colors duration-300 group-hover:bg-brand-black/30" />
+            <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-brand-black/70 to-transparent">
+              <p className="text-white text-xs leading-snug">{photo.alt}</p>
+            </div>
+          </button>
+        </div>
       );
 
       // Insert parallax break after certain indices (only for "all" tab)
@@ -160,7 +165,7 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
               style={{ columnSpan: 'all' } as React.CSSProperties}
             >
               <div
-                className="relative h-[250px] md:h-[300px] bg-fixed bg-cover bg-center rounded overflow-hidden"
+                className="relative h-[250px] md:h-[300px] bg-scroll md:bg-fixed bg-cover bg-center rounded overflow-hidden"
                 style={{ backgroundImage: `url(${breakDef.image})` }}
               >
                 <div className="absolute inset-0 bg-brand-black/60" />
@@ -184,7 +189,7 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
       {/* ── Hero ── */}
       <section className="relative h-[45vh] min-h-[320px] overflow-hidden">
         <div
-          className="absolute inset-0 bg-fixed bg-cover bg-center"
+          className="absolute inset-0 bg-scroll md:bg-fixed bg-cover bg-center"
           style={{ backgroundImage: 'url(/images/common/fachada.jpg)' }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-brand-black/60 via-brand-black/40 to-brand-black" />
@@ -227,7 +232,7 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
       {/* ── Bottom CTA ── */}
       <section className="relative h-[300px] md:h-[350px] overflow-hidden">
         <div
-          className="absolute inset-0 bg-fixed bg-cover bg-center"
+          className="absolute inset-0 bg-scroll md:bg-fixed bg-cover bg-center"
           style={{ backgroundImage: 'url(/images/common/fachada-2.jpg)' }}
         />
         <div className="absolute inset-0 bg-brand-black/70" />
@@ -297,7 +302,7 @@ export function GalleryClient({ photos }: { photos: Photo[] }) {
                 alt={currentPhoto.alt}
                 width={1200}
                 height={800}
-                className="max-h-[65vh] w-auto object-contain rounded animate-crossfade"
+                className="max-h-[65dvh] w-auto object-contain rounded animate-crossfade"
                 unoptimized={currentPhoto.src.startsWith('http')}
                 priority
               />

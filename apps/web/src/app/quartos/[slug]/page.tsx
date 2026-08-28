@@ -230,7 +230,7 @@ export default async function RoomPage({ params }: Props) {
         {/* White body card */}
         <div className="rounded-b-2xl bg-white p-6 text-brand-black sm:p-8">
           {/* Header row */}
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4">
             <div>
               <h1 className="font-display text-2xl font-bold text-brand-black sm:text-3xl">
                 {room.name}

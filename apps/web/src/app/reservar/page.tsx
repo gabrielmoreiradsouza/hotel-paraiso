@@ -69,6 +69,7 @@ function BookingContent() {
 
   const STORAGE_KEY = 'hp_booking_state';
   const availAbortRef = useRef<AbortController | null>(null);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   // Abort availability fetch on unmount
   useEffect(() => {
@@ -205,7 +206,10 @@ function BookingContent() {
       setRooms(availableRooms);
       trackAvailabilityViewed(availableRooms.length);
     } catch (err) {
+      // Abort é fluxo normal (busca substituída), não erro.
       if (err instanceof DOMException && err.name === 'AbortError') return;
+      // Falha aqui é clique pago perdido: precisa deixar rastro.
+      console.error('Falha ao buscar disponibilidade:', err);
       setApiError(true);
       setRooms([]);
     }
@@ -257,10 +261,18 @@ function BookingContent() {
     setIsSubmitting(true);
     setError(null);
 
+    // Idempotência: a chave nasce na primeira tentativa e sobrevive às repetições, para
+    // que reenviar após erro de rede devolva a mesma reserva em vez de criar outra.
+    // Só é descartada quando a reserva é confirmada. Ver ADR-0011.
+    idempotencyKeyRef.current ??= crypto.randomUUID();
+
     try {
       const response = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKeyRef.current,
+        },
         body: JSON.stringify({
           guestName,
           guestEmail,
@@ -283,6 +295,8 @@ function BookingContent() {
         return;
       }
 
+      // Reserva confirmada: a chave cumpriu o papel. Uma reserva futura precisa de outra.
+      idempotencyKeyRef.current = null;
       setBookingId(String(data.booking_id));
       trackReservationCreated({
         booking_id: String(data.booking_id),
@@ -399,49 +413,49 @@ function BookingContent() {
 
             {/* Detail rows */}
             <div className="mt-5 space-y-3 text-sm">
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Hóspede</span>
                 <span className="font-medium text-white">{guestName}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Email</span>
                 <span className="font-medium text-white">{guestEmail}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Telefone</span>
                 <span className="font-medium text-white">{guestPhone || 'Não informado'}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Adultos</span>
                 <span className="font-medium text-white">
                   {guests} adulto{guests !== 1 ? 's' : ''}
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Check-in</span>
                 <span className="font-medium text-white">
                   {formatDateWithDay(checkin)} &mdash; 14h
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Check-out</span>
                 <span className="font-medium text-white">
                   {formatDateWithDay(checkout)} &mdash; 12h
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Noites</span>
                 <span className="font-medium text-white">
                   {nights} noite{nights !== 1 ? 's' : ''}
                 </span>
               </div>
               {wantsHydro && (
-                <div className="flex justify-between">
+                <div className="flex flex-col sm:flex-row sm:justify-between">
                   <span className="text-white/50">Hidromassagem</span>
                   <span className="font-semibold text-brand-gold">Solicitada</span>
                 </div>
               )}
-              <div className="flex justify-between border-t border-white/[0.08] pt-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between border-t border-white/[0.08] pt-3">
                 <span className="text-base font-bold text-white">Total</span>
                 <span className="font-display text-xl font-bold text-brand-gold">
                   R$ {selectedRoom.price.toLocaleString('pt-BR')}
@@ -520,16 +534,18 @@ function BookingContent() {
       <main className="bg-brand-black pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-4">
           <nav aria-label="Progresso da reserva" className="mb-8">
-            <ol className="flex items-center justify-center gap-4 text-sm">
+            <ol className="flex items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <li className="text-white/50">1. Escolha</li>
               <li className="text-white/30" aria-hidden="true">
-                →
+                <span className="hidden sm:inline">&rarr;</span>
+                <span className="sm:hidden">&middot;</span>
               </li>
               <li className="font-bold text-brand-gold" aria-current="step">
                 2. Seus dados
               </li>
               <li className="text-white/30" aria-hidden="true">
-                →
+                <span className="hidden sm:inline">&rarr;</span>
+                <span className="sm:hidden">&middot;</span>
               </li>
               <li className="text-white/50">3. Confirmação</li>
             </ol>
@@ -692,16 +708,18 @@ function BookingContent() {
     <main className="bg-brand-black pt-24 pb-16">
       <div className="mx-auto max-w-6xl px-4">
         <nav aria-label="Progresso da reserva" className="mb-8">
-          <ol className="flex items-center justify-center gap-4 text-sm">
+          <ol className="flex items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
             <li className="font-bold text-brand-gold" aria-current="step">
               1. Escolha
             </li>
             <li className="text-white/30" aria-hidden="true">
-              →
+              <span className="hidden sm:inline">→</span>
+              <span className="sm:hidden">·</span>
             </li>
             <li className="text-white/50">2. Seus dados</li>
             <li className="text-white/30" aria-hidden="true">
-              →
+              <span className="hidden sm:inline">→</span>
+              <span className="sm:hidden">·</span>
             </li>
             <li className="text-white/50">3. Confirmação</li>
           </ol>
@@ -710,8 +728,8 @@ function BookingContent() {
         <h1 className="font-display text-3xl font-bold text-white">Quartos disponíveis</h1>
 
         {/* Search bar */}
-        <div className="mt-6 flex flex-wrap items-end gap-4 rounded-sm bg-white/[0.04] border border-white/[0.12] p-4">
-          <div className="flex-1">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-sm bg-white/[0.04] border border-white/[0.12] p-4">
+          <div className="w-full">
             <label
               htmlFor="search-checkin"
               className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
@@ -727,7 +745,7 @@ function BookingContent() {
               className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-3 py-2 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 [color-scheme:dark]"
             />
           </div>
-          <div className="flex-1">
+          <div className="w-full">
             <label
               htmlFor="search-checkout"
               className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
@@ -743,7 +761,7 @@ function BookingContent() {
               className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-3 py-2 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 [color-scheme:dark]"
             />
           </div>
-          <div>
+          <div className="w-full">
             <label
               htmlFor="search-guests"
               className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
@@ -776,7 +794,7 @@ function BookingContent() {
             type="button"
             onClick={handleSearch}
             disabled={!checkin || !checkout || loading}
-            className="rounded-sm bg-brand-gold px-6 py-2.5 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:opacity-50"
+            className="w-full sm:w-auto sm:self-end rounded-sm bg-brand-gold px-6 py-2.5 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:opacity-50"
           >
             {loading ? 'Buscando...' : 'Buscar'}
           </button>

@@ -79,6 +79,9 @@ export function Features() {
             })}
           </div>
 
+          {/* Scroll hint gradient — mobile only */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-brand-black to-transparent md:hidden" />
+
           {/* Next button */}
           <button
             type="button"

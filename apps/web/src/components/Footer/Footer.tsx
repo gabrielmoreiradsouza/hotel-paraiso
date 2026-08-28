@@ -58,7 +58,7 @@ export function Footer() {
           </div>
 
           {/* Links grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12">
             <div>
               <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold mb-8">
                 {t('hotel')}
@@ -102,7 +102,7 @@ export function Footer() {
                 <li>
                   <a
                     href="mailto:hotelrparaiso@gmail.com"
-                    className="transition-colors hover:text-brand-gold"
+                    className="break-all transition-colors hover:text-brand-gold"
                   >
                     hotelrparaiso@gmail.com
                   </a>

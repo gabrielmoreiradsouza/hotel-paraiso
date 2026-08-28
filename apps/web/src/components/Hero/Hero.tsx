@@ -29,12 +29,14 @@ export function Hero() {
   }, [current]);
 
   useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
     const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
   }, [next]);
 
   return (
-    <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
+    <section className="relative h-dvh min-h-[600px] w-full overflow-hidden">
       {/* Only render loaded slides */}
       {heroImages.map((img, i) => {
         if (!loaded.has(i)) return null;
@@ -103,7 +105,7 @@ export function Hero() {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce motion-reduce:animate-none">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>

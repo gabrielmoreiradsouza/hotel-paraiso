@@ -9,7 +9,7 @@ export function Restaurant() {
   return (
     <section
       id="restaurante"
-      className="relative py-16 sm:py-24 bg-cover bg-center bg-fixed"
+      className="relative py-16 sm:py-24 bg-cover bg-center bg-scroll md:bg-fixed"
       style={{ backgroundImage: "url('/images/restaurant/salao-buffet.jpg')" }}
     >
       {/* Dark overlay */}

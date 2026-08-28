@@ -86,7 +86,7 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
       <div
         ref={contentRef}
         tabIndex={-1}
-        className="relative mx-4 w-full max-w-[900px] overflow-y-auto overflow-x-hidden rounded-xl bg-brand-white shadow-2xl max-h-[90vh] outline-none"
+        className="relative mx-4 w-full max-w-[900px] overflow-y-auto overflow-x-hidden rounded-xl bg-brand-white shadow-2xl max-h-[90dvh] outline-none"
         style={{ animation: 'modalSlideUp 300ms ease-out both' }}
       >
         {/* Photo section */}
@@ -131,12 +131,18 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
               </span>
             </>
           )}
+          <a
+            href={`/quartos/${encodeURIComponent(room.slug)}`}
+            className="absolute bottom-3 right-3 z-10 rounded-full bg-brand-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm md:hidden"
+          >
+            Ver todas as fotos
+          </a>
         </div>
 
         {/* Body */}
-        <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-8 pb-[env(safe-area-inset-bottom)]">
           {/* Header row */}
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4">
             <div>
               <h3
                 id="room-detail-title"
@@ -206,7 +212,7 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
           onClick();
         }
       }}
-      className="group relative flex-none w-[340px] cursor-pointer overflow-hidden rounded-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl scroll-snap-align-start focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
+      className="group relative flex-none w-[calc(100vw-2.5rem)] max-w-[340px] cursor-pointer overflow-hidden rounded-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl scroll-snap-align-start focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
       style={{ scrollSnapAlign: 'start' }}
       aria-label={`Ver detalhes de ${room.name}`}
     >
@@ -232,8 +238,8 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
             <span className="text-xs text-white/70">{room.capacity}</span>
           </div>
 
-          {/* Hover reveal: description + amenities + CTA */}
-          <div className="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-h-[300px] group-hover:opacity-100 group-focus-within:max-h-[300px] group-focus-within:opacity-100">
+          {/* Description — hidden on mobile, hover-reveal on desktop */}
+          <div className="mt-3 hidden md:block md:max-h-0 md:overflow-hidden md:opacity-0 md:transition-all md:duration-300 md:group-hover:max-h-[300px] md:group-hover:opacity-100 md:group-focus-within:max-h-[300px] md:group-focus-within:opacity-100">
             <p className="text-sm leading-relaxed text-white/80">{room.description}</p>
 
             {/* Amenity pills */}
@@ -247,12 +253,12 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
                 </span>
               ))}
             </div>
-
-            {/* CTA */}
-            <span className="mt-4 block w-full rounded-lg border border-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-gold transition-colors group-hover:bg-brand-gold group-hover:text-brand-black group-focus-within:bg-brand-gold group-focus-within:text-brand-black">
-              Ver detalhes
-            </span>
           </div>
+
+          {/* CTA — always visible on mobile, hover-reveal on desktop */}
+          <span className="mt-4 block w-full rounded-lg border border-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-gold transition-colors md:opacity-0 md:translate-y-2 md:transition-all md:duration-300 md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:bg-brand-gold md:group-hover:text-brand-black md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:bg-brand-gold md:group-focus-within:text-brand-black">
+            Ver detalhes
+          </span>
         </div>
       </div>
     </article>
