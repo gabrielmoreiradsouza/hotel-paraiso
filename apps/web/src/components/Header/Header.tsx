@@ -85,34 +85,34 @@ export function Header({ locale }: { locale: string }) {
             </Link>
           </nav>
 
-          {/* Mobile CTA — visible only on small screens */}
-          <Link
-            href="/reservar"
-            className="rounded-sm bg-brand-gold px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-black md:hidden"
-          >
-            Reservar
-          </Link>
-
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            className="text-brand-white md:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Menu"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          {/* Mobile: CTA + hamburger grouped */}
+          <div className="flex items-center gap-3 md:hidden">
+            <Link
+              href="/reservar"
+              className="rounded-sm bg-brand-gold px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-black"
             >
-              <path d="M3 12h18M3 6h18M3 18h18" />
-            </svg>
-          </button>
+              Reservar
+            </Link>
+            <button
+              type="button"
+              className="text-brand-white"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Menu"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M3 12h18M3 6h18M3 18h18" />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 

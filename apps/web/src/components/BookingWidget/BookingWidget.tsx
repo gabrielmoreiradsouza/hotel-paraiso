@@ -75,9 +75,10 @@ export function BookingWidget() {
     'rounded-sm border border-white/15 bg-white/10 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold [color-scheme:dark]';
 
   /* ── Outer wrapper ── */
+  /* Mobile: widget is always hidden — users use the header CTA "Reservar" instead */
   const wrapperCls = docked
     ? 'hidden md:flex fixed top-[54px] left-0 right-0 z-40 bg-brand-black/70 backdrop-blur-2xl border-b border-white/8 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]'
-    : 'flex absolute bottom-6 left-1/2 z-20 w-[calc(100%-2rem)] max-w-5xl -translate-x-1/2 bg-brand-black/35 backdrop-blur-xl border border-white/12 rounded-lg transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]';
+    : 'hidden md:flex absolute bottom-6 left-1/2 z-20 w-[calc(100%-2rem)] max-w-5xl -translate-x-1/2 bg-brand-black/35 backdrop-blur-xl border border-white/12 rounded-lg transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]';
 
   return (
     <div ref={widgetRef} className={wrapperCls}>
