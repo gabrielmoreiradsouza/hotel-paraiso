@@ -6,6 +6,9 @@ WORKDIR /app
 FROM base AS builder
 COPY . .
 RUN pnpm install --frozen-lockfile
+# Build workspace packages first (artax-client, tracking need tsc)
+RUN pnpm --filter @hotel-paraiso/artax-client build || true
+RUN pnpm --filter @hotel-paraiso/tracking build || true
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-VW178YY861
 ENV NEXT_PUBLIC_GOOGLE_ADS_ID=AW-18401755556
