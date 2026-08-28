@@ -2,6 +2,7 @@ node_modules
 .next
 .turbo
 build
+dist
 coverage
 .git
 .claude
