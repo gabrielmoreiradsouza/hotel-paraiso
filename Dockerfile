@@ -7,6 +7,8 @@ FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/ui/package.json ./packages/ui/
+COPY packages/tracking/package.json ./packages/tracking/
+COPY packages/artax-client/package.json ./packages/artax-client/
 RUN pnpm install --frozen-lockfile --filter @hotel-paraiso/web...
 
 # Build
