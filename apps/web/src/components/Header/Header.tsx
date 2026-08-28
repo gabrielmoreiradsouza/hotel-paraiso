@@ -85,14 +85,8 @@ export function Header({ locale }: { locale: string }) {
             </Link>
           </nav>
 
-          {/* Mobile: CTA + hamburger grouped */}
+          {/* Mobile: hamburger only — booking widget is visible inline */}
           <div className="flex items-center gap-3 md:hidden">
-            <Link
-              href="/reservar"
-              className="rounded-sm bg-brand-gold px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-black"
-            >
-              Reservar
-            </Link>
             <button
               type="button"
               className="text-brand-white"

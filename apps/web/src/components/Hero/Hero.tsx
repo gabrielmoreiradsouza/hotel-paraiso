@@ -89,8 +89,8 @@ export function Hero() {
         </a>
       </div>
 
-      {/* Slide indicators */}
-      <div className="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+      {/* Slide indicators — pushed up on mobile to clear the booking pill */}
+      <div className="absolute bottom-[4.5rem] left-1/2 z-10 flex -translate-x-1/2 gap-2 md:bottom-20">
         {heroImages.map((_, i) => (
           <button
             key={i}
@@ -104,8 +104,8 @@ export function Hero() {
         ))}
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce motion-reduce:animate-none">
+      {/* Scroll indicator — hidden on mobile, booking widget serves the purpose */}
+      <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 animate-bounce md:block motion-reduce:animate-none">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>
