@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
-import { mockServer } from '../mocks/server.js';
-import { ArtaxClient } from '../client.js';
+import { mockServer } from '../mocks/server';
+import { ArtaxClient } from '../client';
 
 const client = new ArtaxClient({
   clientId: 'test-id',

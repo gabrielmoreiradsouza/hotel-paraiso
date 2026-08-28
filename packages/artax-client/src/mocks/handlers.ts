@@ -5,7 +5,7 @@ import {
   MOCK_PAYMENT_METHODS,
   MOCK_COST_CENTERS,
   createMockBooking,
-} from './data.js';
+} from './data';
 
 const BASE_URL = 'https://artaxnet.com/pms-api/v1';
 

@@ -1,4 +1,4 @@
-import type { Booking, RoomAvailability, PaymentMethod, CostCenter } from '../index.js';
+import type { Booking, RoomAvailability, PaymentMethod, CostCenter } from '../index';
 
 export const MOCK_ROOMS: RoomAvailability[] = [
   {

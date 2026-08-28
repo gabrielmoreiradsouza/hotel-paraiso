@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createHmac } from 'node:crypto';
-import { verifyWebhookSignature } from '../utils/webhook-verifier.js';
+import { verifyWebhookSignature } from '../utils/webhook-verifier';
 
 describe('verifyWebhookSignature', () => {
   const secret = 'test-webhook-secret';

@@ -5,7 +5,7 @@ import {
   WebhookEventSchema,
   AvailabilityQuerySchema,
   AddPaymentSchema,
-} from '../index.js';
+} from '../index';
 
 describe('BookingSchema', () => {
   it('validates a valid booking', () => {
