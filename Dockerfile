@@ -17,6 +17,9 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/database/package.json ./packages/database/
 COPY packages/learning/package.json ./packages/learning/
 COPY packages/shared-types/package.json ./packages/shared-types/
+# Prisma schema needed for postinstall generate
+COPY packages/database/prisma ./packages/database/prisma/
+COPY packages/database/prisma.config.ts ./packages/database/
 RUN pnpm install --frozen-lockfile
 
 # Build
