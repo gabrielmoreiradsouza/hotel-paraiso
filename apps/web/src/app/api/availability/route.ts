@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     for (const [categoryId, plans] of Object.entries(data.rooms ?? {})) {
       byCategory.set(
         Number(categoryId),
-        Object.values(plans as Record<string, RawAvailabilityRoom>).map((plan) => ({
+        Object.values(plans as Record<string, Omit<ArtaxOption, 'categoryId'>>).map((plan) => ({
           ...plan,
           categoryId: Number(categoryId),
         }))
