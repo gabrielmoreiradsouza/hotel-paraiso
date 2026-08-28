@@ -1,3 +1,4 @@
+/* eslint-env node */
 /**
  * Standalone DB init script — runs raw DDL to create CMS tables.
  * Uses pg (already a production dependency). No TypeScript needed.
