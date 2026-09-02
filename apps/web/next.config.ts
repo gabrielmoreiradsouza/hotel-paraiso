@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['@hotel-paraiso/artax-client', '@hotel-paraiso/tracking'],
   images: {
-    formats: ['image/webp'],
+    formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000,
     deviceSizes: [640, 828, 1080, 1280],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -74,6 +74,19 @@ const nextConfig: NextConfig = {
             value: 'max-age=31536000; includeSubDomains',
           },
           { key: 'Content-Security-Policy', value: CSP },
+        ],
+      },
+      {
+        // Public pages: allow Cloudflare edge to cache SSR HTML even though
+        // cookies() opts into dynamic rendering. CDN-Cache-Control is respected
+        // by Cloudflare and overrides Cache-Control for edge caching only.
+        // Googlebot (no locale cookie) always gets the cached 'pt' version.
+        source: '/((?!admin|api|reservar|_next|images).*)',
+        headers: [
+          {
+            key: 'CDN-Cache-Control',
+            value: 'public, s-maxage=60',
+          },
         ],
       },
       {

@@ -56,7 +56,7 @@ export function getRoomImageUrl(room: CmsRoom): string {
   return featured || getMediaUrl(galleryImage?.image);
 }
 
-async function cmsGet<T>(path: string, revalidate = 60): Promise<T> {
+async function cmsGet<T>(path: string, revalidate = 300): Promise<T> {
   const res = await fetch(`${CMS_URL}/api${path}`, { next: { revalidate, tags: ['cms'] } });
   if (!res.ok) throw new Error(`CMS: ${res.status}`);
   return res.json() as Promise<T>;
