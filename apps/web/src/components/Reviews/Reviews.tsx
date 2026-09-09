@@ -3,34 +3,34 @@ import { Star } from 'lucide-react';
 
 const reviews = [
   {
-    name: 'Carlos M.',
+    name: 'Ronaldo Benevello',
     date: '2026-07',
     rating: 5,
-    text: 'Excelente hotel! Quarto limpo, café da manhã maravilhoso e atendimento nota 10. Com certeza voltarei.',
+    text: 'Apenas uma expressão, para poder resumir nossa experiência na hospedagem que fizemos: TOP. Muito TOP mesmo. Do contato inicial pelo celular, passando pelo check in, quarto, cama, banheiro — tudo impecável.',
   },
   {
-    name: 'Fernanda S.',
-    date: '2026-06',
-    rating: 5,
-    text: 'Melhor custo-benefício de Ponte Nova. Fiquei na suíte master e superou as expectativas. Estacionamento amplo e seguro.',
-  },
-  {
-    name: 'Roberto A.',
-    date: '2026-08',
-    rating: 4,
-    text: 'Ótima localização, perto de tudo. Equipe muito atenciosa. O restaurante do hotel serve uma comida mineira deliciosa.',
-  },
-  {
-    name: 'Ana Paula L.',
+    name: 'Luís Paulo G. R. Ferreira',
     date: '2026-05',
     rating: 5,
-    text: 'Hotel pet friendly de verdade! Meu cachorro foi muito bem recebido. Quarto confortável e silencioso.',
+    text: 'Minha estadia foi muito agradável. Os funcionários são muito cordiais, o restaurante é ótimo e o café da manhã também. Excelente para quem tem compromisso na Fadip/Dinâmica.',
   },
   {
-    name: 'Marcos V.',
-    date: '2026-08',
+    name: 'Seba Pedrero',
+    date: '2026-02',
     rating: 5,
-    text: 'Viajo a trabalho para Ponte Nova frequentemente e sempre fico aqui. Wi-Fi excelente, check-in rápido e café completo.',
+    text: 'As instalações e serviço são ótimas. Quarto muito bom e espaçoso. Ar condicionado funcionando perfeitamente. Chuveiro água quentinha. Bom preço.',
+  },
+  {
+    name: 'Paloma Castro',
+    date: '2024-09',
+    rating: 5,
+    text: 'A estadia foi ótima. O quarto bem limpinho e organizado. O atendimento impecável. A moça da recepção muito gentil.',
+  },
+  {
+    name: 'Paulo Gomes Leal',
+    date: '2023-09',
+    rating: 5,
+    text: 'O local é ótimo para passar a noite. Possuem um restaurante que serve comida muito boa. Recomendo para quem precisa de uma estadia tranquila em Ponte Nova.',
   },
 ];
 
@@ -73,16 +73,12 @@ export async function Reviews() {
                 <Star
                   key={i}
                   size={20}
-                  className={
-                    i < 4
-                      ? 'fill-brand-gold text-brand-gold'
-                      : 'fill-brand-gold/40 text-brand-gold/40'
-                  }
+                  className={i < 4 ? 'fill-brand-gold text-brand-gold' : 'text-beige-600'}
                   strokeWidth={1.5}
                 />
               ))}
             </div>
-            <span className="font-display text-2xl font-bold text-white">4.2</span>
+            <span className="font-display text-2xl font-bold text-white">4.0</span>
             <span className="text-sm text-beige-400">{t('count')}</span>
           </div>
           <p className="mt-2 text-sm text-beige-500">{t('source')}</p>
