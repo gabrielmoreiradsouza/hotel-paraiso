@@ -1,5 +1,6 @@
 import { Hero } from '@/components/Hero/Hero';
 import { RoomCards } from '@/components/RoomCards/RoomCards';
+import { Reviews } from '@/components/Reviews/Reviews';
 import { Features } from '@/components/Features/Features';
 import { Location } from '@/components/Location/Location';
 import { Footer } from '@/components/Footer/Footer';
@@ -12,6 +13,7 @@ export default async function Home() {
     <>
       <Hero />
       <RoomCards />
+      <Reviews />
       <Restaurant />
       <Features />
       <HomeCta />

@@ -55,6 +55,11 @@
     "amenities": "O que este quarto oferece",
     "backAll": "← Voltar para todos os quartos"
   },
+  "reviews": {
+    "title": "O que nossos hóspedes dizem",
+    "count": "760+ avaliações",
+    "source": "Baseado em avaliações do Google e Booking.com"
+  },
   "features": {
     "title": "Comodidades disponíveis",
     "subtitle": "",

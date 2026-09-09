@@ -55,6 +55,11 @@
     "amenities": "Room amenities",
     "backAll": "← Back to all rooms"
   },
+  "reviews": {
+    "title": "What our guests say",
+    "count": "760+ reviews",
+    "source": "Based on Google and Booking.com reviews"
+  },
   "features": {
     "title": "Available amenities",
     "subtitle": "",

@@ -157,6 +157,9 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
             <div className="shrink-0 text-right">
               <span className="font-display text-2xl font-bold text-gold-700">{room.price}</span>
               <span className="block text-xs text-beige-600">/ noite</span>
+              <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                Cancele grátis até 48h
+              </span>
             </div>
           </div>
 
@@ -256,8 +259,11 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
           </div>
 
           {/* CTA — always visible on mobile, hover-reveal on desktop */}
-          <span className="mt-4 block w-full rounded-lg border border-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-gold transition-colors md:opacity-0 md:translate-y-2 md:transition-all md:duration-300 md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:bg-brand-gold md:group-hover:text-brand-black md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:bg-brand-gold md:group-focus-within:text-brand-black">
-            Ver detalhes
+          <span className="mt-4 block w-full rounded-lg bg-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-black transition-all md:opacity-0 md:translate-y-2 md:duration-300 md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0">
+            Reservar agora
+          </span>
+          <span className="mt-2 block text-center text-[10px] text-white/60 md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+            Cancele grátis até 48h
           </span>
         </div>
       </div>
