@@ -82,7 +82,7 @@ export function Hero() {
         <p className="mx-auto mt-6 max-w-2xl text-lg text-beige-200 sm:text-xl">{t('subtitle')}</p>
 
         <a
-          href="#quartos"
+          href="/reservar"
           className="mt-10 inline-flex items-center gap-2 rounded-sm bg-brand-gold px-8 py-4 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
         >
           {t('cta')}

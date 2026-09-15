@@ -217,7 +217,7 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
       }}
       className="group relative flex-none w-[calc(100vw-2.5rem)] max-w-[340px] cursor-pointer overflow-hidden rounded-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl scroll-snap-align-start focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
       style={{ scrollSnapAlign: 'start' }}
-      aria-label={`Ver detalhes de ${room.name}`}
+      aria-label={`${room.name} — ver detalhes`}
     >
       {/* Image */}
       <div className="relative h-[420px] w-full overflow-hidden">
@@ -259,9 +259,13 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
           </div>
 
           {/* CTA — always visible on mobile, hover-reveal on desktop */}
-          <span className="mt-4 block w-full rounded-lg bg-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-black transition-all md:opacity-0 md:translate-y-2 md:duration-300 md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0">
+          <a
+            href={`/reservar?room=${encodeURIComponent(room.slug)}`}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-4 block w-full rounded-lg bg-brand-gold py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-brand-black transition-all md:opacity-0 md:translate-y-2 md:duration-300 md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0"
+          >
             Reservar agora
-          </span>
+          </a>
           <span className="mt-2 block text-center text-[10px] text-white/60 md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
             Cancele grátis até 48h
           </span>
