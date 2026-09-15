@@ -853,7 +853,15 @@ function BookingContent() {
         {!searched && !loading && (
           <div className="mt-8">
             <h2 className="font-display text-xl font-bold text-white">Nossos quartos</h2>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              className="mt-4 flex gap-4 overflow-x-auto pb-4 lg:grid lg:grid-cols-4 lg:overflow-x-visible lg:pb-0"
+              style={{
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+              }}
+            >
               {staticRooms.map((room) => {
                 const isHighlighted = highlightedRoom === room.slug;
                 return (
@@ -865,11 +873,12 @@ function BookingContent() {
                       checkinInputRef.current?.focus();
                       checkinInputRef.current?.showPicker?.();
                     }}
-                    className={`group overflow-hidden rounded-lg border text-left transition-all ${
+                    className={`group flex-none w-[75vw] sm:w-[45vw] lg:w-auto overflow-hidden rounded-lg border text-left transition-all ${
                       isHighlighted
                         ? 'border-brand-gold bg-white/[0.08] ring-1 ring-brand-gold/30'
                         : 'border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.06]'
                     }`}
+                    style={{ scrollSnapAlign: 'start' }}
                   >
                     <div className="relative aspect-[4/3] w-full overflow-hidden">
                       <Image
@@ -877,7 +886,7 @@ function BookingContent() {
                         alt={room.name}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        sizes="(max-width: 640px) 75vw, (max-width: 1024px) 45vw, 25vw"
                       />
                       {isHighlighted && (
                         <span className="absolute top-2 left-2 rounded-full bg-brand-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-black">
