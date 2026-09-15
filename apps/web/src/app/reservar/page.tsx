@@ -31,6 +31,41 @@ interface AvailableRoom {
   capacity: { adults: number; kids: number };
 }
 
+const staticRooms = [
+  {
+    slug: 'confort',
+    name: 'Confort',
+    price: 'A partir de R$ 130',
+    image: '/images/rooms/confort-1.jpg',
+    capacity: '1–2 adultos',
+    description: 'Acomodação acessível com ventilador. Individual, duplo ou casal.',
+  },
+  {
+    slug: 'standard',
+    name: 'Standard',
+    price: 'A partir de R$ 180',
+    image: '/images/rooms/standard.jpg',
+    capacity: '1–3 adultos',
+    description: 'Conforto com ar condicionado. Individual, casal ou triplo.',
+  },
+  {
+    slug: 'luxo',
+    name: 'Luxo',
+    price: 'A partir de R$ 280',
+    image: '/images/rooms/luxo.jpg',
+    capacity: '2 adultos',
+    description: 'Espaço amplo com acabamentos premium e ventilador de teto.',
+  },
+  {
+    slug: 'master',
+    name: 'Suíte Master',
+    price: 'A partir de R$ 420',
+    image: '/images/rooms/master.jpg',
+    capacity: '1–3 adultos',
+    description: 'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
+  },
+];
+
 function getTodayBR(): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',
@@ -67,8 +102,11 @@ function BookingContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
 
+  const [highlightedRoom, setHighlightedRoom] = useState(roomParam);
+
   const STORAGE_KEY = 'hp_booking_state';
   const availAbortRef = useRef<AbortController | null>(null);
+  const checkinInputRef = useRef<HTMLInputElement>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
   // Abort availability fetch on unmount
@@ -737,6 +775,7 @@ function BookingContent() {
               Check-in
             </label>
             <input
+              ref={checkinInputRef}
               id="search-checkin"
               type="date"
               value={checkin}
@@ -799,6 +838,72 @@ function BookingContent() {
             {loading ? 'Buscando...' : 'Buscar'}
           </button>
         </div>
+
+        {/* Contextual message when room is highlighted */}
+        {highlightedRoom && !searched && (
+          <p className="mt-6 text-center text-sm text-brand-gold">
+            Selecione suas datas para reservar{' '}
+            <span className="font-semibold">
+              {staticRooms.find((r) => r.slug === highlightedRoom)?.name ?? highlightedRoom}
+            </span>
+          </p>
+        )}
+
+        {/* Static room cards — shown before search */}
+        {!searched && !loading && (
+          <div className="mt-8">
+            <h2 className="font-display text-xl font-bold text-white">Nossos quartos</h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {staticRooms.map((room) => {
+                const isHighlighted = highlightedRoom === room.slug;
+                return (
+                  <button
+                    key={room.slug}
+                    type="button"
+                    onClick={() => {
+                      setHighlightedRoom(room.slug);
+                      checkinInputRef.current?.focus();
+                      checkinInputRef.current?.showPicker?.();
+                    }}
+                    className={`group overflow-hidden rounded-lg border text-left transition-all ${
+                      isHighlighted
+                        ? 'border-brand-gold bg-white/[0.08] ring-1 ring-brand-gold/30'
+                        : 'border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden">
+                      <Image
+                        src={room.image}
+                        alt={room.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                      {isHighlighted && (
+                        <span className="absolute top-2 left-2 rounded-full bg-brand-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-black">
+                          Selecionado
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-display text-base font-bold text-white">{room.name}</h3>
+                      <p className="mt-1 text-xs text-white/50">{room.description}</p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="font-display text-sm font-bold text-brand-gold">
+                          {room.price}
+                        </span>
+                        <span className="text-[11px] text-white/40">{room.capacity}</span>
+                      </div>
+                      <span className="mt-3 block w-full rounded bg-white/[0.06] py-1.5 text-center text-[11px] font-medium text-white/60">
+                        Consulte disponibilidade
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Results */}
         <div className="mt-8" aria-live="polite">
