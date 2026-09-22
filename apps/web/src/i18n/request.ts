@@ -1,9 +1,11 @@
 import { getRequestConfig } from 'next-intl/server';
-import { cookies } from 'next/headers';
 
 export default getRequestConfig(async () => {
-  const cookieStore = await cookies();
-  const locale = cookieStore.get('locale')?.value ?? 'pt';
+  // Hardcode 'pt' for SSR/ISR — enables static generation and proper
+  // cache-control headers (no more "private, no-store"). 99.9% of traffic
+  // is Portuguese. English switching still works client-side via cookie +
+  // page reload, but the server always renders PT for cacheability.
+  const locale = 'pt';
 
   return {
     locale,
