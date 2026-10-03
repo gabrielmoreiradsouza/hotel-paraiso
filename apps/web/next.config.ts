@@ -22,16 +22,16 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const CSP = [
   "default-src 'self'",
   // Google (GA4, Ads, Tag Manager) e Meta Pixel.
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.google.com https://connect.facebook.net",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.google.com https://connect.facebook.net https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   // O CMS serve as imagens dos quartos.
-  "img-src 'self' data: blob: https://cms.hotelparaiso.moreirads.cloud https://*.google-analytics.com https://*.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.com.br https://www.facebook.com",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.googleadservices.com https://connect.facebook.net https://www.facebook.com https://cms.hotelparaiso.moreirads.cloud",
-  'frame-src https://www.google.com https://td.doubleclick.net https://www.googletagmanager.com',
+  "img-src 'self' data: blob: https://cms.hotelparaiso.moreirads.cloud https://*.google-analytics.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.google.com.br https://www.facebook.com",
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com https://connect.facebook.net https://www.facebook.com https://cms.hotelparaiso.moreirads.cloud",
+  'frame-src https://www.google.com https://*.doubleclick.net https://www.googletagmanager.com https://www.facebook.com',
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  "form-action 'self' https://www.facebook.com",
   "frame-ancestors 'none'",
   'upgrade-insecure-requests',
 ].join('; ');
