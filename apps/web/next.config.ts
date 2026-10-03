@@ -27,7 +27,7 @@ const CSP = [
   "font-src 'self' https://fonts.gstatic.com data:",
   // O CMS serve as imagens dos quartos.
   "img-src 'self' data: blob: https://cms.hotelparaiso.moreirads.cloud https://*.google-analytics.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.google.com.br https://www.facebook.com",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com https://connect.facebook.net https://www.facebook.com https://cms.hotelparaiso.moreirads.cloud",
+  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com https://connect.facebook.net https://www.facebook.com https://cms.hotelparaiso.moreirads.cloud",
   'frame-src https://www.google.com https://*.doubleclick.net https://www.googletagmanager.com https://www.facebook.com',
   "object-src 'none'",
   "base-uri 'self'",
