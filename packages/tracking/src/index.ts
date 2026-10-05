@@ -1,3 +1,11 @@
+export {
+  captureAttribution,
+  getAttribution,
+  getGA4Ids,
+  formatAttributionLabel,
+} from './attribution';
+export type { Attribution } from './attribution';
+
 export type TrackingEvent = {
   name: string;
   params: Record<string, unknown>;

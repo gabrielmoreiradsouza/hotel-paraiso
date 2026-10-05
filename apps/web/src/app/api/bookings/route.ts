@@ -6,6 +6,8 @@ import { getArtaxClient, isArtaxConfigured } from '@/lib/artax';
 import { verifyOffer } from '@/lib/availability';
 import { getClientIp } from '@/lib/client-ip';
 import { acquire, buildIdempotencyKey, commit, release } from '@/lib/idempotency';
+import { storeAttribution, listAttributions } from '@/lib/attribution-store';
+import { formatAttributionLabel, type Attribution } from '@hotel-paraiso/tracking';
 
 const EVOLUTION_URL = 'https://evolution.moreirads.cloud';
 const EVOLUTION_INSTANCE = 'HRP';
@@ -57,7 +59,8 @@ function sendWhatsAppConfirmation(
   checkin: string,
   checkout: string,
   bookingId: string,
-  notes?: string
+  notes?: string,
+  originLabel?: string | null
 ) {
   // Mensagem pro hóspede (se tiver telefone)
   if (guestPhone) {
@@ -90,6 +93,7 @@ function sendWhatsAppConfirmation(
     `📋 *Protocolo:* #HP-${bookingId}`,
     `📅 *Check-in:* ${formatDateBR(checkin)}`,
     `📅 *Check-out:* ${formatDateBR(checkout)}`,
+    ...(originLabel ? [`📊 *Origem:* ${originLabel}`] : []),
     ...(notes ? [`📝 *Obs:* ${notes}`] : []),
     ``,
     `Reserva criada via hotelparaiso.moreirads.cloud`,
@@ -156,6 +160,9 @@ export async function POST(request: Request) {
       adults,
       kids,
       notes: rawNotes,
+      attribution: rawAttribution,
+      client_id: rawClientId,
+      session_id: rawSessionId,
     } = body as {
       guestName: string;
       guestEmail: string;
@@ -166,11 +173,21 @@ export async function POST(request: Request) {
       rateplanId?: number;
       adults?: number;
       kids?: number;
-      /** Aceito no corpo por compatibilidade com o cliente, mas ignorado: o valor de
-       *  conversão é sempre derivado da disponibilidade verificada no servidor. */
       totalPrice?: number;
       notes?: unknown;
+      attribution?: Attribution | null;
+      client_id?: string | null;
+      session_id?: string | null;
     };
+
+    const attribution =
+      rawAttribution && typeof rawAttribution === 'object' && rawAttribution.source
+        ? rawAttribution
+        : null;
+    const ga4ClientId =
+      typeof rawClientId === 'string' && rawClientId.length > 0 ? rawClientId : null;
+    const ga4SessionId =
+      typeof rawSessionId === 'string' && rawSessionId.length > 0 ? rawSessionId : null;
 
     // Sanitise notes: must be a string, max 500 chars, or discard
     const notes = typeof rawNotes === 'string' ? rawNotes.slice(0, 500) : undefined;
@@ -286,15 +303,17 @@ export async function POST(request: Request) {
       const firstName = nameParts[0] ?? '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
+      const attrLabel = attribution ? formatAttributionLabel(attribution) : null;
+      const commentParts = ['Reserva via site hotelparaiso.moreirads.cloud'];
+      if (attrLabel) commentParts.push(`Origem: ${attrLabel}`);
+      if (notes) commentParts.push(notes);
+
       // DR-001: via ArtaxClient (rate limiter + circuit breaker + timeout de 5s).
       const artaxData = await getArtaxClient().createBookingRaw({
         arrival_date: checkin,
         departure_date: checkout,
-        // Da oferta verificada, não do corpo do request.
         rateplan_id: offer.rateplanId,
-        comment: notes
-          ? `Reserva via site hotelparaiso.moreirads.cloud | ${notes}`
-          : 'Reserva via site hotelparaiso.moreirads.cloud',
+        comment: commentParts.join(' | '),
         guest: {
           first_name: firstName,
           last_name: lastName,
@@ -313,7 +332,13 @@ export async function POST(request: Request) {
 
       const bid = String(artaxData.booking_id);
       sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid, notes);
-      sendWhatsAppConfirmation(guestName, guestPhone, checkin, checkout, bid, notes);
+      sendWhatsAppConfirmation(guestName, guestPhone, checkin, checkout, bid, notes, attrLabel);
+
+      if (attribution) {
+        storeAttribution(bid, attribution, attrLabel ?? '').catch((err) => {
+          console.error('[attribution] store failed:', err);
+        });
+      }
 
       // Server-side tracking — GA4 MP + Meta CAPI (fire and forget)
       const ua = request.headers.get('user-agent');
@@ -321,14 +346,13 @@ export async function POST(request: Request) {
       const trackingIp = ip === 'unknown' ? null : ip;
       trackServerPurchase({
         bookingId: bid,
-        // Preço da Artax, nunca o `totalPrice` do corpo do request: esse valor alimenta
-        // GA4 e Meta, e é o que o Google Ads usa para otimizar campanha. Aceitar o número
-        // do cliente deixaria qualquer um envenenar a otimização do seu orçamento.
         value: offer.price,
         guestEmail,
         ...(guestPhone != null && { guestPhone }),
         ...(ua != null && { userAgent: ua }),
         ...(trackingIp != null && { clientIp: trackingIp }),
+        ...(ga4ClientId != null && { ga4ClientId }),
+        ...(ga4SessionId != null && { ga4SessionId }),
       });
 
       const payload = { success: true, booking_id: bid, source: 'artax' };
@@ -372,7 +396,14 @@ export async function GET(request: Request) {
 
   try {
     const data = await getArtaxClient().listBookingsRaw({ page });
-    return NextResponse.json(data);
+    const bookings = (data.bookings ?? []) as Array<{ booking_id: number; [k: string]: unknown }>;
+    const ids = bookings.map((b) => String(b.booking_id));
+    const attrs = ids.length > 0 ? await listAttributions(ids) : {};
+    const enriched = bookings.map((b) => {
+      const attr = attrs[String(b.booking_id)];
+      return { ...b, attribution_label: attr?.label ?? null };
+    });
+    return NextResponse.json({ ...data, bookings: enriched });
   } catch (error) {
     console.error('Bookings list failed:', error);
     return NextResponse.json({ error: 'Erro ao consultar reservas' }, { status: 502 });

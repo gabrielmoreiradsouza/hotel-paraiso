@@ -16,6 +16,7 @@ interface Booking {
   provider?: string;
   units?: string;
   created?: string;
+  attribution_label?: string | null;
 }
 
 interface FunnelStats {
@@ -151,7 +152,9 @@ function ReservasTab() {
                         {st.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-beige-500">{b.provider ?? '—'}</td>
+                    <td className="px-4 py-3 text-xs text-beige-500">
+                      {b.attribution_label || b.provider || '—'}
+                    </td>
                   </tr>
                 );
               })}

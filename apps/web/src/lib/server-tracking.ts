@@ -30,10 +30,24 @@ export async function trackGA4Purchase(params: {
   guestEmail?: string;
   userAgent?: string;
   clientIp?: string;
+  ga4ClientId?: string;
+  ga4SessionId?: string;
 }) {
   if (!GA4_MEASUREMENT_ID || !GA4_API_SECRET) return;
 
   const eventId = generateEventId();
+  const clientId = params.ga4ClientId || `server.${params.bookingId}`;
+
+  const eventParams: Record<string, unknown> = {
+    transaction_id: params.bookingId,
+    value: params.value,
+    currency: 'BRL',
+    event_id: eventId,
+    engagement_time_msec: 1,
+  };
+  if (params.ga4SessionId) {
+    eventParams['session_id'] = params.ga4SessionId;
+  }
 
   try {
     await fetch(
@@ -42,18 +56,8 @@ export async function trackGA4Purchase(params: {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_id: `server.${params.bookingId}`,
-          events: [
-            {
-              name: 'purchase',
-              params: {
-                transaction_id: params.bookingId,
-                value: params.value,
-                currency: 'BRL',
-                event_id: eventId,
-              },
-            },
-          ],
+          client_id: clientId,
+          events: [{ name: 'purchase', params: eventParams }],
         }),
         signal: AbortSignal.timeout(TRACKING_TIMEOUT_MS),
       }
@@ -131,6 +135,8 @@ export function trackServerPurchase(params: {
   guestPhone?: string;
   userAgent?: string;
   clientIp?: string;
+  ga4ClientId?: string;
+  ga4SessionId?: string;
 }) {
   // Fire and forget — não bloqueia a resposta da reserva, mas a falha precisa aparecer:
   // conversão perdida silenciosamente vira decisão de orçamento tomada às cegas.

@@ -1,12 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
 import Script from 'next/script';
+import { captureAttribution } from '@hotel-paraiso/tracking';
 
 const GA4_ID = process.env['NEXT_PUBLIC_GA4_MEASUREMENT_ID'] ?? '';
 const GADS_ID = process.env['NEXT_PUBLIC_GOOGLE_ADS_ID'] ?? '';
 const META_PIXEL_ID = process.env['NEXT_PUBLIC_META_PIXEL_ID'] ?? '';
 
 export function Analytics() {
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+
   return (
     <>
       {/* Google Analytics 4 + Google Ads — direct tags (no GTM) */}

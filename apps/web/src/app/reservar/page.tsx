@@ -11,6 +11,8 @@ import {
   trackCheckoutStarted,
   trackReservationCreated,
   trackAvailabilityViewed,
+  getAttribution,
+  getGA4Ids,
 } from '@hotel-paraiso/tracking';
 import { useSearchParams } from 'next/navigation';
 
@@ -323,6 +325,8 @@ function BookingContent() {
           kids: 0,
           totalPrice: selectedRoom.price,
           ...(wantsHydro && { notes: 'Solicita hidromassagem (sujeito a disponibilidade)' }),
+          attribution: getAttribution(),
+          ...getGA4Ids(),
         }),
       });
 
