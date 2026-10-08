@@ -9,7 +9,9 @@ import { acquire, buildIdempotencyKey, commit, release } from '@/lib/idempotency
 import { storeAttribution, listAttributions } from '@/lib/attribution-store';
 import { formatAttributionLabel, type Attribution } from '@hotel-paraiso/tracking';
 
-const EVOLUTION_URL = 'https://evolution.moreirads.cloud';
+const EVOLUTION_URL = (
+  process.env['EVOLUTION_API_URL']?.trim() || 'https://evo.moreirads.cloud'
+).replace(/\/+$/, '');
 const EVOLUTION_INSTANCE = 'HRP';
 const EVOLUTION_TOKEN = process.env['EVOLUTION_API_KEY'] ?? '';
 const HOTEL_WHATSAPP = '553138818049';
@@ -43,9 +45,14 @@ function sendEvolutionMessage(phone: string, text: string) {
     },
     body: JSON.stringify({ number, text }),
     signal: AbortSignal.timeout(SIDE_EFFECT_TIMEOUT_MS),
-  }).catch((err) => {
-    console.error('Evolution WhatsApp error:', err);
-  });
+  })
+    .then((res) => {
+      // fetch só rejeita em erro de transporte — 401/404/5xx precisam ser logados aqui
+      if (!res.ok) console.error('Evolution WhatsApp error: HTTP', res.status);
+    })
+    .catch((err) => {
+      console.error('Evolution WhatsApp error:', err);
+    });
 }
 
 function formatDateBR(dateStr: string): string {
