@@ -227,8 +227,10 @@ function BookingContent() {
 
   // Fetch availability when dates change
   const today = getTodayBR();
-  const minCheckOut = checkin
-    ? new Date(new Date(checkin + 'T12:00:00').getTime() + 86400000).toISOString().slice(0, 10)
+  // Datas parciais/inválidas durante digitação geram Invalid Date; toISOString() lançaria RangeError.
+  const checkinTime = checkin ? new Date(checkin + 'T12:00:00').getTime() : NaN;
+  const minCheckOut = Number.isFinite(checkinTime)
+    ? new Date(checkinTime + 86400000).toISOString().slice(0, 10)
     : today;
 
   async function fetchAvailability() {

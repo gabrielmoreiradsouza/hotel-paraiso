@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: '%s | Hotel Paraíso — Ponte Nova, MG',
   },
   description:
-    'Hotel e Restaurante Paraíso em Ponte Nova, MG. Quartos a partir de R$ 130/noite com café da manhã, Wi-Fi, estacionamento grátis e pet friendly. Reserve online.',
+    'Hotel e Restaurante Paraíso em Ponte Nova, MG. Quartos a partir de R$ 145/noite com café da manhã, Wi-Fi, estacionamento grátis e pet friendly. Reserve online.',
   keywords: [
     'hotel ponte nova',
     'hotel ponte nova mg',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Hotel e Restaurante Paraíso — Ponte Nova, MG',
     description:
-      'Quartos Confort, Standard, Luxo e Suíte Master a partir de R$ 130/noite. Café da manhã, Wi-Fi, estacionamento grátis e pet friendly. Reserve agora.',
+      'Quartos Confort, Standard, Luxo e Suíte Master a partir de R$ 145/noite. Café da manhã, Wi-Fi, estacionamento grátis e pet friendly. Reserve agora.',
     url: 'https://hotelparaiso.moreirads.cloud',
     siteName: 'Hotel Paraíso',
     locale: 'pt_BR',
@@ -71,7 +71,7 @@ const jsonLd = {
   '@type': 'Hotel',
   name: 'Hotel e Restaurante Paraíso',
   description:
-    'Hotel e Restaurante em Ponte Nova, MG. Quartos a partir de R$ 130/noite com café da manhã, Wi-Fi, estacionamento grátis e pet friendly.',
+    'Hotel e Restaurante em Ponte Nova, MG. Quartos a partir de R$ 145/noite com café da manhã, Wi-Fi, estacionamento grátis e pet friendly.',
   url: 'https://hotelparaiso.moreirads.cloud',
   telephone: '+55-31-3881-8049',
   email: 'hotelrparaiso@gmail.com',
@@ -104,7 +104,7 @@ const jsonLd = {
   ],
   checkinTime: '14:00',
   checkoutTime: '12:00',
-  priceRange: 'R$ 130 - R$ 420',
+  priceRange: 'R$ 145 - R$ 250',
   currenciesAccepted: 'BRL',
   paymentAccepted: 'Cartão de crédito, Cartão de débito, Pix, Dinheiro',
   numberOfRooms: 46,

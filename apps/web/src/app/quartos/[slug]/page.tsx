@@ -6,6 +6,9 @@ import { RoomViewTracker } from './tracker';
 import { RoomPhotoGallery } from './RoomPhotoGallery';
 import { RoomBookingInline } from '@/components/RoomBooking/RoomBookingInline';
 import { getRoom, getRoomSlugs, getMediaUrl, type CmsRoom } from '@/lib/cms';
+import { getMinPrices } from '@/lib/min-prices';
+
+export const revalidate = 3600;
 
 const fallbackRooms: Record<
   string,
@@ -216,6 +219,13 @@ export default async function RoomPage({ params }: Props) {
   }
 
   if (!room) notFound();
+
+  try {
+    const artaxMin = (await getMinPrices())[slug];
+    if (artaxMin) room = { ...room, price: `R$ ${artaxMin}` };
+  } catch {
+    // Artax unavailable — keep CMS/fallback price
+  }
 
   const priceNum = parseInt(room.price.replace(/\D/g, ''), 10) || 0;
 

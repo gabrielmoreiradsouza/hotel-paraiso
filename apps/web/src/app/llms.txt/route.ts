@@ -20,16 +20,16 @@ const LLMS_TXT = `# Hotel e Restaurante Paraíso
 
 ## Categorias de Quartos
 
-### Confort (a partir de R$ 130/noite)
+### Confort (a partir de R$ 145/noite)
 Acomodação acessível com ventilador de teto. Opções: individual (1 cama solteiro), duplo (2 camas solteiro) ou casal. Inclui Wi-Fi, TV LED 32", frigobar e café da manhã.
 
-### Standard (a partir de R$ 180/noite)
+### Standard (a partir de R$ 209/noite)
 Quarto com ar-condicionado para viajantes corporativos. Opções: individual, casal ou triplo (até 3 adultos). Inclui Wi-Fi rápido, TV LED 32", frigobar, mesa de trabalho e café da manhã.
 
-### Luxo (a partir de R$ 280/noite)
+### Luxo (a partir de R$ 165/noite)
 25m² com acabamentos premium. Ventilador de teto silencioso, TV LED 50", frigobar, roupão, chinelos, ducha dupla e amenities premium. Ideal para casais ou estadias longas.
 
-### Suíte Master (a partir de R$ 420/noite)
+### Suíte Master (a partir de R$ 232/noite)
 35m² — a melhor acomodação do hotel. Ar-condicionado, sala de estar separada, TV LED 55", room service, vista privilegiada. Opção de hidromassagem por R$ 120-150/noite adicional.
 
 ## Restaurante
