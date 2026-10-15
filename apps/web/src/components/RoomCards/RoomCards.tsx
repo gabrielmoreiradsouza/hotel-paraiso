@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { getRooms, getMediaUrl } from '@/lib/cms';
+import { getMinPrices } from '@/lib/min-prices';
 import { RoomCarousel } from './RoomCarousel';
 
 export type RoomCardData = {
@@ -22,7 +23,7 @@ const fallbackRooms: RoomCardData[] = [
     description: 'Acomodação acessível com ventilador. Individual, duplo ou casal.',
     longDescription:
       'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponível em três opções: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e café da manhã incluso.',
-    price: 'A partir de R$ 130',
+    price: 'A partir de R$ 145',
     image: '/images/rooms/confort-1.jpg',
     images: [
       '/images/rooms/confort-1.jpg',
@@ -47,7 +48,7 @@ const fallbackRooms: RoomCardData[] = [
     description: 'Conforto com ar condicionado. Individual, casal ou triplo.',
     longDescription:
       'Quarto funcional e bem equipado com ar-condicionado para quem precisa de uma base confortável em Ponte Nova. Disponível como Suite Standard (individual ou casal) e Suite Triplo Standard (casal + 1 box solteiro ou 3 box solteiro). Wi-Fi rápido, mesa de trabalho e café da manhã incluso.',
-    price: 'A partir de R$ 180',
+    price: 'A partir de R$ 209',
     image: '/images/rooms/standard.jpg',
     images: [
       '/images/rooms/standard.jpg',
@@ -76,7 +77,7 @@ const fallbackRooms: RoomCardData[] = [
     description: 'Espaço amplo com acabamentos premium e ventilador de teto.',
     longDescription:
       'Ambiente amplo com 25m² de acabamentos premium. TV 50", frigobar e chuveiro com ducha dupla. Ventilador de teto silencioso. Disponível como Suite Luxo individual ou casal (cama casal ou 2 box solteiro). O quarto Luxo é a escolha certa para quem quer mais conforto — perfeito para casais ou estadias mais longas.',
-    price: 'A partir de R$ 280',
+    price: 'A partir de R$ 165',
     image: '/images/rooms/luxo.jpg',
     images: [
       '/images/rooms/luxo.jpg',
@@ -107,7 +108,7 @@ const fallbackRooms: RoomCardData[] = [
     description: 'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
     longDescription:
       'A Suíte Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais ou simplesmente para quem merece o melhor que Ponte Nova tem a oferecer.',
-    price: 'A partir de R$ 420',
+    price: 'A partir de R$ 232',
     image: '/images/rooms/master.jpg',
     images: [
       '/images/rooms/master.jpg',
@@ -169,6 +170,18 @@ export async function RoomCards() {
     }
   } catch {
     // CMS unavailable — use fallbackRooms
+  }
+
+  try {
+    const artaxPrices = await getMinPrices();
+    if (Object.keys(artaxPrices).length > 0) {
+      rooms = rooms.map((r) => {
+        const artaxMin = artaxPrices[r.slug];
+        return artaxMin ? { ...r, price: `A partir de R$ ${artaxMin}` } : r;
+      });
+    }
+  } catch {
+    // Artax unavailable — keep CMS/fallback prices
   }
 
   return (

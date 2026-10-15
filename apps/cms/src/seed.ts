@@ -35,10 +35,10 @@ async function seed() {
     {
       name: 'Confort',
       slug: 'confort',
-      startingPrice: 'A partir de R$ 130',
+      startingPrice: 'A partir de R$ 145',
       shortDescription: 'Acomodacao acessivel com ventilador. Individual, duplo ou casal.',
       longDescription:
-        'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponivel em tres opcoes: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e cafe da manha incluso.',
+        'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponível em três opções: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e café da manhã incluso.',
       capacityLabel: '1-2 adultos',
       capacity: { adults: 2, children: 0 },
       size: 15,
@@ -62,10 +62,10 @@ async function seed() {
     {
       name: 'Standard',
       slug: 'standard',
-      startingPrice: 'A partir de R$ 180',
+      startingPrice: 'A partir de R$ 209',
       shortDescription: 'Conforto com ar condicionado. Individual, casal ou triplo.',
       longDescription:
-        'Quarto funcional e bem equipado com ar-condicionado para quem precisa de uma base confortavel em Ponte Nova. Disponivel como Suite Standard (individual ou casal) e Suite Triplo Standard (casal + 1 box solteiro ou 3 box solteiro). Wi-Fi rapido, mesa de trabalho e cafe da manha incluso.',
+        'Quarto funcional e bem equipado com ar-condicionado para quem precisa de uma base confortável em Ponte Nova. Disponível como Suite Standard (individual ou casal) e Suite Triplo Standard (casal + 1 box solteiro ou 3 box solteiro). Wi-Fi rápido, mesa de trabalho e café da manhã incluso.',
       capacityLabel: '1-3 adultos',
       capacity: { adults: 3, children: 0 },
       size: 18,
@@ -93,10 +93,10 @@ async function seed() {
     {
       name: 'Luxo',
       slug: 'luxo',
-      startingPrice: 'A partir de R$ 280',
-      shortDescription: 'Espaco amplo com acabamentos premium e ventilador de teto.',
+      startingPrice: 'A partir de R$ 165',
+      shortDescription: 'Espaço amplo com acabamentos premium e ventilador de teto.',
       longDescription:
-        'Ambiente amplo com 25m2 de acabamentos premium. TV 50", minibar abastecido e chuveiro com ducha dupla. Ventilador de teto silencioso. Disponivel como Suite Luxo individual ou casal (cama casal ou 2 box solteiro). O quarto Luxo e a escolha certa para quem quer mais conforto.',
+        'Ambiente amplo com 25m² de acabamentos premium. TV 50", minibar abastecido e chuveiro com ducha dupla. Ventilador de teto silencioso. Disponível como Suite Luxo individual ou casal (cama casal ou 2 box solteiro). O quarto Luxo é a escolha certa para quem quer mais conforto.',
       capacityLabel: '2 adultos',
       capacity: { adults: 2, children: 0 },
       size: 25,
@@ -106,7 +106,7 @@ async function seed() {
         'Ventilador de teto silencioso',
         'TV LED 50"',
         'Minibar abastecido',
-        'Roupao e chinelos',
+        'Roupão e chinelos',
         'Chuveiro com ducha dupla',
         'Amenities premium',
         'Mesa de trabalho',
@@ -126,11 +126,11 @@ async function seed() {
     {
       name: 'Suite Master',
       slug: 'master',
-      startingPrice: 'A partir de R$ 420',
+      startingPrice: 'A partir de R$ 232',
       shortDescription:
-        'Nossa melhor acomodacao. Ar condicionado, sala de estar e servico exclusivo.',
+        'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
       longDescription:
-        'A Suite Master e para quem quer o maximo. Sao 35m2 com ar-condicionado, sala de estar separada, TV 55" e room service. Disponivel como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasioes especiais.',
+        'A Suíte Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais.',
       capacityLabel: '1-3 adultos',
       capacity: { adults: 3, children: 0 },
       size: 35,
@@ -141,7 +141,7 @@ async function seed() {
         'TV LED 55"',
         'Minibar abastecido',
         'Sala de estar separada',
-        'Roupao e chinelos',
+        'Roupão e chinelos',
         'Amenities premium',
         'Room service',
         'Vista privilegiada',

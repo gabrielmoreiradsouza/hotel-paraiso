@@ -85,8 +85,6 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
       if (eventName === 'checkout_started') {
         gtag('event', 'conversion', {
           send_to: 'AW-18401755556/LK3ACPbDmY4dEKSD0sZE',
-          value: payload['value'],
-          currency: 'BRL',
         });
       }
       if (eventName === 'reservation_created') {

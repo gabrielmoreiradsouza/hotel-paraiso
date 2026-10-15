@@ -84,6 +84,7 @@ function sendWhatsAppConfirmation(
       `📍 R. Pe. José Alvarenga, 50, Paraíso — Ponte Nova/MG`,
       `📞 (31) 3881-8049`,
       ``,
+      `💳 Nenhum pagamento agora — você paga no hotel, no check-in.`,
       `Cancelamento gratuito até 48h antes do check-in.`,
       ``,
       `Aguardamos você! 🏨`,
@@ -135,9 +136,12 @@ function sendConfirmationEmail(
         <h1>Olá, ${escapeHtml(guestName)}!</h1>
         <p>Sua reserva foi registrada com sucesso.</p>
         <p><strong>Protocolo:</strong> ${escapeHtml(bookingId)}</p>
-        <p><strong>Check-in:</strong> ${escapeHtml(checkin)}</p>
-        <p><strong>Check-out:</strong> ${escapeHtml(checkout)}</p>
+        <p><strong>Check-in:</strong> ${escapeHtml(formatDateBR(checkin))} (a partir das 14h)</p>
+        <p><strong>Check-out:</strong> ${escapeHtml(formatDateBR(checkout))} (até 12h)</p>
         ${notesHtml}
+        <p><strong>Pagamento:</strong> Nenhum pagamento agora. Você paga no hotel, no check-in.</p>
+        <p>Cancelamento gratuito até 48h antes do check-in.</p>
+        <p>📍 R. Pe. José Alvarenga, 50, Paraíso — Ponte Nova/MG</p>
         <p>Para dúvidas, ligue (31) 3881-8049 ou fale pelo WhatsApp.</p>
         <p>Atenciosamente,<br>Hotel e Restaurante Paraíso</p>
       `,

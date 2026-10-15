@@ -25,7 +25,7 @@ const fallbackRooms: Record<
     description: 'Acomodação acessível com ventilador para uma estadia confortável.',
     longDescription:
       'A categoria Confort oferece o essencial para uma estadia tranquila em Ponte Nova. Disponível em três opções: Suite Confort individual (1 cama solteiro), Suite Duplo Confort (2 camas solteiro) e Suite Confort casal (cama casal). Todas com ventilador de teto, Wi-Fi e café da manhã incluso.',
-    price: 'R$ 130',
+    price: 'R$ 145',
     capacity: '1–2 adultos',
     size: '15m²',
     amenities: [
@@ -48,7 +48,7 @@ const fallbackRooms: Record<
     description: 'Conforto com ar condicionado para viajantes corporativos.',
     longDescription:
       'Quarto funcional e bem equipado com ar-condicionado para quem precisa de uma base confortável em Ponte Nova. Disponível como Suite Standard (individual ou casal) e Suite Triplo Standard (casal + 1 box solteiro ou 3 box solteiro). Wi-Fi rápido, mesa de trabalho e café da manhã incluso.',
-    price: 'R$ 180',
+    price: 'R$ 209',
     capacity: '1–3 adultos',
     size: '18m²',
     amenities: [
@@ -75,7 +75,7 @@ const fallbackRooms: Record<
     description: 'Mais espaço, mais conforto. Para estadias que pedem algo a mais.',
     longDescription:
       'Ambiente amplo com 25m² de acabamentos premium. TV 50", frigobar e chuveiro com ducha dupla. Ventilador de teto silencioso. Disponível como Suite Luxo individual ou casal (cama casal ou 2 box solteiro). O quarto Luxo é a escolha certa para quem quer mais conforto — perfeito para casais ou estadias mais longas.',
-    price: 'R$ 280',
+    price: 'R$ 165',
     capacity: '2 adultos',
     size: '25m²',
     amenities: [
@@ -104,7 +104,7 @@ const fallbackRooms: Record<
     description: 'Nossa melhor acomodação. Para quem não abre mão do melhor.',
     longDescription:
       'A Suíte Master é para quem quer o máximo. São 35m² com ar-condicionado, sala de estar separada, TV 55" e room service. Disponível como Casal Master (individual ou casal) e Casal Triplo Master (casal + 1 box solteiro ou 3 box solteiro). Perfeita para ocasiões especiais ou simplesmente para quem merece o melhor que Ponte Nova tem a oferecer.',
-    price: 'R$ 420',
+    price: 'R$ 232',
     capacity: '1–3 adultos',
     size: '35m²',
     amenities: [

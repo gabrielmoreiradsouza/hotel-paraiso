@@ -33,11 +33,17 @@ interface AvailableRoom {
   capacity: { adults: number; kids: number };
 }
 
-const staticRooms = [
+const FALLBACK_PRICES: Record<string, number> = {
+  confort: 145,
+  standard: 209,
+  luxo: 165,
+  master: 232,
+};
+
+const staticRoomsBase = [
   {
     slug: 'confort',
     name: 'Confort',
-    price: 'A partir de R$ 130',
     image: '/images/rooms/confort-1.jpg',
     capacity: '1–2 adultos',
     description: 'Acomodação acessível com ventilador. Individual, duplo ou casal.',
@@ -45,7 +51,6 @@ const staticRooms = [
   {
     slug: 'standard',
     name: 'Standard',
-    price: 'A partir de R$ 180',
     image: '/images/rooms/standard.jpg',
     capacity: '1–3 adultos',
     description: 'Conforto com ar condicionado. Individual, casal ou triplo.',
@@ -53,7 +58,6 @@ const staticRooms = [
   {
     slug: 'luxo',
     name: 'Luxo',
-    price: 'A partir de R$ 280',
     image: '/images/rooms/luxo.jpg',
     capacity: '2 adultos',
     description: 'Espaço amplo com acabamentos premium e ventilador de teto.',
@@ -61,7 +65,6 @@ const staticRooms = [
   {
     slug: 'master',
     name: 'Suíte Master',
-    price: 'A partir de R$ 420',
     image: '/images/rooms/master.jpg',
     capacity: '1–3 adultos',
     description: 'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
@@ -105,6 +108,8 @@ function BookingContent() {
   const [bookingId, setBookingId] = useState<string | null>(null);
 
   const [highlightedRoom, setHighlightedRoom] = useState(roomParam);
+  const [touched, setTouched] = useState({ name: false, email: false, phone: false });
+  const [minPrices, setMinPrices] = useState<Record<string, number>>(FALLBACK_PRICES);
 
   const STORAGE_KEY = 'hp_booking_state';
   const availAbortRef = useRef<AbortController | null>(null);
@@ -116,6 +121,18 @@ function BookingContent() {
     return () => {
       availAbortRef.current?.abort();
     };
+  }, []);
+
+  // Fetch min prices from Artax for "a partir de" display
+  useEffect(() => {
+    fetch('/api/min-prices')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.prices && Object.keys(data.prices).length > 0) {
+          setMinPrices((prev) => ({ ...prev, ...data.prices }));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Restore state from sessionStorage on mount
@@ -243,6 +260,15 @@ function BookingContent() {
       const availableRooms = ((data.rooms ?? []) as AvailableRoom[]).filter(
         (room) => room.available
       );
+      const target = highlightedRoom;
+      if (target) {
+        const idx = availableRooms.findIndex((r) => r.cmsSlug === target);
+        if (idx > 0) {
+          const match = availableRooms[idx] as AvailableRoom;
+          availableRooms.splice(idx, 1);
+          availableRooms.unshift(match);
+        }
+      }
       setRooms(availableRooms);
       trackAvailabilityViewed(availableRooms.length);
     } catch (err) {
@@ -297,7 +323,13 @@ function BookingContent() {
   }
 
   async function handleConfirm() {
-    if (!guestName || !guestEmail || !selectedRoom) return;
+    const trimmedName = guestName.trim();
+    const trimmedEmail = guestEmail.trim();
+    const trimmedPhone = guestPhone.trim();
+    if (!trimmedName || !trimmedEmail || !selectedRoom) return;
+    setGuestName(trimmedName);
+    setGuestEmail(trimmedEmail);
+    setGuestPhone(trimmedPhone);
     setIsSubmitting(true);
     setError(null);
 
@@ -392,6 +424,7 @@ function BookingContent() {
     const nextSteps = [
       `Email de confirmação enviado para ${guestEmail}`,
       ...(guestPhone ? [`O hotel confirmará pelo WhatsApp para ${guestPhone}`] : []),
+      'Nenhum pagamento agora — você paga no hotel, no check-in',
       'Apresente-se na recepção no check-in a partir das 14h com documento',
       'Cancelamento gratuito até 48h antes do check-in',
     ];
@@ -442,7 +475,7 @@ function BookingContent() {
                   Até {selectedRoom.capacity.adults} adulto
                   {selectedRoom.capacity.adults !== 1 ? 's' : ''}
                   {selectedRoom.capacity.kids > 0
-                    ? ` + ${selectedRoom.capacity.kids} crianças`
+                    ? ` + ${selectedRoom.capacity.kids} criança${selectedRoom.capacity.kids !== 1 ? 's' : ''}`
                     : ''}
                 </p>
                 {selectedRoom.cmsAmenities.length > 0 && (
@@ -593,6 +626,26 @@ function BookingContent() {
             </ol>
           </nav>
 
+          {/* Mobile compact summary — above form so guest sees price before confirming */}
+          <div className="mb-6 rounded-lg border border-white/[0.08] bg-white/[0.04] p-4 lg:hidden">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <span className="font-display text-sm font-bold text-white">
+                  {selectedRoom.cmsName}
+                </span>
+                <span className="text-xs text-white/50">
+                  {' · '}
+                  {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')} →{' '}
+                  {new Date(checkout + 'T12:00:00').toLocaleDateString('pt-BR')} · {guests} hóspede
+                  {guests !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <span className="shrink-0 font-display text-lg font-bold text-brand-gold">
+                R$ {selectedRoom.price.toLocaleString('pt-BR')}
+              </span>
+            </div>
+          </div>
+
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <h1 className="font-display text-2xl font-bold text-white">Complete sua reserva</h1>
@@ -607,12 +660,20 @@ function BookingContent() {
                   <input
                     id="guest-name"
                     type="text"
+                    name="name"
+                    autoComplete="name"
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    onBlur={(e) => saveBookingState({ guestName: e.target.value })}
-                    className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40"
+                    onBlur={(e) => {
+                      setTouched((prev) => ({ ...prev, name: true }));
+                      saveBookingState({ guestName: e.target.value });
+                    }}
+                    className={`w-full rounded-sm bg-white/[0.06] border px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40 ${touched.name && !guestName.trim() ? 'border-red-500/60' : 'border-white/[0.12]'}`}
                     placeholder="João Silva"
                   />
+                  {touched.name && !guestName.trim() && (
+                    <p className="mt-1 text-xs text-red-400">Informe seu nome completo</p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -624,12 +685,26 @@ function BookingContent() {
                   <input
                     id="guest-email"
                     type="email"
+                    name="email"
+                    autoComplete="email"
+                    inputMode="email"
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
-                    onBlur={(e) => saveBookingState({ guestEmail: e.target.value })}
-                    className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40"
+                    onBlur={(e) => {
+                      setTouched((prev) => ({ ...prev, email: true }));
+                      saveBookingState({ guestEmail: e.target.value });
+                    }}
+                    className={`w-full rounded-sm bg-white/[0.06] border px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40 ${touched.email && (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) ? 'border-red-500/60' : 'border-white/[0.12]'}`}
                     placeholder="joao@email.com"
                   />
+                  {touched.email && !guestEmail.trim() && (
+                    <p className="mt-1 text-xs text-red-400">Informe seu email</p>
+                  )}
+                  {touched.email &&
+                    guestEmail.trim() &&
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()) && (
+                      <p className="mt-1 text-xs text-red-400">Informe um email válido</p>
+                    )}
                 </div>
                 <div>
                   <label
@@ -641,12 +716,21 @@ function BookingContent() {
                   <input
                     id="guest-phone"
                     type="tel"
+                    name="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
                     value={guestPhone}
                     onChange={(e) => setGuestPhone(e.target.value)}
-                    onBlur={(e) => saveBookingState({ guestPhone: e.target.value })}
-                    className="w-full rounded-sm bg-white/[0.06] border border-white/[0.12] px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40"
+                    onBlur={(e) => {
+                      setTouched((prev) => ({ ...prev, phone: true }));
+                      saveBookingState({ guestPhone: e.target.value });
+                    }}
+                    className={`w-full rounded-sm bg-white/[0.06] border px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40 ${touched.phone && !guestPhone.trim() ? 'border-red-500/60' : 'border-white/[0.12]'}`}
                     placeholder="(31) 99999-9999"
                   />
+                  {touched.phone && !guestPhone.trim() && (
+                    <p className="mt-1 text-xs text-red-400">Informe seu telefone</p>
+                  )}
                 </div>
               </div>
 
@@ -682,7 +766,14 @@ function BookingContent() {
                   {error}
                 </div>
               )}
-              <div className="mt-8 flex gap-4">
+
+              <p className="mt-6 text-center text-sm text-white/60">
+                Nenhum pagamento agora. Você paga no hotel, no check-in.
+                <br />
+                Cancelamento grátis até 48h antes.
+              </p>
+
+              <div className="mt-4 flex gap-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -695,8 +786,18 @@ function BookingContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleConfirm}
-                  disabled={!guestName || !guestEmail || !guestPhone || isSubmitting}
+                  onClick={() => {
+                    setTouched({ name: true, email: true, phone: true });
+                    if (
+                      guestName.trim() &&
+                      guestEmail.trim() &&
+                      guestPhone.trim() &&
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())
+                    ) {
+                      handleConfirm();
+                    }
+                  }}
+                  disabled={isSubmitting}
                   className="flex-1 rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? 'Enviando...' : 'Confirmar reserva'}
@@ -848,7 +949,7 @@ function BookingContent() {
           <p className="mt-6 text-center text-sm text-brand-gold">
             Selecione suas datas para reservar{' '}
             <span className="font-semibold">
-              {staticRooms.find((r) => r.slug === highlightedRoom)?.name ?? highlightedRoom}
+              {staticRoomsBase.find((r) => r.slug === highlightedRoom)?.name ?? highlightedRoom}
             </span>
           </p>
         )}
@@ -866,7 +967,7 @@ function BookingContent() {
                 scrollbarWidth: 'none',
               }}
             >
-              {staticRooms.map((room) => {
+              {staticRoomsBase.map((room) => {
                 const isHighlighted = highlightedRoom === room.slug;
                 return (
                   <button
@@ -903,7 +1004,7 @@ function BookingContent() {
                       <p className="mt-1 text-xs text-white/50">{room.description}</p>
                       <div className="mt-3 flex items-center justify-between">
                         <span className="font-display text-sm font-bold text-brand-gold">
-                          {room.price}
+                          A partir de R$ {minPrices[room.slug] ?? '—'}
                         </span>
                         <span className="text-[11px] text-white/40">{room.capacity}</span>
                       </div>
@@ -951,57 +1052,69 @@ function BookingContent() {
 
           {!loading && rooms.length > 0 && (
             <div className="space-y-6">
-              {rooms.map((room) => (
-                <div
-                  key={room.cmsRoomId}
-                  className="flex flex-col overflow-hidden rounded-sm border border-white/[0.08] bg-white/[0.04] transition-colors hover:bg-white/[0.06] md:flex-row"
-                >
-                  <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
-                    <Image
-                      src={room.cmsImage || '/images/rooms/standard.jpg'}
-                      alt={room.cmsName}
-                      fill
-                      className="object-cover"
-                      unoptimized={room.cmsImage.startsWith('http')}
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col justify-between p-6">
-                    <div>
-                      <h3 className="font-display text-xl font-bold text-white">{room.cmsName}</h3>
-                      {room.cmsDescription && (
-                        <p className="mt-2 text-sm text-white/70">{room.cmsDescription}</p>
-                      )}
-                      {room.cmsAmenities.length > 0 && (
-                        <p className="mt-2 text-xs text-white/50">
-                          {room.cmsAmenities.slice(0, 4).join(' · ')}
-                        </p>
-                      )}
-                      <p className="mt-1 text-sm text-white/50">
-                        Até {room.capacity.adults} adultos
-                        {room.capacity.kids > 0 ? ` + ${room.capacity.kids} crianças` : ''}
-                      </p>
-                      <p className="mt-1 text-xs text-emerald-400">
-                        {room.allots} disponível{room.allots !== 1 ? 'is' : ''}
-                      </p>
-                    </div>
-                    <div className="mt-4 flex items-end justify-between">
-                      <div>
-                        <span className="font-display text-2xl font-bold text-white">
-                          R$ {room.price.toLocaleString('pt-BR')}
+              {rooms.map((room) => {
+                const isTarget = room.cmsSlug === highlightedRoom;
+                return (
+                  <div
+                    key={room.cmsRoomId}
+                    className={`flex flex-col overflow-hidden rounded-sm border transition-colors hover:bg-white/[0.06] md:flex-row ${isTarget ? 'border-brand-gold/50 bg-white/[0.06] ring-1 ring-brand-gold/20' : 'border-white/[0.08] bg-white/[0.04]'}`}
+                  >
+                    <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
+                      <Image
+                        src={room.cmsImage || '/images/rooms/standard.jpg'}
+                        alt={room.cmsName}
+                        fill
+                        className="object-cover"
+                        unoptimized={room.cmsImage.startsWith('http')}
+                      />
+                      {isTarget && (
+                        <span className="absolute top-2 left-2 rounded-full bg-brand-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-black">
+                          Selecionado
                         </span>
-                        <span className="text-sm text-white/50"> / estadia</span>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col justify-between p-6">
+                      <div>
+                        <h3 className="font-display text-xl font-bold text-white">
+                          {room.cmsName}
+                        </h3>
+                        {room.cmsDescription && (
+                          <p className="mt-2 text-sm text-white/70">{room.cmsDescription}</p>
+                        )}
+                        {room.cmsAmenities.length > 0 && (
+                          <p className="mt-2 text-xs text-white/50">
+                            {room.cmsAmenities.slice(0, 4).join(' · ')}
+                          </p>
+                        )}
+                        <p className="mt-1 text-sm text-white/50">
+                          Até {room.capacity.adults} adulto{room.capacity.adults !== 1 ? 's' : ''}
+                          {room.capacity.kids > 0
+                            ? ` + ${room.capacity.kids} criança${room.capacity.kids !== 1 ? 's' : ''}`
+                            : ''}
+                        </p>
+                        <p className="mt-1 text-xs text-emerald-400">
+                          {room.allots} {room.allots !== 1 ? 'disponíveis' : 'disponível'}
+                        </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleSelectRoom(room)}
-                        className="rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
-                      >
-                        Selecionar
-                      </button>
+                      <div className="mt-4 flex items-end justify-between">
+                        <div>
+                          <span className="font-display text-2xl font-bold text-white">
+                            R$ {room.price.toLocaleString('pt-BR')}
+                          </span>
+                          <span className="text-sm text-white/50"> / estadia</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectRoom(room)}
+                          className="rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
+                        >
+                          Selecionar
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

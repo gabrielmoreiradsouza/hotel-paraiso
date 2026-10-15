@@ -1,4 +1,7 @@
 {
+  "env": {
+    "NODE_ENV": "development"
+  },
   "permissions": {
     "allow": [
       "Bash(pnpm:*)",
@@ -52,7 +55,13 @@
       "Bash(pnpm publish:*)"
     ]
   },
-  "env": {
-    "NODE_ENV": "development"
-  }
+  "enabledMcpjsonServers": [
+    "hostinger-hosting",
+    "hostinger-dns",
+    "hostinger-vps",
+    "hostinger-domains",
+    "google-ads",
+    "hostinger-reach",
+    "cloudflare"
+  ]
 }
