@@ -7,6 +7,7 @@ import {
   fetchMessagesSince,
   isEvolutionConfigured,
 } from './evolution-messages';
+import { listAttributions } from './attribution-store';
 import { withRedis } from './redis';
 import {
   PROBABLE_WINDOW_MS,
@@ -35,8 +36,19 @@ const MAX_DETAILS = 25;
 const MAX_KNOWN_CHAT_CHECKS = 40;
 const CACHE_TTL_SECONDS = 30 * 60;
 
+export const CANAL_PLATAFORMA = 'Plataforma (hotelparaiso.moreirads.cloud)';
+export const CANAL_MOTOR_ARTAX = 'Site (motor Artax)';
+
+export interface CanalRow {
+  reservas: number;
+  /** Só para plataforma e motor Artax — os demais canais não pagam chamada de detalhe. */
+  valor: number | null;
+}
+
 export interface WhatsAppReport extends FunnelResult {
   periodo: { de: string; ate: string; dias: number };
+  /** Todas as reservas da Artax criadas no período (não canceladas), por canal. */
+  reservas_por_canal: Record<string, CanalRow>;
   completo: { evolution: boolean; artax: boolean; valores: boolean };
   gerado_em: string;
 }
@@ -55,11 +67,13 @@ function phonesOf(booking: Record<string, unknown>): string[] {
     .filter((d) => d.length >= 10);
 }
 
+type ArtaxScanned = FunnelBooking & { provider: string };
+
 async function scanArtaxBookings(
   sinceMs: number
-): Promise<{ bookings: FunnelBooking[]; complete: boolean }> {
+): Promise<{ bookings: ArtaxScanned[]; complete: boolean }> {
   const client = getArtaxClient();
-  const bookings: FunnelBooking[] = [];
+  const bookings: ArtaxScanned[] = [];
 
   for (let page = 1; page <= MAX_ARTAX_PAGES; page++) {
     const data = await client.listBookingsRaw({ page });
@@ -81,6 +95,7 @@ async function scanArtaxBookings(
         phones: phonesOf(row),
         codes: extractWhatsAppCodes(typeof row['comment'] === 'string' ? row['comment'] : ''),
         value: null,
+        provider: typeof row['provider'] === 'string' && row['provider'] ? row['provider'] : '?',
       });
     }
 
@@ -120,7 +135,7 @@ export function buildWhatsAppReport(days: number): Promise<WhatsAppReport> {
 }
 
 async function generate(days: number): Promise<WhatsAppReport> {
-  const cacheKey = `wa:report:v2:${days}`;
+  const cacheKey = `wa:report:v3:${days}`;
   const cached = await withRedis(async (redis) => redis.get(cacheKey), null as string | null);
   if (cached) {
     try {
@@ -181,18 +196,45 @@ async function generate(days: number): Promise<WhatsAppReport> {
   const matchedIds = firstPass.conversas
     .map((c) => c.booking_id)
     .filter((id): id is number => id !== null);
+
+  // Canal: reserva criada pela plataforma tem a origem gravada no Redis (attr:{id});
+  // "Site" na Artax é o motor da própria Artax (Google Hotéis / perfil do Google).
+  const attrs = await listAttributions(artax.bookings.map((b) => String(b.booking_id)));
+  const canalDe = (b: ArtaxScanned) =>
+    attrs[String(b.booking_id)]
+      ? CANAL_PLATAFORMA
+      : b.provider === 'Site'
+        ? CANAL_MOTOR_ARTAX
+        : b.provider;
+  const comValor = (b: ArtaxScanned) => {
+    const canal = canalDe(b);
+    return canal === CANAL_PLATAFORMA || canal === CANAL_MOTOR_ARTAX;
+  };
+
+  const detailIds = [
+    ...new Set([...matchedIds, ...artax.bookings.filter(comValor).map((b) => b.booking_id)]),
+  ];
   const values = new Map<number, number | null>();
-  for (const id of matchedIds.slice(0, MAX_DETAILS)) values.set(id, await bookingValue(id));
+  for (const id of detailIds.slice(0, MAX_DETAILS)) values.set(id, await bookingValue(id));
   const bookings = artax.bookings.map((b) => ({ ...b, value: values.get(b.booking_id) ?? null }));
+
+  const reservas_por_canal: Record<string, CanalRow> = {};
+  for (const b of bookings) {
+    const canal = canalDe(b);
+    const row = (reservas_por_canal[canal] ??= { reservas: 0, valor: comValor(b) ? 0 : null });
+    row.reservas++;
+    if (row.valor !== null) row.valor += b.value ?? 0;
+  }
 
   const result = analyzeFunnel({ ...input, bookings });
   const report: WhatsAppReport = {
     periodo: { de: new Date(sinceMs).toISOString(), ate: new Date(now).toISOString(), dias: days },
     ...result,
+    reservas_por_canal,
     completo: {
       evolution: evo.complete,
       artax: artax.complete,
-      valores: matchedIds.length <= MAX_DETAILS,
+      valores: detailIds.length <= MAX_DETAILS,
     },
     gerado_em: new Date(now).toISOString(),
   };
