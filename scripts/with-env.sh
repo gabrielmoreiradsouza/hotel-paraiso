@@ -21,4 +21,13 @@ set -a
 . "$ENV_FILE"
 set +a
 
+# Senha de admin de produção fica no Keychain (criptografada), não no .env.local.
+# Só `-s`: `-a "$USER"` falha em silêncio quando USER não está no ambiente.
+if command -v security >/dev/null 2>&1; then
+  if KEYCHAIN_ADMIN="$(security find-generic-password -s hotel-paraiso-admin -w 2>/dev/null)"; then
+    export ADMIN_PASSWORD="$KEYCHAIN_ADMIN"
+  fi
+  unset KEYCHAIN_ADMIN
+fi
+
 exec "$@"
