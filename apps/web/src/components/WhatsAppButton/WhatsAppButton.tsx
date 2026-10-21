@@ -1,18 +1,103 @@
 'use client';
 
-import { track } from '@hotel-paraiso/tracking';
+import type { MouseEvent } from 'react';
+import {
+  buildWhatsAppMessage,
+  generateWhatsAppCode,
+  getAttribution,
+  track,
+  type WhatsAppBookingContext,
+} from '@hotel-paraiso/tracking';
+
+const PHONE = '553138818049';
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function whatsAppUrl(code?: string, booking?: WhatsAppBookingContext): string {
+  const text = buildWhatsAppMessage(code, booking);
+  return `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
+}
+
+interface BookingSelection {
+  slug?: string;
+  context?: WhatsAppBookingContext;
+}
+
+/** Quarto e datas escolhidos no /reservar, se houver. Lê só a escolha — nada do hóspede. */
+function readBookingSelection(): BookingSelection {
+  try {
+    const raw = sessionStorage.getItem('hp_booking_state');
+    if (!raw) return {};
+    const state = JSON.parse(raw) as {
+      selectedRoom?: { cmsSlug?: string; cmsName?: string; name?: string } | null;
+      checkin?: string;
+      checkout?: string;
+      guests?: number;
+    };
+    const room = state.selectedRoom;
+    // sessionStorage é editável pelo visitante: nome curto, datas em ordem, hóspedes plausíveis.
+    const rawName = room?.cmsName || room?.name;
+    const roomName = typeof rawName === 'string' ? rawName.trim().slice(0, 40) : '';
+    const complete =
+      roomName &&
+      typeof state.checkin === 'string' &&
+      ISO_DATE.test(state.checkin) &&
+      typeof state.checkout === 'string' &&
+      ISO_DATE.test(state.checkout) &&
+      state.checkout > state.checkin &&
+      Number.isInteger(state.guests) &&
+      (state.guests ?? 0) > 0 &&
+      (state.guests ?? 0) <= 20;
+    return {
+      ...(typeof room?.cmsSlug === 'string' && { slug: room.cmsSlug.slice(0, 40) }),
+      ...(complete && {
+        context: {
+          roomName,
+          checkin: state.checkin as string,
+          checkout: state.checkout as string,
+          guests: state.guests as number,
+        },
+      }),
+    };
+  } catch (err) {
+    console.debug('[whatsapp] estado da reserva ilegível:', err);
+    return {};
+  }
+}
 
 export function WhatsAppButton() {
-  const phone = '553138818049';
-  const message = encodeURIComponent('Olá! Gostaria de saber mais sobre o Hotel Paraíso.');
-  const url = `https://wa.me/${phone}?text=${message}`;
+  // Código gerado no clique, não no render: no SSR ele divergiria da hidratação, e cada
+  // clique precisa de código próprio para ser rastreado até a reserva (ADR-0012).
+  function handleClick(e: MouseEvent<HTMLAnchorElement>) {
+    const code = generateWhatsAppCode();
+    const selection = readBookingSelection();
+    e.currentTarget.href = whatsAppUrl(code, selection.context);
+    const origem = getAttribution();
+    track('whatsapp_clicked', {
+      category: 'micro',
+      wa_code: code,
+      room_slug: selection.slug,
+      checkin: selection.context?.checkin,
+      checkout: selection.context?.checkout,
+      guests: selection.context?.guests,
+      origem: origem
+        ? {
+            source: origem.source,
+            medium: origem.medium,
+            campaign: origem.campaign,
+            term: origem.term,
+            content: origem.content,
+            gclid: origem.gclid,
+          }
+        : null,
+    });
+  }
 
   return (
     <a
-      href={url}
+      href={whatsAppUrl()}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track('whatsapp_clicked', { category: 'micro' })}
+      onClick={handleClick}
       className="fixed bottom-[calc(68px+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-[calc(16px+env(safe-area-inset-bottom,0px))] sm:right-6 z-50 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg transition-all hover:scale-110"
       aria-label="Falar no WhatsApp"
     >

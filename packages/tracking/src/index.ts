@@ -5,6 +5,14 @@ export {
   formatAttributionLabel,
 } from './attribution';
 export type { Attribution } from './attribution';
+export {
+  WHATSAPP_CODE_PREFIX,
+  buildWhatsAppMessage,
+  extractWhatsAppCodes,
+  generateWhatsAppCode,
+  isWhatsAppCode,
+} from './whatsapp';
+export type { WhatsAppBookingContext } from './whatsapp';
 
 export type TrackingEvent = {
   name: string;
@@ -115,11 +123,16 @@ export function track(eventName: string, payload: Record<string, unknown> = {}) 
   }
 
   // Also persist to our backend
+  // keepalive: cliques que saem do site (WhatsApp) não podem perder o evento na navegação.
   fetch('/api/events', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(event),
-  }).catch(() => {}); // fire and forget
+    keepalive: true,
+  }).catch((err: unknown) => {
+    // Fire and forget: tracking nunca pode quebrar a navegação, mas a falha fica visível.
+    console.debug('[tracking] envio para /api/events falhou:', err);
+  });
 }
 
 // === Canonical events ===

@@ -26,7 +26,7 @@
 | `dates_changed`         | Alterou datas no seletor                         |
 | `guests_changed`        | Alterou nº de hóspedes                           |
 | `language_changed`      | Trocou idioma pt↔en                              |
-| `whatsapp_clicked`      | Clicou botão WhatsApp                            |
+| `whatsapp_clicked`      | Clicou botão WhatsApp (leva `wa_code`, ADR-0012) |
 | `form_field_focused`    | Entrou em campo do checkout                      |
 | `form_validation_error` | Erro de validação no checkout                    |
 | `back_button_clicked`   | Voltou no fluxo                                  |
@@ -144,3 +144,12 @@ Conversão geral: 3.5% (search → reserva). Métrica acompanhada no admin.
 - Sem consentimento: apenas eventos essenciais técnicos (1ª festa)
 - Com consentimento: tracking completo
 - Direito ao esquecimento: endpoint `/privacy/delete` apaga dados pessoais
+
+## WhatsApp com código (ADR-0012)
+
+`whatsapp_clicked` leva `wa_code` (corpo do código `S-XXXX`), `room_slug`/`checkin`/`checkout`/`guests`
+quando o visitante já escolheu no /reservar, e `origem` (cópia de `hp_origem`: source, medium,
+campaign, term, content, gclid). O servidor grava em `wa:click:{CODE}` e o relatório
+`GET /api/admin/whatsapp-report?days=7` cruza com o histórico da instância HRP na Evolution
+(conversa com código, provável site, oferta, tempo de resposta) e com as reservas da Artax
+(telefone ou código na observação, até 14 dias).

@@ -129,7 +129,9 @@ function checkTypeScriptStandards(files: string[]): Violation[] {
       }
 
       // No silent catch
-      if (/catch\s*\(/.test(line)) {
+      // `.catch(undefined)` / `.catch({})` do Zod é valor de fallback, não captura de erro.
+      const zodFallback = /\.catch\(\s*(undefined|null|\{\s*\}|\[\s*\]|['"\d-])/.test(line);
+      if (/catch\s*\(/.test(line) && !zodFallback) {
         const nextLines = lines.slice(index + 1, index + 5).join('\n');
         if (
           !nextLines.includes('throw') &&

@@ -62,19 +62,40 @@ async function cmsGet<T>(path: string, revalidate = 300): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/**
+ * O CMS de produção tem "Standart" cadastrado (ACOMPANHAMENTO #7) e o admin não tem API
+ * key para corrigir por script. Normaliza aqui para que site e /api/availability nunca
+ * exibam o erro, mesmo antes da correção manual no Payload.
+ */
+function normalizeRoom(room: CmsRoom): CmsRoom {
+  const fix = (text: string) => text.replace(/\bStandart\b/gi, 'Standard');
+  return {
+    ...room,
+    name: fix(room.name),
+    ...(room.seo && {
+      seo: {
+        ...room.seo,
+        ...(room.seo.title && { title: fix(room.seo.title) }),
+        ...(room.seo.description && { description: fix(room.seo.description) }),
+      },
+    }),
+  };
+}
+
 export async function getRooms(): Promise<CmsRoom[]> {
   return (
     await cmsGet<PayloadResponse<CmsRoom>>(
       '/rooms?where[status][equals]=published&sort=displayOrder&depth=1&limit=20'
     )
-  ).docs;
+  ).docs.map(normalizeRoom);
 }
 
 export async function getRoom(slug: string): Promise<CmsRoom | null> {
   const d = await cmsGet<PayloadResponse<CmsRoom>>(
     `/rooms?where[slug][equals]=${encodeURIComponent(slug)}&where[status][equals]=published&depth=1&limit=1`
   );
-  return d.docs[0] ?? null;
+  const room = d.docs[0];
+  return room ? normalizeRoom(room) : null;
 }
 
 export async function getRoomSlugs(): Promise<string[]> {

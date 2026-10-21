@@ -3,6 +3,7 @@ import { isRateLimited } from '@/lib/rate-limit';
 import { getClientIp } from '@/lib/client-ip';
 import { withRedis } from '@/lib/redis';
 import { isAdminAuthed } from '@/lib/admin-session';
+import { parseWhatsAppClick, recordWhatsAppClick } from '@/lib/whatsapp-leads';
 
 /**
  * Eventos que representam conversão e NUNCA podem vir do browser.
@@ -97,6 +98,15 @@ export async function POST(request: Request) {
     }
 
     await appendEvent({ ...event, timestamp_ms: Date.now() });
+
+    // Clique com código tem limite próprio, bem menor: cada um vira chave de 400 dias.
+    if (
+      event.event === 'whatsapp_clicked' &&
+      !(await isRateLimited(`wa-click:${ip}`, 10, 60_000))
+    ) {
+      const click = parseWhatsAppClick(event);
+      if (click) await recordWhatsAppClick(click);
+    }
 
     return NextResponse.json({ ok: true });
   } catch {
