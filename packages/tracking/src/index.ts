@@ -1,3 +1,5 @@
+import { getAbVariant } from './ab';
+
 export {
   captureAttribution,
   getAttribution,
@@ -13,6 +15,8 @@ export {
   isWhatsAppCode,
 } from './whatsapp';
 export type { WhatsAppBookingContext } from './whatsapp';
+export { AB_COOKIE, AB_MAX_AGE_SECONDS, getAbVariant, isAbVariant, readAbVariant } from './ab';
+export type { AbVariant } from './ab';
 
 export type TrackingEvent = {
   name: string;
@@ -67,8 +71,12 @@ function getUtmParams(): Record<string, string> {
   return utm;
 }
 
-export function track(eventName: string, payload: Record<string, unknown> = {}) {
+export function track(eventName: string, rawPayload: Record<string, unknown> = {}) {
   if (typeof window === 'undefined') return;
+
+  // Teste A/B (ADR-0013): a variante vai em todo evento — GA4, dataLayer e /api/events.
+  const abVariant = getAbVariant();
+  const payload = abVariant ? { ab_variant: abVariant, ...rawPayload } : rawPayload;
 
   const event: DataLayerEvent = {
     event: eventName,

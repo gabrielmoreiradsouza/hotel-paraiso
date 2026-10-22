@@ -18,6 +18,8 @@ export interface Attribution {
   fbclid?: string;
   landing_page: string;
   first_seen: string;
+  /** Variante do teste A/B da home (ADR-0013), gravada pelo servidor junto com a reserva. */
+  ab_variant?: string;
 }
 
 function readStore(): Attribution | null {

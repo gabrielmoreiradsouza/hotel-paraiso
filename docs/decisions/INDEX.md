@@ -18,6 +18,7 @@
 | 0010 | Sistema de aprendizado (3 artefatos por incidente)      | planejado | —          |
 | 0011 | Redis como estado compartilhado do `apps/web`           | aceito    | 2026-08-27 |
 | 0012 | Código de rastreio do WhatsApp até a reserva na Artax   | aceito    | 2026-10-21 |
+| 0013 | Teste A/B da home (preço real e reserva sem trocar)     | aceito    | 2026-10-21 |
 
 ## Como criar novo ADR
 

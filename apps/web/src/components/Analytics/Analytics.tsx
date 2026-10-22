@@ -27,10 +27,12 @@ export function Analytics() {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA4_ID}', {
+              // Teste A/B (ADR-0013): o page_view automático também leva a variante.
+              var hpAb = document.cookie.match(/(?:^|;\\s*)hp_ab=(A|B)(?:;|$)/);
+              gtag('config', '${GA4_ID}', Object.assign({
                 send_page_view: true,
                 currency: 'BRL',
-              });
+              }, hpAb ? { ab_variant: hpAb[1] } : {}));
               ${GADS_ID ? `gtag('config', '${GADS_ID}');` : ''}
             `}
           </Script>

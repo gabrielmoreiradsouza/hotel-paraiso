@@ -13,6 +13,7 @@ import {
   trackAvailabilityViewed,
   getAttribution,
   getGA4Ids,
+  getAbVariant,
 } from '@hotel-paraiso/tracking';
 import { useSearchParams } from 'next/navigation';
 
@@ -132,7 +133,10 @@ function BookingContent() {
           setMinPrices((prev) => ({ ...prev, ...data.prices }));
         }
       })
-      .catch(() => {});
+      // Sem preço da Artax a página segue com o fallback; só registra.
+      .catch((err: unknown) => {
+        console.debug('[reservar] min-prices falhou:', err);
+      });
   }, []);
 
   // Restore state from sessionStorage on mount
@@ -397,6 +401,7 @@ function BookingContent() {
           adults: guests,
           total_price: selectedRoom.price,
           currency: 'BRL',
+          ab_variant: getAbVariant(),
         });
       }
 

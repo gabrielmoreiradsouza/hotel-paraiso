@@ -13,7 +13,16 @@ const heroImages = [
   { src: '/images/common/fachada-3.jpg', alt: 'Hotel e Restaurante Paraíso — Entrada' },
 ];
 
-export function Hero() {
+interface HeroProps {
+  /**
+   * Variante B do teste A/B (ADR-0013): hero mais baixo para os preços aparecerem cedo,
+   * sem o widget de datas (as datas já vêm preenchidas na seção de preços) e com o botão
+   * levando direto aos preços.
+   */
+  compact?: boolean;
+}
+
+export function Hero({ compact = false }: HeroProps = {}) {
   const t = useTranslations('hero');
   const [current, setCurrent] = useState(0);
   const [loaded, setLoaded] = useState<Set<number>>(new Set([0]));
@@ -36,7 +45,9 @@ export function Hero() {
   }, [next]);
 
   return (
-    <section className="relative h-dvh min-h-[600px] w-full overflow-hidden">
+    <section
+      className={`relative w-full overflow-hidden ${compact ? 'h-[62dvh] min-h-[440px]' : 'h-dvh min-h-[600px]'}`}
+    >
       {/* Only render loaded slides */}
       {heroImages.map((img, i) => {
         if (!loaded.has(i)) return null;
@@ -67,30 +78,38 @@ export function Hero() {
         <Image
           src="/brand/logo-512.png"
           alt="HRP"
-          width={120}
-          height={120}
-          className="mb-8 invert"
+          width={compact ? 72 : 120}
+          height={compact ? 72 : 120}
+          className={`invert ${compact ? 'mb-5' : 'mb-8'}`}
           priority
         />
 
-        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+        <h1
+          className={`font-display font-bold tracking-tight ${compact ? 'text-3xl sm:text-5xl md:text-6xl' : 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl'}`}
+        >
           {t('title1')}
           <br />
           <span className="text-brand-gold">{t('title2')}</span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-beige-200 sm:text-xl">{t('subtitle')}</p>
+        {!compact && (
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-beige-200 sm:text-xl">
+            {t('subtitle')}
+          </p>
+        )}
 
         <a
-          href="/reservar"
-          className="mt-10 inline-flex items-center gap-2 rounded-sm bg-brand-gold px-8 py-4 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
+          href={compact ? '#reservar-agora' : '/reservar'}
+          className={`${compact ? 'mt-6' : 'mt-10'} inline-flex items-center gap-2 rounded-sm bg-brand-gold px-8 py-4 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400`}
         >
           {t('cta')}
         </a>
       </div>
 
       {/* Slide indicators — pushed up on mobile to clear the booking pill */}
-      <div className="absolute bottom-[4.5rem] left-1/2 z-10 flex -translate-x-1/2 gap-2 md:bottom-20">
+      <div
+        className={`absolute left-1/2 z-10 flex -translate-x-1/2 gap-2 ${compact ? 'bottom-5' : 'bottom-[4.5rem] md:bottom-20'}`}
+      >
         {heroImages.map((_, i) => (
           <button
             key={i}
@@ -105,15 +124,21 @@ export function Hero() {
       </div>
 
       {/* Scroll indicator — hidden on mobile, booking widget serves the purpose */}
-      <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 animate-bounce md:block motion-reduce:animate-none">
+      <div
+        className={`absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 animate-bounce motion-reduce:animate-none ${compact ? '' : 'md:block'}`}
+      >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>
       </div>
 
       {/* Booking widget — glass state inside hero, docks on scroll */}
-      <BookingWidget />
-      <BookingSentinel />
+      {!compact && (
+        <>
+          <BookingWidget />
+          <BookingSentinel />
+        </>
+      )}
     </section>
   );
 }

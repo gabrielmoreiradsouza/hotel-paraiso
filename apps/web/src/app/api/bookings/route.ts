@@ -7,7 +7,7 @@ import { verifyOffer } from '@/lib/availability';
 import { getClientIp } from '@/lib/client-ip';
 import { acquire, buildIdempotencyKey, commit, release } from '@/lib/idempotency';
 import { storeAttribution, listAttributions } from '@/lib/attribution-store';
-import { formatAttributionLabel, type Attribution } from '@hotel-paraiso/tracking';
+import { formatAttributionLabel, readAbVariant, type Attribution } from '@hotel-paraiso/tracking';
 
 const EVOLUTION_URL = (
   process.env['EVOLUTION_API_URL']?.trim() || 'https://evo.moreirads.cloud'
@@ -345,8 +345,23 @@ export async function POST(request: Request) {
       sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid, notes);
       sendWhatsAppConfirmation(guestName, guestPhone, checkin, checkout, bid, notes, attrLabel);
 
-      if (attribution) {
-        storeAttribution(bid, attribution, attrLabel ?? '').catch((err) => {
+      // Teste A/B (ADR-0013): variante do cookie `hp_ab` gravada junto com a origem.
+      const abVariant = readAbVariant(request.headers.get('cookie'));
+      // Sem origem no browser (localStorage bloqueado/limpo), a variante ainda precisa
+      // ficar registrada: grava uma origem mínima, marcada como desconhecida.
+      const toStore: Attribution | null = attribution
+        ? { ...attribution, ...(abVariant && { ab_variant: abVariant }) }
+        : abVariant
+          ? {
+              source: '(desconhecida)',
+              medium: '(none)',
+              landing_page: '',
+              first_seen: new Date().toISOString(),
+              ab_variant: abVariant,
+            }
+          : null;
+      if (toStore) {
+        storeAttribution(bid, toStore, attrLabel ?? '').catch((err) => {
           console.error('[attribution] store failed:', err);
         });
       }
@@ -364,6 +379,7 @@ export async function POST(request: Request) {
         ...(trackingIp != null && { clientIp: trackingIp }),
         ...(ga4ClientId != null && { ga4ClientId }),
         ...(ga4SessionId != null && { ga4SessionId }),
+        ...(abVariant != null && { abVariant }),
       });
 
       const payload = { success: true, booking_id: bid, source: 'artax' };

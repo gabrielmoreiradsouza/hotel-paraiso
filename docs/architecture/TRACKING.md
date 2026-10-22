@@ -153,3 +153,10 @@ campaign, term, content, gclid). O servidor grava em `wa:click:{CODE}` e o relat
 `GET /api/admin/whatsapp-report?days=7` cruza com o histórico da instância HRP na Evolution
 (conversa com código, provável site, oferta, tempo de resposta) e com as reservas da Artax
 (telefone ou código na observação, até 14 dias).
+
+## Teste A/B da home (ADR-0013)
+
+Todo evento leva `ab_variant` (`A`/`B`, cookie `hp_ab`) quando o visitante está no teste — no
+dataLayer, no gtag (GA4) e no `/api/events`. O `purchase` do Measurement Protocol e a origem
+gravada da reserva (`attr:{id}`) também levam a variante. Registrar `ab_variant` como dimensão
+personalizada de escopo de evento no GA4.

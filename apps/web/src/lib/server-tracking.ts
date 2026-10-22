@@ -32,6 +32,7 @@ export async function trackGA4Purchase(params: {
   clientIp?: string;
   ga4ClientId?: string;
   ga4SessionId?: string;
+  abVariant?: string;
 }) {
   if (!GA4_MEASUREMENT_ID || !GA4_API_SECRET) return;
 
@@ -47,6 +48,10 @@ export async function trackGA4Purchase(params: {
   };
   if (params.ga4SessionId) {
     eventParams['session_id'] = params.ga4SessionId;
+  }
+  // Teste A/B (ADR-0013): dimensão personalizada `ab_variant` também na conversão do servidor.
+  if (params.abVariant) {
+    eventParams['ab_variant'] = params.abVariant;
   }
 
   try {
@@ -137,6 +142,7 @@ export function trackServerPurchase(params: {
   clientIp?: string;
   ga4ClientId?: string;
   ga4SessionId?: string;
+  abVariant?: string;
 }) {
   // Fire and forget — não bloqueia a resposta da reserva, mas a falha precisa aparecer:
   // conversão perdida silenciosamente vira decisão de orçamento tomada às cegas.

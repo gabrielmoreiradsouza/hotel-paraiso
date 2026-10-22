@@ -81,13 +81,21 @@ const nextConfig: NextConfig = {
         // cookies() opts into dynamic rendering. CDN-Cache-Control is respected
         // by Cloudflare and overrides Cache-Control for edge caching only.
         // Googlebot (no locale cookie) always gets the cached 'pt' version.
-        source: '/((?!admin|api|reservar|_next|images).*)',
+        // `.+` exclui a home: ver a regra seguinte.
+        source: '/((?!admin|api|reservar|_next|images).+)',
         headers: [
           {
             key: 'CDN-Cache-Control',
             value: 'public, s-maxage=60',
           },
         ],
+      },
+      {
+        // Teste A/B (ADR-0013): a variante da home é decidida pelo cookie `hp_ab` no
+        // middleware. Cache de borda compartilhado serviria a variante de um visitante a
+        // outro e invalidaria o teste. A página segue ISR na origem, então o custo é baixo.
+        source: '/',
+        headers: [{ key: 'CDN-Cache-Control', value: 'no-store' }],
       },
       {
         source: '/images/:path*',
