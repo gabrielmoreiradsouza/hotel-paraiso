@@ -172,6 +172,13 @@ function parseStored(raw: string, code: string): WhatsAppClick | null {
   return null;
 }
 
+/** UTM usada nos testes de ponta a ponta em produção; não entra em relatório. */
+export const TEST_UTM_SOURCE = 'teste-claude';
+
+export function isTestClick(click: WhatsAppClick): boolean {
+  return click.origem.source?.toLowerCase() === TEST_UTM_SOURCE;
+}
+
 export async function getWhatsAppClicks(codes: string[]): Promise<Record<string, WhatsAppClick>> {
   const result: Record<string, WhatsAppClick> = {};
   if (codes.length === 0) return result;

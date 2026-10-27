@@ -25,6 +25,17 @@ pacote `artax-client` pode citar o host — verificado por regra ESLint.
 **Implementação:** `eslint.config.js` + `apps/web/src/lib/artax.ts`
 **Documento:** [DR-002-artax-client-obrigatorio.md](DR-002-artax-client-obrigatorio.md)
 
+### DR-003: Cookie e cabeçalho verificados pelo domínio público
+
+**Origem:** INC-003 (2026-10-27)
+**Status:** ativa
+**Categoria:** infrastructure
+**Resumo:** O Cloudflare reescreve cabeçalhos e apaga `Set-Cookie` sem erro visível. Mudança
+que depende disso só está pronta depois de conferida no domínio público.
+**Implementação:** `apps/web/edge/ab-home-worker.js`
+**Teste:** `scripts/check-ab-edge.sh`
+**Documento:** [DR-003-verificar-pelo-dominio-publico.md](DR-003-verificar-pelo-dominio-publico.md)
+
 ## Formato de entrada (template)
 
 ```markdown

@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import { isAdminAuthed } from '@/lib/admin-session';
+import { hasReportReadToken, isAdminAuthed } from '@/lib/admin-session';
 import { isArtaxConfigured } from '@/lib/artax';
 import { buildWhatsAppReport } from '@/lib/whatsapp-report';
 
-/** Relatório do funil do WhatsApp (ADR-0012). `?days=7` por padrão, máximo 90. */
+/**
+ * Relatório do funil do WhatsApp (ADR-0012). `?days=7` por padrão, máximo 90.
+ * Aceita sessão de admin ou o token só de leitura do relatório.
+ */
 export async function GET(request: Request) {
-  if (!(await isAdminAuthed())) {
+  if (!hasReportReadToken(request) && !(await isAdminAuthed())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   if (!isArtaxConfigured) {

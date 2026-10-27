@@ -12,7 +12,7 @@ import { FAQ } from '@/components/FAQ/FAQ';
 import { Restaurant } from '@/components/Restaurant/Restaurant';
 
 /**
- * Variante B da home (ADR-0013). Servida em `/` pelo middleware para metade dos
+ * Variante B da home (ADR-0013). Servida em `/` pelo Worker do Cloudflare para metade dos
  * visitantes; o caminho `/variante-b` em si não é indexável e aponta para a home.
  */
 export const metadata: Metadata = {

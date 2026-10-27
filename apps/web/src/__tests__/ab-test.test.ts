@@ -1,20 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { NextRequest } from 'next/server';
 import { readAbVariant } from '@hotel-paraiso/tracking';
-import { middleware } from '../../middleware';
+import { plan, stripAbCookie } from '../../edge/ab-home-worker.js';
 import { addDays, nightsBetween } from '../components/QuickBook/quickbook-utils';
 
 /** ADR-0013 — teste A/B da home. */
 
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1';
 
-function request(cookie?: string, ua = UA) {
+function request(cookie?: string, ua = UA, path = '/') {
   const headers: Record<string, string> = { 'user-agent': ua };
   if (cookie) headers['cookie'] = cookie;
-  return new NextRequest('https://hotelparaiso.moreirads.cloud/', { headers });
+  return new Request(`https://hotelparaiso.moreirads.cloud${path}`, { headers });
 }
-
-const rewriteOf = (res: Response) => res.headers.get('x-middleware-rewrite');
 
 describe('readAbVariant', () => {
   it('lê só valores válidos do cookie hp_ab', () => {
@@ -26,36 +23,42 @@ describe('readAbVariant', () => {
   });
 });
 
-describe('middleware do A/B', () => {
+describe('Worker do A/B no edge', () => {
   it('mantém a variante do cookie sem regravar', () => {
-    const b = middleware(request('hp_ab=B'));
-    expect(rewriteOf(b)).toContain('/variante-b');
-    expect(b.headers.get('set-cookie')).toBeNull();
-
-    const a = middleware(request('hp_ab=A'));
-    expect(rewriteOf(a)).toBeNull();
-    expect(a.headers.get('set-cookie')).toBeNull();
+    expect(plan(request('hp_ab=B'))).toMatchObject({ variant: 'B', setCookie: false });
+    expect(plan(request('hp_ab=B'))?.target).toBe(
+      'https://hotelparaiso.moreirads.cloud/variante-b'
+    );
+    expect(plan(request('hp_ab=A'))).toMatchObject({ variant: 'A', setCookie: false });
+    expect(plan(request('hp_ab=A'))?.target).toBe('https://hotelparaiso.moreirads.cloud/');
   });
 
-  it('sorteia na primeira visita, grava 30 dias e serve a mesma variante sorteada', () => {
-    const seen = new Set<string>();
-    for (let i = 0; i < 200; i++) {
-      const res = middleware(request());
-      const cookie = res.headers.get('set-cookie') ?? '';
-      const variant = readAbVariant(cookie);
-      expect(variant).not.toBeNull();
-      expect(cookie).toMatch(/Max-Age=2592000/i);
-      expect(Boolean(rewriteOf(res))).toBe(variant === 'B');
-      seen.add(variant as string);
-    }
-    // 200 sorteios 50/50: chance de sair só uma variante é ~1e-60.
-    expect(seen).toEqual(new Set(['A', 'B']));
+  it('sorteia na primeira visita e grava o cookie', () => {
+    expect(plan(request(), 0)).toMatchObject({ variant: 'A', setCookie: true });
+    expect(plan(request(), 255)).toMatchObject({ variant: 'B', setCookie: true });
+    // Cookie inválido conta como primeira visita.
+    expect(plan(request('hp_ab=C'), 200)).toMatchObject({ variant: 'B', setCookie: true });
   });
 
-  it('robô de busca sempre vê a A e não recebe cookie', () => {
-    const res = middleware(request(undefined, 'Mozilla/5.0 (compatible; Googlebot/2.1)'));
-    expect(rewriteOf(res)).toBeNull();
-    expect(res.headers.get('set-cookie')).toBeNull();
+  it('preserva UTM e gclid na URL da variante B', () => {
+    const res = plan(request('hp_ab=B', UA, '/?utm_source=google&gclid=abc'));
+    expect(res?.target).toBe(
+      'https://hotelparaiso.moreirads.cloud/variante-b?utm_source=google&gclid=abc'
+    );
+  });
+
+  it('não mexe em robô, em outras páginas nem em POST', () => {
+    expect(plan(request(undefined, 'Mozilla/5.0 (compatible; Googlebot/2.1)'))).toBeNull();
+    expect(plan(request(undefined, UA, '/quartos'))).toBeNull();
+    expect(
+      plan(new Request('https://hotelparaiso.moreirads.cloud/', { method: 'POST' }))
+    ).toBeNull();
+  });
+
+  it('tira só o hp_ab da subrequisição, para o cache de / ser sempre a A', () => {
+    expect(stripAbCookie('a=1; hp_ab=B; b=2')).toBe('a=1; b=2');
+    expect(stripAbCookie('hp_ab=B')).toBeNull();
+    expect(stripAbCookie(null)).toBeNull();
   });
 });
 

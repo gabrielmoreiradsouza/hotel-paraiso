@@ -1,5 +1,6 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 
 /**
  * Sessão do admin — fonte única de verdade.
@@ -93,6 +94,27 @@ export function verifySessionToken(token: string | undefined): boolean {
 export async function isAdminAuthed(): Promise<boolean> {
   const store = await cookies();
   return verifySessionToken(store.get(ADMIN_COOKIE)?.value);
+}
+
+/**
+ * Token só de leitura do relatório do WhatsApp (`Authorization: Bearer …`).
+ *
+ * Serve a leitores sem sessão (agendamento semanal, outra sessão de IA) sem entregar a
+ * senha do admin. Segredo próprio (`REPORT_READ_TOKEN`), então vazar ou trocar um não
+ * afeta o outro. Só a rota do relatório aceita — nunca usar em rota que escreve.
+ */
+const BearerSchema = z
+  .string()
+  .max(512)
+  .regex(/^Bearer\s+\S+$/i)
+  .transform((v) => v.replace(/^Bearer\s+/i, ''));
+
+export function hasReportReadToken(request: Request): boolean {
+  const secret = process.env['REPORT_READ_TOKEN'];
+  // Curto demais vira senha adivinhável: nesse caso o token fica desligado.
+  if (!secret || secret.length < 32) return false;
+  const parsed = BearerSchema.safeParse(request.headers.get('authorization'));
+  return parsed.success ? safeEqual(parsed.data, secret) : false;
 }
 
 export const SESSION_COOKIE_OPTIONS = {

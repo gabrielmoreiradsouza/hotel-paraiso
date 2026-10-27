@@ -1,8 +1,8 @@
 /**
  * Teste A/B da página inicial (ADR-0013).
  *
- * O sorteio acontece no middleware do app web, na primeira visita, e fica no cookie
- * `hp_ab` por 30 dias — a mesma pessoa sempre vê a mesma variante. O cookie não é
+ * O sorteio acontece no Worker do Cloudflare (`apps/web/edge/ab-home-worker.js`), na primeira
+ * visita, e fica no cookie `hp_ab` por 30 dias — a mesma pessoa sempre vê a mesma variante. O cookie não é
  * httpOnly de propósito: o tracking do browser precisa ler a variante para mandá-la em
  * todo evento (GA4, dataLayer e /api/events).
  */

@@ -7,6 +7,7 @@ import {
 } from '@hotel-paraiso/tracking';
 import {
   getWhatsAppClicks,
+  isTestClick,
   listWhatsAppClicksSince,
   parseWhatsAppClick,
   recordWhatsAppClick,
@@ -119,5 +120,16 @@ describe('origem do relatório', () => {
     expect(origemDe({ source: '(direct)', medium: '(none)' })).toBe('direto');
     expect(origemDe(undefined)).toBe('direto');
     expect(origemDe({ source: 'instagram', medium: 'social' })).toBe('outros');
+  });
+});
+
+describe('cliques de teste', () => {
+  const base = { code: 'S-AAAA', at: '2026-10-27T00:00:00.000Z', page: '/' };
+
+  it('reconhece utm_source=teste-claude, sem diferenciar maiúsculas', () => {
+    expect(isTestClick({ ...base, origem: { source: 'teste-claude' } })).toBe(true);
+    expect(isTestClick({ ...base, origem: { source: 'Teste-Claude' } })).toBe(true);
+    expect(isTestClick({ ...base, origem: { source: 'google', medium: 'cpc' } })).toBe(false);
+    expect(isTestClick({ ...base, origem: {} })).toBe(false);
   });
 });

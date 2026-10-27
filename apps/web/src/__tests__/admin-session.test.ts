@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { createHmac } from 'node:crypto';
-import { createSessionToken, verifyAdminPassword, verifySessionToken } from '../lib/admin-session';
+import {
+  createSessionToken,
+  hasReportReadToken,
+  verifyAdminPassword,
+  verifySessionToken,
+} from '../lib/admin-session';
 
 const SENHA = 'senha-de-teste-bem-longa';
 
@@ -71,5 +76,30 @@ describe('token de sessão', () => {
     // Formato legado HMAC(senha,'admin') não é mais aceito.
     const legado = createHmac('sha256', SENHA).update('admin').digest('hex');
     expect(verifySessionToken(legado)).toBe(false);
+  });
+});
+
+describe('token de leitura do relatório', () => {
+  const TOKEN = 'r'.repeat(40);
+  const comHeader = (value?: string) =>
+    new Request('https://x/api/admin/whatsapp-report', {
+      headers: value ? { authorization: value } : {},
+    });
+
+  it('aceita só o Bearer exato', () => {
+    process.env['REPORT_READ_TOKEN'] = TOKEN;
+    expect(hasReportReadToken(comHeader(`Bearer ${TOKEN}`))).toBe(true);
+    expect(hasReportReadToken(comHeader(`Bearer ${TOKEN.slice(0, -1)}`))).toBe(false);
+    expect(hasReportReadToken(comHeader(TOKEN))).toBe(false);
+    expect(hasReportReadToken(comHeader())).toBe(false);
+  });
+
+  it('a senha do admin não serve de token, e token curto ou ausente desliga a via', () => {
+    process.env['REPORT_READ_TOKEN'] = TOKEN;
+    expect(hasReportReadToken(comHeader(`Bearer ${SENHA}`))).toBe(false);
+    process.env['REPORT_READ_TOKEN'] = 'curto';
+    expect(hasReportReadToken(comHeader('Bearer curto'))).toBe(false);
+    delete process.env['REPORT_READ_TOKEN'];
+    expect(hasReportReadToken(comHeader(`Bearer ${TOKEN}`))).toBe(false);
   });
 });

@@ -17,7 +17,7 @@ import {
   type FunnelBooking,
   type FunnelResult,
 } from './whatsapp-funnel';
-import { getWhatsAppClicks, listWhatsAppClicksSince } from './whatsapp-leads';
+import { getWhatsAppClicks, isTestClick, listWhatsAppClicksSince } from './whatsapp-leads';
 
 /**
  * Relatório do funil do WhatsApp do site (ADR-0012).
@@ -135,7 +135,7 @@ export function buildWhatsAppReport(days: number): Promise<WhatsAppReport> {
 }
 
 async function generate(days: number): Promise<WhatsAppReport> {
-  const cacheKey = `wa:report:v3:${days}`;
+  const cacheKey = `wa:report:v4:${days}`;
   const cached = await withRedis(async (redis) => redis.get(cacheKey), null as string | null);
   if (cached) {
     try {
@@ -150,11 +150,12 @@ async function generate(days: number): Promise<WhatsAppReport> {
   const now = Date.now();
   const sinceMs = now - days * 86_400_000;
 
-  const [clicks, evo, artax] = await Promise.all([
+  const [allClicks, evo, artax] = await Promise.all([
     listWhatsAppClicksSince(sinceMs),
     fetchMessagesSince(sinceMs),
     scanArtaxBookings(sinceMs),
   ]);
+  const clicks = allClicks.filter((c) => !isTestClick(c));
 
   // Códigos citados podem ser de cliques anteriores ao período.
   const citedCodes = [
@@ -165,11 +166,28 @@ async function generate(days: number): Promise<WhatsAppReport> {
         .filter((c): c is string => c !== null)
     ),
   ];
-  const clicksByCode = await getWhatsAppClicks(citedCodes);
+  const allClicksByCode = await getWhatsAppClicks(citedCodes);
+
+  // Clique de teste sai junto com a conversa que o citou: só tirar o código faria o chat
+  // reaparecer como "provável site".
+  const testCodes = new Set(
+    Object.values(allClicksByCode)
+      .filter(isTestClick)
+      .map((c) => c.code)
+  );
+  const testChats = new Set(
+    evo.messages
+      .filter((m) => !m.fromMe && testCodes.has(codeInMessage(m.text) ?? ''))
+      .map((m) => m.chat)
+  );
+  const messages = evo.messages.filter((m) => !testChats.has(m.chat));
+  const clicksByCode = Object.fromEntries(
+    Object.entries(allClicksByCode).filter(([code]) => !testCodes.has(code))
+  );
 
   // "Número novo": só checa os chats que poderiam virar "provável site".
   const clickTimes = clicks.map((c) => Date.parse(c.at));
-  const candidates = summarizeChats(evo.messages).filter(
+  const candidates = summarizeChats(messages).filter(
     (c) =>
       !c.code &&
       clickTimes.some((t) => {
@@ -189,7 +207,7 @@ async function generate(days: number): Promise<WhatsAppReport> {
   }
   for (const chat of candidates.slice(MAX_KNOWN_CHAT_CHECKS)) knownChats.add(chat.chat);
 
-  const input = { clicks, clicksByCode, messages: evo.messages, knownChats };
+  const input = { clicks, clicksByCode, messages, knownChats };
   const firstPass = analyzeFunnel({ ...input, bookings: artax.bookings });
 
   // Valor só das reservas que casaram — poupa a cota da Artax.

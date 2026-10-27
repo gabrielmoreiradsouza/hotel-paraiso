@@ -91,11 +91,11 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Teste A/B (ADR-0013): a variante da home é decidida pelo cookie `hp_ab` no
-        // middleware. Cache de borda compartilhado serviria a variante de um visitante a
-        // outro e invalidaria o teste. A página segue ISR na origem, então o custo é baixo.
+        // Teste A/B (ADR-0013): o sorteio é no Worker do Cloudflare
+        // (`apps/web/edge/ab-home-worker.js`), que busca `/` para a A e `/variante-b` para a B.
+        // A origem nunca personaliza `/` por cookie, então a home volta a ser cacheável.
         source: '/',
-        headers: [{ key: 'CDN-Cache-Control', value: 'no-store' }],
+        headers: [{ key: 'CDN-Cache-Control', value: 'public, s-maxage=60' }],
       },
       {
         source: '/images/:path*',
