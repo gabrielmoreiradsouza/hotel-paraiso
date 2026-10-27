@@ -77,8 +77,10 @@ força cache em `/`, ignora `CDN-Cache-Control: no-store` e apaga o `Set-Cookie`
 cache de `/` (bypass) foi descartado por custar velocidade na página de destino do tráfego
 pago (TTFB sem cache 0,2–0,8 s contra 0,1–0,17 s com cache, em 27/10).
 
-- **Sorteio:** Worker `apps/web/edge/ab-home-worker.js` na rota
-  `hotelparaiso.moreirads.cloud/`. Cookie `hp_ab` igual (30 dias, não-httpOnly), agora
+- **Sorteio:** Worker `apps/web/edge/ab-home-worker.js` (script `hotelparaiso-ab-home`) na
+  rota `hotelparaiso.moreirads.cloud/*`, "fail open". A rota sem `*` não casa com query
+  string, então deixava de fora todo clique de anúncio (`?gclid=`); o Worker repassa
+  intacto tudo que não é `/`. No ar desde 27/10/2026 ~20h. Cookie `hp_ab` igual (30 dias, não-httpOnly), agora
   acrescentado pelo Worker depois do cache. Robôs veem a A, sem cookie.
 - **Variantes em cache separado:** o Worker busca `/` (A) ou `/variante-b` (B) sem o
   cookie `hp_ab`; a URL do navegador continua `/`.
