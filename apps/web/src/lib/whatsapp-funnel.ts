@@ -70,6 +70,10 @@ export interface Conversation {
   offer_sent: boolean;
   booking_id: number | null;
   booking_value: number | null;
+  /** Criação da reserva na Artax, horário de Brasília (`2026-10-27T16:40:00-03:00`). */
+  booking_created_at: string | null;
+  /** gclid do clique, só em conversa que virou reserva — importação offline no Google Ads. */
+  gclid: string | null;
   click_found: boolean;
 }
 
@@ -153,6 +157,11 @@ function summarize(
     firstResponseAt: replies[0]?.at ?? null,
     offerSent: replies.some((m) => isOffer(m.text)),
   };
+}
+
+/** Brasil não tem horário de verão desde 2019: -03:00 fixo. */
+export function toBrasiliaIso(ms: number): string {
+  return `${new Date(ms - 3 * 3_600_000).toISOString().slice(0, 19)}-03:00`;
 }
 
 const emptyRow = (): FunnelRow => ({
@@ -250,6 +259,8 @@ export function analyzeFunnel(input: {
       offer_sent: chat.offerSent,
       booking_id: booking?.booking_id ?? null,
       booking_value: booking?.value ?? null,
+      booking_created_at: booking ? toBrasiliaIso(booking.createdAt) : null,
+      gclid: (booking && click?.origem.gclid) || null,
       click_found: Boolean(click),
     };
   }

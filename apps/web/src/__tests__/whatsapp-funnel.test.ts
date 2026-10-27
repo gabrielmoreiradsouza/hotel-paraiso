@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { WaMessage } from '../lib/evolution-messages';
 import { parseRecord } from '../lib/evolution-messages';
-import { analyzeFunnel, codeInMessage, isOffer } from '../lib/whatsapp-funnel';
+import { analyzeFunnel, codeInMessage, isOffer, toBrasiliaIso } from '../lib/whatsapp-funnel';
 import type { WhatsAppClick } from '../lib/whatsapp-leads';
 
 /** ADR-0012 — funil clique → conversa → oferta → reserva. */
@@ -197,5 +197,45 @@ describe('analyzeFunnel', () => {
       40
     );
     expect(analyzeFunnel({ ...base, bookings: [tooLate] }).total.reservas).toBe(0);
+  });
+});
+
+describe('dados para importar a reserva no Google Ads', () => {
+  it('leva gclid e criação da reserva em -03:00 só quando a conversa virou reserva', () => {
+    const pago: WhatsAppClick = {
+      ...click('GC72', min(0), 'hrp_regional'),
+      origem: { source: 'google', medium: 'cpc', campaign: 'hrp_regional', gclid: 'Cj0KCQ-teste' },
+    };
+    const semReserva: WhatsAppClick = {
+      ...click('GC34', min(0), 'hrp_regional'),
+      origem: { source: 'google', medium: 'cpc', gclid: 'Cj0KCQ-outro' },
+    };
+    const r = analyzeFunnel({
+      clicks: [pago, semReserva],
+      clicksByCode: { GC72: pago, GC34: semReserva },
+      messages: [
+        msg('a@lid', min(1), false, 'Código: S-GC72'),
+        msg('b@lid', min(2), false, 'Código: S-GC34'),
+      ],
+      knownChats: new Set(),
+      bookings: [{ booking_id: 77, createdAt: min(40), phones: [], codes: ['GC72'], value: 400 }],
+    });
+    const comReserva = r.conversas.find((c) => c.code === 'S-GC72');
+    expect(comReserva).toMatchObject({
+      booking_id: 77,
+      booking_value: 400,
+      gclid: 'Cj0KCQ-teste',
+      booking_created_at: '2026-10-20T09:40:00-03:00',
+    });
+    expect(r.conversas.find((c) => c.code === 'S-GC34')).toMatchObject({
+      booking_id: null,
+      gclid: null,
+      booking_created_at: null,
+    });
+  });
+
+  it('formata no horário de Brasília', () => {
+    expect(toBrasiliaIso(Date.parse('2026-10-27T19:40:00Z'))).toBe('2026-10-27T16:40:00-03:00');
+    expect(toBrasiliaIso(Date.parse('2026-10-28T02:10:05Z'))).toBe('2026-10-27T23:10:05-03:00');
   });
 });

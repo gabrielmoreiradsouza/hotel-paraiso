@@ -71,6 +71,17 @@ function getUtmParams(): Record<string, string> {
   return utm;
 }
 
+/** true na primeira chamada da sessão; sem sessionStorage (modo privado), sempre true. */
+function firstInSession(key: string): boolean {
+  try {
+    if (window.sessionStorage.getItem(key)) return false;
+    window.sessionStorage.setItem(key, '1');
+  } catch {
+    // Melhor contar a mais que perder a conversão.
+  }
+  return true;
+}
+
 export function track(eventName: string, rawPayload: Record<string, unknown> = {}) {
   if (typeof window === 'undefined') return;
 
@@ -109,6 +120,16 @@ export function track(eventName: string, rawPayload: Record<string, unknown> = {
           value: payload['value'],
           currency: 'BRL',
           transaction_id: payload['booking_id'],
+        });
+      }
+      // Conversão principal desde 27/10. Cada toque gera código novo, então o
+      // transaction_id sozinho não deduplica: uma conversão por sessão do navegador.
+      // Beacon sobrevive à troca para o app do WhatsApp.
+      if (eventName === 'whatsapp_clicked' && firstInSession('hp_wa_conversion')) {
+        gtag('event', 'conversion', {
+          send_to: 'AW-18401755556/Ub2HCNLg_qsdEKSD0sZE',
+          transaction_id: payload['wa_code'],
+          transport_type: 'beacon',
         });
       }
     }

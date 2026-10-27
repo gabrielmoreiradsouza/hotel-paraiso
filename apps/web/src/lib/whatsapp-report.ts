@@ -135,7 +135,7 @@ export function buildWhatsAppReport(days: number): Promise<WhatsAppReport> {
 }
 
 async function generate(days: number): Promise<WhatsAppReport> {
-  const cacheKey = `wa:report:v4:${days}`;
+  const cacheKey = `wa:report:v5:${days}`;
   const cached = await withRedis(async (redis) => redis.get(cacheKey), null as string | null);
   if (cached) {
     try {
