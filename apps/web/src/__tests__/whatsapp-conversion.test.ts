@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { track } from '@hotel-paraiso/tracking';
+import { flattenForGa, track } from '@hotel-paraiso/tracking';
 
 /** Conversão do Google Ads no clique do WhatsApp (pedido design-mds-3b, 27/10). */
 
@@ -66,5 +66,29 @@ describe('conversão do clique no WhatsApp', () => {
   it('não dispara a conversão do WhatsApp em outros eventos', () => {
     track('room_selected', { room: 'casal-luxo' });
     expect(conversions()).toHaveLength(0);
+  });
+
+  it('manda a origem achatada ao GA4, nunca "[object Object]"', () => {
+    track('whatsapp_clicked', {
+      wa_code: 'S-7KQ3',
+      origem: { source: 'google', medium: 'cpc', campaign: 'hrp_regional', gclid: undefined },
+    });
+    const sent = gtag.mock.calls.find((c) => c[1] === 'whatsapp_clicked')?.[2];
+    expect(sent).toMatchObject({
+      wa_code: 'S-7KQ3',
+      origem_source: 'google',
+      origem_medium: 'cpc',
+      origem_campaign: 'hrp_regional',
+    });
+    expect(sent).not.toHaveProperty('origem');
+    expect(sent).not.toHaveProperty('origem_gclid');
+  });
+});
+
+describe('flattenForGa', () => {
+  it('achata um nível, mantém arrays e descarta vazios', () => {
+    expect(
+      flattenForGa({ a: 1, e: '', o: { x: 'y', z: '' }, items: [{ id: 1 }], n: null, u: undefined })
+    ).toEqual({ a: 1, o_x: 'y', items: [{ id: 1 }] });
   });
 });

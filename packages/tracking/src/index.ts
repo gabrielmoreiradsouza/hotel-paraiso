@@ -71,6 +71,26 @@ function getUtmParams(): Record<string, string> {
   return utm;
 }
 
+/**
+ * GA4 não aceita objeto como parâmetro: `{ origem: { source } }` chegava como
+ * "[object Object]". Achata um nível (`origem_source`) e descarta vazios.
+ */
+export function flattenForGa(payload: Record<string, unknown>): Record<string, unknown> {
+  const flat: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [inner, innerValue] of Object.entries(value)) {
+        if (innerValue !== undefined && innerValue !== null && innerValue !== '') {
+          flat[`${key}_${inner}`] = innerValue;
+        }
+      }
+    } else if (value !== undefined && value !== null && value !== '') {
+      flat[key] = value;
+    }
+  }
+  return flat;
+}
+
 /** true na primeira chamada da sessão; sem sessionStorage (modo privado), sempre true. */
 function firstInSession(key: string): boolean {
   try {
@@ -106,7 +126,7 @@ export function track(eventName: string, rawPayload: Record<string, unknown> = {
   if (typeof window !== 'undefined' && 'gtag' in window) {
     const gtag = (window as unknown as Record<string, (...args: unknown[]) => void>)['gtag'];
     if (gtag) {
-      gtag('event', eventName, payload);
+      gtag('event', eventName, flattenForGa(payload));
 
       // Google Ads conversions
       if (eventName === 'checkout_started') {
