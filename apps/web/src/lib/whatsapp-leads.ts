@@ -201,13 +201,44 @@ export async function getWhatsAppClicks(codes: string[]): Promise<Record<string,
 }
 
 export async function listWhatsAppClicksSince(sinceMs: number): Promise<WhatsAppClick[]> {
-  const codes = await withRedis(
-    async (redis) => redis.zrangebyscore(INDEX_KEY, sinceMs, '+inf'),
-    null as string[] | null
+  // Fonte de verdade são as chaves `wa:click:*`; o índice `wa:clicks` só acelera. Em
+  // 10/11/2026 o índice voltou vazio em produção com as chaves intactas e o relatório
+  // zerou os cliques — por isso a listagem varre as chaves e recompõe o índice.
+  const result = await withRedis(
+    async (redis) => {
+      const codes = new Set<string>();
+      let cursor = '0';
+      do {
+        const [next, keys] = await redis.scan(cursor, 'MATCH', `${CLICK_PREFIX}*`, 'COUNT', 500);
+        cursor = next;
+        for (const key of keys) codes.add(key.slice(CLICK_PREFIX.length));
+      } while (cursor !== '0');
+
+      const clicks = await getWhatsAppClicks([...codes]);
+      let indexed: Set<string> | null = null;
+      try {
+        indexed = new Set(await redis.zrangebyscore(INDEX_KEY, '-inf', '+inf'));
+      } catch (err) {
+        // Índice ilegível (ex.: chave de outro tipo) não pode zerar o relatório.
+        console.error('[whatsapp-leads] índice wa:clicks ilegível, usando só as chaves:', err);
+      }
+      const missing = indexed ? [...codes].filter((c) => !indexed.has(c)) : [];
+      if (missing.length > 0) {
+        console.warn(`[whatsapp-leads] índice sem ${missing.length} clique(s); recompondo`);
+        const pipeline = redis.pipeline();
+        for (const code of missing) {
+          const at = clicks[code]?.at;
+          if (at) pipeline.zadd(INDEX_KEY, Date.parse(at), code);
+        }
+        await pipeline.exec();
+      }
+      return Object.values(clicks).filter((c) => Date.parse(c.at) >= sinceMs);
+    },
+    null as WhatsAppClick[] | null
   );
 
-  if (!codes) {
+  if (!result) {
     return [...localClicks.values()].filter((c) => Date.parse(c.at) >= sinceMs);
   }
-  return Object.values(await getWhatsAppClicks(codes));
+  return result;
 }
