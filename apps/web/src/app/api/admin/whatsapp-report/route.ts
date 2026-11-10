@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { hasReportReadToken, isAdminAuthed } from '@/lib/admin-session';
 import { isArtaxConfigured } from '@/lib/artax';
-import { buildWhatsAppReport } from '@/lib/whatsapp-report';
+import { MAX_REPORT_DAYS, buildWhatsAppReport } from '@/lib/whatsapp-report';
 
 /**
- * Relatório do funil do WhatsApp (ADR-0012). `?days=7` por padrão, máximo 90.
+ * Relatório do funil do WhatsApp (ADR-0012). `?days=7` por padrão, máximo 21 (ver MAX_REPORT_DAYS).
  * Aceita sessão de admin ou o token só de leitura do relatório.
  */
 export async function GET(request: Request) {
@@ -16,7 +16,9 @@ export async function GET(request: Request) {
   }
 
   const raw = Number(new URL(request.url).searchParams.get('days') ?? '7');
-  const days = Number.isInteger(raw) && raw >= 1 && raw <= 90 ? raw : 7;
+  // Acima do teto, reduz para o teto (não volta para 7): quem pede 30 dias para enviar
+  // reservas ao Google Ads continua recebendo o máximo, e `periodo.dias` diz o que foi usado.
+  const days = Number.isInteger(raw) && raw >= 1 ? Math.min(raw, MAX_REPORT_DAYS) : 7;
 
   try {
     return NextResponse.json(await buildWhatsAppReport(days), {

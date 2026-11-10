@@ -263,9 +263,9 @@ export class ArtaxClient {
       });
     }
 
-    await this.rateLimiter.waitIfNeeded();
-
     return withRetry(async () => {
+      // DR-001: vaga por requisição HTTP real — cada nova tentativa também conta.
+      await this.rateLimiter.waitIfNeeded();
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 

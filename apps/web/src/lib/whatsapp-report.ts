@@ -30,7 +30,23 @@ import { getWhatsAppClicks, isTestClick, listWhatsAppClicksSince } from './whats
  * período; detalhe (valor) só das reservas que casaram com uma conversa.
  */
 
-const MAX_ARTAX_PAGES = 8;
+/**
+ * Páginas da listagem da Artax (20 reservas cada) lidas por relatório. O hotel cria ~23
+ * reservas por dia (~1,15 página/dia): 8 páginas fixas cobriam só ~7 dias e um relatório de
+ * 14 dias perdia a metade mais antiga (e com ela reservas vindas do WhatsApp). Margem de ~20%;
+ * se não bastar, `completo.artax` sai false.
+ */
+/** Espaço entre chamadas do relatório à Artax: ≤40 req/min, o resto da cota fica pro site. */
+const ARTAX_CALL_SPACING_MS = 1500;
+/**
+ * Período máximo síncrono: 21 dias ≈ 33 páginas + detalhes, espaçados, cabem nos 100 s
+ * que o Cloudflare espera pela rota.
+ */
+export const MAX_REPORT_DAYS = 21;
+
+export function artaxPagesFor(days: number): number {
+  return Math.ceil(Math.min(days, MAX_REPORT_DAYS) * 1.4) + 3;
+}
 /** Teto de chamadas de detalhe (valor) por relatório — DR-001. */
 const MAX_DETAILS = 25;
 const MAX_KNOWN_CHAT_CHECKS = 40;
@@ -38,6 +54,7 @@ const CACHE_TTL_SECONDS = 30 * 60;
 
 export const CANAL_PLATAFORMA = 'Plataforma (hotelparaiso.moreirads.cloud)';
 export const CANAL_MOTOR_ARTAX = 'Site (motor Artax)';
+const PROVIDER_PLATAFORMA = 'API Artaxnet';
 
 export interface CanalRow {
   reservas: number;
@@ -49,6 +66,11 @@ export interface WhatsAppReport extends FunnelResult {
   periodo: { de: string; ate: string; dias: number };
   /** Todas as reservas da Artax criadas no período (não canceladas), por canal. */
   reservas_por_canal: Record<string, CanalRow>;
+  /**
+   * Reservas da plataforma por variante do A/B (origem gravada). Sem origem gravada cai em
+   * `sem_variante` — o GA4 (transaction_id) desempata.
+   */
+  reservas_plataforma_por_variante: Record<string, CanalRow & { booking_ids: number[] }>;
   completo: { evolution: boolean; artax: boolean; valores: boolean };
   gerado_em: string;
 }
@@ -70,12 +92,16 @@ function phonesOf(booking: Record<string, unknown>): string[] {
 type ArtaxScanned = FunnelBooking & { provider: string };
 
 async function scanArtaxBookings(
-  sinceMs: number
+  sinceMs: number,
+  maxPages: number
 ): Promise<{ bookings: ArtaxScanned[]; complete: boolean }> {
   const client = getArtaxClient();
   const bookings: ArtaxScanned[] = [];
 
-  for (let page = 1; page <= MAX_ARTAX_PAGES; page++) {
+  for (let page = 1; page <= maxPages; page++) {
+    // Espaço entre páginas: o relatório usa no máximo ~40 req/min e deixa o resto da cota
+    // da DR-001 para disponibilidade e reservas do site.
+    if (page > 1) await new Promise((resolve) => setTimeout(resolve, ARTAX_CALL_SPACING_MS));
     const data = await client.listBookingsRaw({ page });
     const rows = (data.bookings ?? []) as Array<Record<string, unknown>>;
     if (rows.length === 0) return { bookings, complete: true };
@@ -121,21 +147,26 @@ async function bookingValue(bookingId: number): Promise<number | null> {
 }
 
 const inflight = new Map<number, Promise<WhatsAppReport>>();
+let lane: Promise<unknown> = Promise.resolve();
 
 /**
- * Uma geração por vez por período: dois admins abrindo o relatório com cache frio não
- * podem dobrar a leitura da Evolution e da Artax.
+ * Mesma chamada para o mesmo período reaproveita a geração em curso; períodos diferentes
+ * entram numa fila única. Duas gerações em paralelo dobrariam a leitura da Artax (DR-001).
  */
 export function buildWhatsAppReport(days: number): Promise<WhatsAppReport> {
   const running = inflight.get(days);
   if (running) return running;
-  const job = generate(days).finally(() => inflight.delete(days));
+  const job = lane.then(() => generate(days)).finally(() => inflight.delete(days));
+  // O erro já chega a quem pediu; aqui só impede que a fila trave.
+  lane = job.catch((err: unknown) => {
+    console.error('[whatsapp-report] geração falhou:', err);
+  });
   inflight.set(days, job);
   return job;
 }
 
 async function generate(days: number): Promise<WhatsAppReport> {
-  const cacheKey = `wa:report:v5:${days}`;
+  const cacheKey = `wa:report:v6:${days}`;
   const cached = await withRedis(async (redis) => redis.get(cacheKey), null as string | null);
   if (cached) {
     try {
@@ -153,7 +184,7 @@ async function generate(days: number): Promise<WhatsAppReport> {
   const [allClicks, evo, artax] = await Promise.all([
     listWhatsAppClicksSince(sinceMs),
     fetchMessagesSince(sinceMs),
-    scanArtaxBookings(sinceMs),
+    scanArtaxBookings(sinceMs, artaxPagesFor(days)),
   ]);
   const clicks = allClicks.filter((c) => !isTestClick(c));
 
@@ -215,11 +246,12 @@ async function generate(days: number): Promise<WhatsAppReport> {
     .map((c) => c.booking_id)
     .filter((id): id is number => id !== null);
 
-  // Canal: reserva criada pela plataforma tem a origem gravada no Redis (attr:{id});
-  // "Site" na Artax é o motor da própria Artax (Google Hotéis / perfil do Google).
+  // Canal: a plataforma cria reservas pela API (provider "API Artaxnet") e grava a origem
+  // no Redis (attr:{id}) — qualquer um dos dois basta, porque a origem pode faltar
+  // (localStorage bloqueado, Redis fora). "Site" é o motor da própria Artax.
   const attrs = await listAttributions(artax.bookings.map((b) => String(b.booking_id)));
   const canalDe = (b: ArtaxScanned) =>
-    attrs[String(b.booking_id)]
+    attrs[String(b.booking_id)] || b.provider === PROVIDER_PLATAFORMA
       ? CANAL_PLATAFORMA
       : b.provider === 'Site'
         ? CANAL_MOTOR_ARTAX
@@ -233,7 +265,10 @@ async function generate(days: number): Promise<WhatsAppReport> {
     ...new Set([...matchedIds, ...artax.bookings.filter(comValor).map((b) => b.booking_id)]),
   ];
   const values = new Map<number, number | null>();
-  for (const id of detailIds.slice(0, MAX_DETAILS)) values.set(id, await bookingValue(id));
+  for (const [i, id] of detailIds.slice(0, MAX_DETAILS).entries()) {
+    if (i > 0) await new Promise((resolve) => setTimeout(resolve, ARTAX_CALL_SPACING_MS));
+    values.set(id, await bookingValue(id));
+  }
   const bookings = artax.bookings.map((b) => ({ ...b, value: values.get(b.booking_id) ?? null }));
 
   const reservas_por_canal: Record<string, CanalRow> = {};
@@ -244,11 +279,26 @@ async function generate(days: number): Promise<WhatsAppReport> {
     if (row.valor !== null) row.valor += b.value ?? 0;
   }
 
+  const reservas_plataforma_por_variante: WhatsAppReport['reservas_plataforma_por_variante'] = {};
+  for (const b of bookings) {
+    if (canalDe(b) !== CANAL_PLATAFORMA) continue;
+    const variant = attrs[String(b.booking_id)]?.ab_variant ?? 'sem_variante';
+    const row = (reservas_plataforma_por_variante[variant] ??= {
+      reservas: 0,
+      valor: 0,
+      booking_ids: [],
+    });
+    row.reservas++;
+    row.valor = (row.valor ?? 0) + (b.value ?? 0);
+    row.booking_ids.push(b.booking_id);
+  }
+
   const result = analyzeFunnel({ ...input, bookings });
   const report: WhatsAppReport = {
     periodo: { de: new Date(sinceMs).toISOString(), ate: new Date(now).toISOString(), dias: days },
     ...result,
     reservas_por_canal,
+    reservas_plataforma_por_variante,
     completo: {
       evolution: evo.complete,
       artax: artax.complete,
