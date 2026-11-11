@@ -87,3 +87,20 @@ pago (TTFB sem cache 0,2–0,8 s contra 0,1–0,17 s com cache, em 27/10).
 - **Origem:** middleware removido; `/` volta a `CDN-Cache-Control: public, s-maxage=60`.
 - **Verificação:** `scripts/check-ab-edge.sh` contra o domínio público.
 - **Medição:** igual. A contagem e o prazo mínimo de 2 semanas recomeçam no deploy do Worker.
+
+## Revisão 2026-11-10: métrica principal = reservas confirmadas
+
+Combinado com a sessão do Google Ads na leitura de 2 semanas (48 visitantes na A, 42 na B):
+o clique no WhatsApp vira etapa intermediária. A B faz quase todos verem preço (93% contra
+15%) e gera mais WhatsApp, mas isso só importa se virar reserva.
+
+- **Métrica principal:** reservas confirmadas ÷ visitantes, somando reservas da plataforma
+  (`reservas_plataforma_por_variante`) e reservas de WhatsApp casadas na Artax (`por_variante`
+  do relatório, conversas com código e prováveis site). Métrica de apoio: valor ÷ visitante.
+- **Prazo:** 150 visitantes por variante, previsão por volta de 01/12/2026 no ritmo depois de
+  04/11. A B não muda até lá (mudar zera o teste).
+- **Contexto que afeta a leitura:** em 04/11 a campanha regional foi aberta para o Brasil inteiro
+  (o tráfego quase quintuplicou); vale ler também só o trecho a partir de 04/11. A divisão
+  continua aleatória.
+- Leitura em 10/11: A 3 reservas (R$ 375) / 48 = 6,3%; B 1 reserva por WhatsApp (R$ 573) / 42
+  = 2,4%. Valor por visitante: A R$ 7,8, B R$ 13,6. Amostra ainda pequena para decidir.
