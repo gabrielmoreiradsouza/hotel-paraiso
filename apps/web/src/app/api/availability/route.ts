@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRoomImageUrl, getRooms } from '@/lib/cms';
 import { isArtaxConfigured } from '@/lib/artax';
-import { fetchAvailability, type ArtaxOption } from '@/lib/availability';
+import { fetchAvailability, flattenOptions, type ArtaxOption } from '@/lib/availability';
 import { isRateLimited } from '@/lib/rate-limit';
 import { getClientIp } from '@/lib/client-ip';
 
@@ -66,16 +66,9 @@ export async function GET(request: Request) {
       getRooms(),
     ]);
 
-    // Transform Artax response to frontend-friendly format
     const byCategory = new Map<number, ArtaxOption[]>();
-    for (const [categoryId, plans] of Object.entries(data.rooms ?? {})) {
-      byCategory.set(
-        Number(categoryId),
-        Object.values(plans as Record<string, Omit<ArtaxOption, 'categoryId'>>).map((plan) => ({
-          ...plan,
-          categoryId: Number(categoryId),
-        }))
-      );
+    for (const option of flattenOptions(data)) {
+      byCategory.set(option.categoryId, [...(byCategory.get(option.categoryId) ?? []), option]);
     }
 
     const rooms = cmsRooms.map((cmsRoom) => {
