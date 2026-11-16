@@ -11,6 +11,11 @@ TOKEN_FILE="$HOME/.claude/credentials/hrp-report-token"
 URL="https://hotelparaiso.moreirads.cloud/api/admin/whatsapp-report?days=$DAYS"
 
 mkdir -p "$DIR"
+
+# Mesma janela de segunda: conferência da alocação da recepção (ADR-0014). Falha nela não
+# pode impedir o relatório do WhatsApp — só fica registrada no log.
+"$(dirname "$0")/save-category-check.sh" "$DIR" || echo "$(date '+%F %T') conferência de categoria não rodou" >&2
+
 OUT="$DIR/whatsapp-$(date +%Y-%m-%d).json"
 TMP="$(mktemp "$DIR/.whatsapp.XXXXXX")"
 trap 'rm -f "$TMP"' EXIT
