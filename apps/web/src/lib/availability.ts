@@ -67,16 +67,10 @@ export async function fetchAvailability(
 
 export type ArtaxOption = RawAvailabilityRoom & { categoryId: number };
 
-// Publicadas na Artax, mas o site ainda escolhe a subcategoria sozinho: Individual Confort
-// (3573) sairia para 1 adulto sem o aviso de quarto compacto e Duplo Solteiro Luxo (6663)
-// sairia para 3 adultos a R$ 554/noite. Ficam fora até a tela por subcategoria existir.
-const HIDDEN_CATEGORY_IDS = new Set([3573, 6663]);
-
 /** Achata a resposta da Artax (categoria → rate plans) numa lista de opções. */
 export function flattenOptions(data: RawAvailabilityResponse): ArtaxOption[] {
   const options: ArtaxOption[] = [];
   for (const [categoryId, plans] of Object.entries(data.rooms ?? {})) {
-    if (HIDDEN_CATEGORY_IDS.has(Number(categoryId))) continue;
     for (const plan of Object.values(plans)) {
       options.push({ ...plan, categoryId: Number(categoryId) });
     }

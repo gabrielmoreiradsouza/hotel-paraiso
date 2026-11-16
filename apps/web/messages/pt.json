@@ -43,7 +43,7 @@
     "searching": "Consultando disponibilidade no hotel...",
     "apiError": "Erro ao consultar disponibilidade. Tente novamente.",
     "completeBooking": "Complete sua reserva",
-    "cancel": "Cancelamento gratuito até 48h antes",
+    "cancel": "Cancelamento gratuito até 1 dia antes",
     "upTo": "Até {adults} adultos"
   },
   "rooms": {
@@ -90,7 +90,7 @@
   "cta": {
     "title": "Reserve direto e economize",
     "highlight": "Sem taxas de intermediário",
-    "subtitle": "Melhor preço garantido. Café da manhã incluso. Cancelamento gratuito até 48h.",
+    "subtitle": "Melhor preço garantido. Café da manhã incluso. Cancelamento gratuito até 1 dia antes.",
     "button": "Ver disponibilidade"
   },
   "faq": {
@@ -101,7 +101,7 @@
     "breakfastQ": "O café da manhã está incluso?",
     "breakfastA": "Sim, todas as categorias de quarto incluem café da manhã completo servido no restaurante do hotel.",
     "cancellationQ": "Qual a política de cancelamento?",
-    "cancellationA": "Cancelamento gratuito até 48h antes da data de check-in. Após esse prazo, será cobrada a primeira diária.",
+    "cancellationA": "Cancelamento gratuito até 1 dia antes da chegada. Reservas pelo site não têm cobrança antecipada: o pagamento é feito no hotel, no check-in.",
     "parkingQ": "O hotel tem estacionamento?",
     "parkingA": "Sim, oferecemos estacionamento seguro para todos os hóspedes.",
     "petsQ": "Posso levar meu pet?",

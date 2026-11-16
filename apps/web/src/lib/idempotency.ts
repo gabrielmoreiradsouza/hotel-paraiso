@@ -18,9 +18,7 @@ const PENDING_TTL_SECONDS = 60;
 const PENDING_MARKER = '__pending__';
 
 export type IdempotencyState =
-  | { status: 'acquired' }
-  | { status: 'in_progress' }
-  | { status: 'replayed'; result: unknown };
+  { status: 'acquired' } | { status: 'in_progress' } | { status: 'replayed'; result: unknown };
 
 /**
  * Deriva a chave de idempotência.
@@ -38,18 +36,25 @@ export function buildIdempotencyKey(
     checkout: string;
     categoryId: number;
     rateplanId: number;
+    adults?: number;
+    kids?: number;
   }
 ): string {
-  if (headerValue && headerValue.trim()) {
-    return `idem:hdr:${createHash('sha256').update(headerValue.trim()).digest('hex').slice(0, 32)}`;
-  }
   const fingerprint = [
     payload.guestEmail.toLowerCase(),
     payload.checkin,
     payload.checkout,
     payload.categoryId,
     payload.rateplanId,
+    payload.adults ?? '',
+    payload.kids ?? '',
   ].join('|');
+  if (headerValue && headerValue.trim()) {
+    // A chave do cliente sobrevive a novas tentativas; se ele voltar e mudar datas,
+    // ocupação ou categoria, é outra reserva — não pode devolver a anterior.
+    const keyed = `${headerValue.trim()}|${fingerprint}`;
+    return `idem:hdr:${createHash('sha256').update(keyed).digest('hex').slice(0, 32)}`;
+  }
   return `idem:fp:${createHash('sha256').update(fingerprint).digest('hex').slice(0, 32)}`;
 }
 

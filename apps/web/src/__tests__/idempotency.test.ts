@@ -35,6 +35,16 @@ describe('buildIdempotencyKey', () => {
     expect(outraData).not.toBe(buildIdempotencyKey(null, payload));
   });
 
+  it('mesma chave do cliente com outra seleção é outra reserva', () => {
+    const original = buildIdempotencyKey('chave-do-cliente', { ...payload, adults: 2, kids: 0 });
+    expect(
+      buildIdempotencyKey('chave-do-cliente', { ...payload, categoryId: 6704, adults: 2, kids: 0 })
+    ).not.toBe(original);
+    expect(buildIdempotencyKey('chave-do-cliente', { ...payload, adults: 2, kids: 1 })).not.toBe(
+      original
+    );
+  });
+
   it('não vaza o e-mail do hóspede na chave', () => {
     expect(buildIdempotencyKey(null, payload)).not.toContain('hospede@exemplo.com');
   });

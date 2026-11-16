@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { getRooms, getMediaUrl } from '@/lib/cms';
 import { getMinPrices } from '@/lib/min-prices';
+import { cleanGroupAmenities } from '@/lib/accommodations';
 import { RoomCarousel } from './RoomCarousel';
 
 export type RoomCardData = {
@@ -36,7 +37,6 @@ const fallbackRooms: RoomCardData[] = [
       'Wi-Fi de alta velocidade',
       'Ventilador de teto',
       'TV LED 32"',
-      'Frigobar',
       'Chuveiro quente',
       'Toalhas e roupas de cama',
       'Tomadas USB ao lado da cama',
@@ -64,7 +64,6 @@ const fallbackRooms: RoomCardData[] = [
       'Wi-Fi de alta velocidade',
       'Ar-condicionado split silencioso',
       'TV LED 32"',
-      'Frigobar',
       'Chuveiro quente',
       'Toalhas e roupas de cama premium',
       'Mesa de trabalho',
@@ -164,7 +163,7 @@ export async function RoomCards() {
           images: galleryImages.length > 0 ? galleryImages : [mainImage],
           capacity: r.capacityLabel ?? '',
           size: r.size ? `${r.size}m²` : '',
-          amenities: r.amenities?.map((a) => a.name) ?? [],
+          amenities: cleanGroupAmenities(r.slug, r.amenities?.map((a) => a.name) ?? []),
         };
       });
     }

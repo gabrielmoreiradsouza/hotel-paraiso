@@ -1,22 +1,3 @@
-/** Quarto como devolvido por `/api/availability` (mesmo formato que o /reservar usa). */
-export interface QuickRoom {
-  cmsRoomId: number;
-  cmsName: string;
-  cmsSlug: string;
-  cmsImage: string;
-  cmsAmenities: string[];
-  cmsDescription: string;
-  minPrice: number | null;
-  category_id: number;
-  rateplan_id: number;
-  name: string;
-  available: boolean;
-  allots: number;
-  /** Total da estadia (não a diária). */
-  price: number;
-  capacity: { adults: number; kids: number };
-}
-
 export function todayBR(): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',

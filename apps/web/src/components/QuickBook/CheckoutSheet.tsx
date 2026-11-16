@@ -10,14 +10,11 @@ import {
   trackReservationCreated,
   trackRoomSelected,
 } from '@hotel-paraiso/tracking';
-import {
-  EMAIL_RE,
-  addDays,
-  formatBR,
-  nightsBetween,
-  todayBR,
-  type QuickRoom,
-} from './quickbook-utils';
+import { CHILD_MAX_AGE } from '@/lib/accommodations';
+import { CANCELLATION_POLICY, CHECKIN_TIME, PAYMENT_POLICY } from '@/lib/booking-policy';
+import type { AccommodationOffer } from '@/lib/offers';
+import { AccommodationFacts, AccommodationWarning } from '@/components/Accommodation/Accommodation';
+import { EMAIL_RE, addDays, formatBR, nightsBetween, todayBR } from './quickbook-utils';
 
 /**
  * Checkout por cima da página (variante B, ADR-0013).
@@ -32,11 +29,12 @@ const BOOKING_STATE_KEY = 'hp_booking_state';
 const HASH = '#reservar';
 
 interface Props {
-  room: QuickRoom | null;
+  room: AccommodationOffer | null;
   loading: boolean;
   checkin: string;
   checkout: string;
   guests: number;
+  child: boolean;
   onCheckinChange: (value: string) => void;
   onCheckoutChange: (value: string) => void;
   onClosed: () => void;
@@ -53,6 +51,7 @@ export function CheckoutSheet({
   checkin,
   checkout,
   guests,
+  child,
   onCheckinChange,
   onCheckoutChange,
   onClosed,
@@ -64,9 +63,11 @@ export function CheckoutSheet({
   const [touched, setTouched] = useState({ name: false, email: false, phone: false });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState<{ id: string; room: QuickRoom; total: number } | null>(
-    null
-  );
+  const [confirmed, setConfirmed] = useState<{
+    id: string;
+    room: AccommodationOffer;
+    total: number;
+  } | null>(null);
   const idempotencyKey = useRef<string | null>(null);
   const submittingRef = useRef(false);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -74,6 +75,7 @@ export function CheckoutSheet({
   const tracked = useRef(false);
   const onClosedRef = useRef(onClosed);
   const nights = nightsBetween(checkin, checkout);
+  const guestsLabel = `${guests} ${guests === 1 ? 'adulto' : 'adultos'}${child ? ` + 1 criança (até ${CHILD_MAX_AGE} anos)` : ''}`;
 
   useEffect(() => {
     onClosedRef.current = onClosed;
@@ -117,10 +119,10 @@ export function CheckoutSheet({
   useEffect(() => {
     if (!room || tracked.current) return;
     tracked.current = true;
-    trackRoomSelected({ room_slug: room.cmsSlug, room_name: room.cmsName, price: room.price });
+    trackRoomSelected({ room_slug: room.group, room_name: room.name, price: room.price });
     trackCheckoutStarted({
-      room_slug: room.cmsSlug,
-      room_name: room.cmsName,
+      room_slug: room.group,
+      room_name: room.name,
       value: room.price,
       nights,
     });
@@ -132,12 +134,12 @@ export function CheckoutSheet({
     try {
       sessionStorage.setItem(
         BOOKING_STATE_KEY,
-        JSON.stringify({ step: 'details', selectedRoom: room, checkin, checkout, guests })
+        JSON.stringify({ step: 'details', selectedRoom: room, checkin, checkout, guests, child })
       );
     } catch (err) {
       console.debug('[quickbook] sessionStorage indisponível:', err);
     }
-  }, [room, checkin, checkout, guests, confirmed]);
+  }, [room, checkin, checkout, guests, child, confirmed]);
 
   function close() {
     window.history.back();
@@ -145,7 +147,8 @@ export function CheckoutSheet({
 
   const emailOk = EMAIL_RE.test(email.trim());
   const formOk = name.trim() && emailOk && phone.trim();
-  const canBook = Boolean(room?.available) && nights > 0 && !loading;
+  // Só opções com quarto livre chegam aqui; `room` some quando a nova busca não a traz mais.
+  const canBook = Boolean(room && room.allots > 0) && nights > 0 && !loading;
 
   async function confirm() {
     setTouched({ name: true, email: true, phone: true });
@@ -168,10 +171,10 @@ export function CheckoutSheet({
           guestPhone: phone.trim(),
           checkin,
           checkout,
-          categoryId: room.category_id,
-          rateplanId: room.rateplan_id,
+          categoryId: room.categoryId,
+          rateplanId: room.rateplanId,
           adults: guests,
-          kids: 0,
+          kids: child ? 1 : 0,
           totalPrice: room.price,
           attribution: getAttribution(),
           ...getGA4Ids(),
@@ -189,11 +192,11 @@ export function CheckoutSheet({
       const id = String(data.booking_id);
       trackReservationCreated({
         booking_id: id,
-        room_name: room.cmsName,
+        room_name: room.name,
         value: room.price,
         nights,
         adults: guests,
-        room_slug: room.cmsSlug,
+        room_slug: room.group,
         checkin,
         checkout,
       });
@@ -201,8 +204,8 @@ export function CheckoutSheet({
       window.dataLayer.push({
         event: 'purchase',
         booking_id: id,
-        room_name: room.cmsName,
-        room_slug: room.cmsSlug,
+        room_name: room.name,
+        room_slug: room.group,
         checkin,
         checkout,
         nights,
@@ -274,12 +277,12 @@ export function CheckoutSheet({
                 Protocolo <span className="font-semibold text-white">{confirmed.id}</span>
               </p>
               <div className="mt-4 rounded-lg border border-white/[0.08] bg-white/[0.04] p-4 text-sm text-white/80">
-                <p className="font-display text-base font-bold text-white">
-                  {confirmed.room.cmsName}
-                </p>
-                <p className="mt-1">
-                  {formatBR(checkin)} → {formatBR(checkout)} · {guests}{' '}
-                  {guests === 1 ? 'hóspede' : 'hóspedes'}
+                <p className="font-display text-base font-bold text-white">{confirmed.room.name}</p>
+                <div className="mt-2">
+                  <AccommodationFacts accommodation={confirmed.room} />
+                </div>
+                <p className="mt-2">
+                  {formatBR(checkin)} → {formatBR(checkout)} · {guestsLabel}
                 </p>
                 <p className="mt-2 font-display text-lg font-bold text-brand-gold">
                   R$ {brl(confirmed.total)}
@@ -288,8 +291,9 @@ export function CheckoutSheet({
               <ul className="mt-4 space-y-2 text-sm text-white/70">
                 <li>Email de confirmação enviado para {email.trim()}</li>
                 <li>O hotel confirmará pelo WhatsApp para {phone.trim()}</li>
-                <li>Nenhum pagamento agora — você paga no hotel, no check-in</li>
-                <li>Check-in a partir das 14h, com documento</li>
+                <li>{PAYMENT_POLICY}</li>
+                <li>Check-in a partir das {CHECKIN_TIME}, com documento</li>
+                <li>{CANCELLATION_POLICY}</li>
               </ul>
               <button
                 type="button"
@@ -303,8 +307,13 @@ export function CheckoutSheet({
             <>
               <div className="rounded-lg border border-white/[0.08] bg-white/[0.04] p-4">
                 <p className="font-display text-base font-bold text-white">
-                  {room?.cmsName ?? 'Quarto'}
+                  {room?.name ?? 'Quarto'}
                 </p>
+                {room && (
+                  <div className="mt-2">
+                    <AccommodationFacts accommodation={room} />
+                  </div>
+                )}
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <label className="text-xs text-white/60">
                     Check-in
@@ -329,12 +338,11 @@ export function CheckoutSheet({
                 </div>
                 <div className="mt-3 flex items-end justify-between">
                   <p className="text-xs text-white/60">
-                    {guests} {guests === 1 ? 'hóspede' : 'hóspedes'} ·{' '}
-                    {nights === 1 ? '1 noite' : `${nights} noites`}
+                    {guestsLabel} · {nights === 1 ? '1 noite' : `${nights} noites`}
                   </p>
                   {loading ? (
                     <p className="text-sm text-white/50">Atualizando…</p>
-                  ) : room?.available ? (
+                  ) : room && room.allots > 0 ? (
                     <p className="font-display text-xl font-bold text-brand-gold">
                       R$ {brl(room.price)}
                     </p>
@@ -421,10 +429,16 @@ export function CheckoutSheet({
                 </div>
               )}
 
+              {room?.warning && (
+                <div className="mt-5">
+                  <AccommodationWarning warning={room.warning} />
+                </div>
+              )}
+
               <p className="mt-5 text-center text-sm text-white/60">
-                Nenhum pagamento agora. Você paga no hotel, no check-in.
+                {PAYMENT_POLICY}
                 <br />
-                Cancelamento grátis até 48h antes.
+                {CANCELLATION_POLICY}
               </p>
 
               <button

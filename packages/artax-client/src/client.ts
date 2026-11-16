@@ -222,7 +222,9 @@ export class ArtaxClient {
 
   async listUnits(params?: { page?: number }): Promise<unknown> {
     const qs = params?.page ? `?page=${params.page}` : '';
-    return this.get(`/units${qs}`);
+    // Conferido contra a API real em 16/11/2026: `/units` dá 404; a lista de UHs por
+    // categoria vem de `/housekeeping` (paginada, 20 por página).
+    return this.get(`/housekeeping${qs}`);
   }
 
   async createHousekeepingOrder(input: CreateOrderInput): Promise<unknown> {
@@ -234,7 +236,7 @@ export class ArtaxClient {
   }
 
   async updateUnitsStatus(input: UpdateUnitsStatusInput): Promise<unknown> {
-    return this.patch('/units/status', input);
+    return this.patch('/housekeeping/units/status', input);
   }
 
   // --- HTTP internals ---

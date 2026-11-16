@@ -19,6 +19,7 @@
 | 0011 | Redis como estado compartilhado do `apps/web`           | aceito    | 2026-08-27 |
 | 0012 | Código de rastreio do WhatsApp até a reserva na Artax   | aceito    | 2026-10-21 |
 | 0013 | Teste A/B da home (preço real e reserva sem trocar)     | aceito    | 2026-10-21 |
+| 0014 | Reserva por categoria real da Artax (catálogo)          | aceito    | 2026-11-16 |
 
 ## Como criar novo ADR
 

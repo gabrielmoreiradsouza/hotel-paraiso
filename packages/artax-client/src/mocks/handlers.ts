@@ -68,19 +68,24 @@ export const artaxHandlers = [
     return HttpResponse.json({ cost_centers: MOCK_COST_CENTERS });
   }),
 
-  // GET /housekeeping/units
-  http.get(`${BASE_URL}/housekeeping/units`, () => {
+  // GET /housekeeping — formato real (16/11/2026): UHs agrupadas por categoria
+  http.get(`${BASE_URL}/housekeeping`, () => {
     return HttpResponse.json({
-      units: [
-        {
-          unit_id: 1,
-          unit_name: '101',
-          room_type_id: 1,
-          room_type_name: 'Standard',
-          status: 'clean',
-          orders: [],
+      current_page: 1,
+      total_pages: 1,
+      total_items: 1,
+      next_page: null,
+      prev_page: null,
+      data: {
+        '3574': {
+          room_name: 'Casal Luxo',
+          total_dirty: 0,
+          total_clean: 1,
+          units: [
+            { id: 21001, name: '(13) Casal Luxo ', floor: 1, status: 'clean', next_orders: [] },
+          ],
         },
-      ],
+      },
     });
   }),
 ];

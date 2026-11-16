@@ -21,16 +21,19 @@ const LLMS_TXT = `# Hotel e Restaurante Paraíso
 ## Categorias de Quartos
 
 ### Confort (a partir de R$ 145/noite)
-Acomodação acessível com ventilador de teto. Opções: individual (1 cama solteiro), duplo (2 camas solteiro) ou casal. Inclui Wi-Fi, TV LED 32", frigobar e café da manhã.
+Ventilador, sem frigobar. Opções: Individual Confort (1 cama de solteiro, quarto compacto e silencioso, voltado para o fundo do hotel), Duplo Solteiro Confort (2 camas de solteiro) e Casal Confort (1 cama de casal). Inclui Wi-Fi, TV e café da manhã.
 
 ### Standard (a partir de R$ 209/noite)
-Quarto com ar-condicionado para viajantes corporativos. Opções: individual, casal ou triplo (até 3 adultos). Inclui Wi-Fi rápido, TV LED 32", frigobar, mesa de trabalho e café da manhã.
+Ar-condicionado, sem frigobar. Opções: Casal Standard (1 cama de casal) e Triplo Família Standard (até 3 adultos). Inclui Wi-Fi, TV e café da manhã.
 
-### Luxo (a partir de R$ 165/noite)
-25m² com acabamentos premium. Ventilador de teto silencioso, TV LED 50", frigobar, roupão, chinelos, ducha dupla e amenities premium. Ideal para casais ou estadias longas.
+### Luxo (a partir de R$ 164/noite)
+Ventilador e frigobar. Opções: Casal Luxo (1 cama de casal) e Duplo Solteiro Luxo (2 camas de solteiro). Inclui Wi-Fi, TV e café da manhã.
 
 ### Suíte Master (a partir de R$ 232/noite)
-35m² — a melhor acomodação do hotel. Ar-condicionado, sala de estar separada, TV LED 55", room service, vista privilegiada. Opção de hidromassagem por R$ 120-150/noite adicional.
+Ar-condicionado e frigobar. Opções: Casal Master (1 cama de casal) e Triplo Família Master (cama de casal + cama de solteiro). Opção de hidromassagem por R$ 120-150/noite adicional, sujeita a disponibilidade.
+
+### Crianças e pagamento
+Aceitamos 1 criança de até 12 anos sem custo em qualquer acomodação, exceto o Individual Confort. Reservas pelo site não são cobradas antecipadamente: o pagamento é feito no hotel, no check-in. Cancelamento grátis até 1 dia antes da chegada.
 
 ## Restaurante
 
@@ -49,7 +52,7 @@ Ponte Nova fica a 150km de Belo Horizonte (MG), na Zona da Mata mineira. O hotel
 - Pet friendly
 - Carregador veicular elétrico
 - Pista de eventos para festas e confraternizações
-- Cancelamento gratuito até 48h antes do check-in
+- Cancelamento gratuito até 1 dia antes da chegada; sem cobrança antecipada nas reservas pelo site
 
 ## Reservas
 

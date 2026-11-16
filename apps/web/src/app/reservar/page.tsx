@@ -16,28 +16,22 @@ import {
   getAbVariant,
 } from '@hotel-paraiso/tracking';
 import { useSearchParams } from 'next/navigation';
+import { CHILD_MAX_AGE, getAccommodation } from '@/lib/accommodations';
+import { CANCELLATION_POLICY, CHECKIN_TIME, PAYMENT_POLICY } from '@/lib/booking-policy';
+import type { AccommodationOffer, OfferGroup } from '@/lib/offers';
+import {
+  AccommodationFacts,
+  AccommodationPhoto,
+  AccommodationWarning,
+} from '@/components/Accommodation/Accommodation';
 
-interface AvailableRoom {
-  cmsRoomId: number;
-  cmsName: string;
-  cmsSlug: string;
-  cmsImage: string;
-  cmsAmenities: string[];
-  cmsDescription: string;
-  minPrice: number | null;
-  category_id: number;
-  rateplan_id: number;
-  name: string;
-  available: boolean;
-  allots: number;
-  price: number;
-  capacity: { adults: number; kids: number };
-}
+const MAX_ADULTS = 3;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const FALLBACK_PRICES: Record<string, number> = {
   confort: 145,
   standard: 209,
-  luxo: 165,
+  luxo: 164,
   master: 232,
 };
 
@@ -45,30 +39,30 @@ const staticRoomsBase = [
   {
     slug: 'confort',
     name: 'Confort',
-    image: '/images/rooms/confort-1.jpg',
+    image: '/images/rooms/confort-3.jpg',
     capacity: '1–2 adultos',
-    description: 'Acomodação acessível com ventilador. Individual, duplo ou casal.',
+    description: 'Ventilador, sem frigobar. Individual, duas camas de solteiro ou casal.',
   },
   {
     slug: 'standard',
     name: 'Standard',
-    image: '/images/rooms/standard.jpg',
+    image: '/images/rooms/standard-triplo.jpg',
     capacity: '1–3 adultos',
-    description: 'Conforto com ar condicionado. Individual, casal ou triplo.',
+    description: 'Ar-condicionado, sem frigobar. Casal ou triplo família.',
   },
   {
     slug: 'luxo',
     name: 'Luxo',
     image: '/images/rooms/luxo.jpg',
-    capacity: '2 adultos',
-    description: 'Espaço amplo com acabamentos premium e ventilador de teto.',
+    capacity: '1–2 adultos',
+    description: 'Ventilador e frigobar. Casal ou duas camas de solteiro.',
   },
   {
     slug: 'master',
     name: 'Suíte Master',
     image: '/images/rooms/master.jpg',
     capacity: '1–3 adultos',
-    description: 'Nossa melhor acomodação. Ar condicionado, sala de estar e serviço exclusivo.',
+    description: 'Ar-condicionado e frigobar. Casal ou triplo família.',
   },
 ];
 
@@ -81,24 +75,62 @@ function getTodayBR(): string {
   }).format(new Date());
 }
 
+function clampAdults(value: number): number {
+  return Number.isInteger(value) ? Math.min(MAX_ADULTS, Math.max(1, value)) : 2;
+}
+
+function guestsText(adults: number, child: boolean): string {
+  const base = `${adults} adulto${adults !== 1 ? 's' : ''}`;
+  return child ? `${base} + 1 criança` : base;
+}
+
+const formatDate = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR');
+
+/**
+ * Oferta salva no sessionStorage é editável pelo visitante: só o id da categoria, o rate
+ * plan e o preço são aproveitados; a ficha (aviso, cama, fotos) vem sempre do catálogo.
+ * O servidor reconfere preço e disponibilidade na reserva.
+ */
+function restoreOffer(value: unknown): AccommodationOffer | null {
+  if (!value || typeof value !== 'object') return null;
+  const raw = value as Record<string, unknown>;
+  const categoryId = raw['categoryId'];
+  const rateplanId = raw['rateplanId'];
+  const price = raw['price'];
+  const allots = raw['allots'];
+  if (typeof categoryId !== 'number' || typeof rateplanId !== 'number') return null;
+  if (typeof price !== 'number' || price <= 0) return null;
+  const accommodation = getAccommodation(categoryId);
+  if (!accommodation) return null;
+  return {
+    ...accommodation,
+    rateplanId,
+    price,
+    allots: typeof allots === 'number' ? allots : 1,
+  };
+}
+
 function BookingContent() {
   const searchParams = useSearchParams();
   const checkinParam = searchParams?.get('checkin') ?? '';
   const checkoutParam = searchParams?.get('checkout') ?? '';
   const guestsParam = searchParams?.get('guests') ?? '2';
+  const kidsParam = searchParams?.get('kids') ?? '0';
   const roomParam = searchParams?.get('room') ?? '';
+  const categoryParam = Number(searchParams?.get('category') ?? '');
   const stepParam = searchParams?.get('step') ?? '';
 
   const [checkin, setCheckin] = useState(checkinParam);
   const [checkout, setCheckout] = useState(checkoutParam);
-  const [guests, setGuests] = useState(Number(guestsParam));
-  const [rooms, setRooms] = useState<AvailableRoom[]>([]);
+  const [guests, setGuests] = useState(clampAdults(Number(guestsParam)));
+  const [child, setChild] = useState(kidsParam === '1');
+  const [groups, setGroups] = useState<OfferGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [apiError, setApiError] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedRoom, setSelectedRoom] = useState<AvailableRoom | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<AccommodationOffer | null>(null);
   const [step, setStep] = useState<'search' | 'details' | 'confirmed'>('search');
 
   const [guestName, setGuestName] = useState('');
@@ -146,7 +178,7 @@ function BookingContent() {
       if (!saved) return;
       const state = JSON.parse(saved) as {
         step?: 'search' | 'details' | 'confirmed';
-        selectedRoom?: AvailableRoom | null;
+        selectedRoom?: unknown;
         guestName?: string;
         guestEmail?: string;
         guestPhone?: string;
@@ -154,13 +186,17 @@ function BookingContent() {
         checkin?: string;
         checkout?: string;
         guests?: number;
+        child?: boolean;
       };
 
-      // If saved context doesn't match current URL params, reset
+      // Só compara o que veio na URL: sem ?guests/?kids (ex.: recarregar o /reservar),
+      // a ocupação salva vale — senão escolher 1 adulto e recarregar apagaria tudo.
+      const has = (key: string) => searchParams?.has(key) ?? false;
       const contextMismatch =
-        (checkinParam && state.checkin && state.checkin !== checkinParam) ||
-        (checkoutParam && state.checkout && state.checkout !== checkoutParam) ||
-        (guestsParam && state.guests != null && state.guests !== Number(guestsParam));
+        (has('checkin') && state.checkin && state.checkin !== checkinParam) ||
+        (has('checkout') && state.checkout && state.checkout !== checkoutParam) ||
+        (has('guests') && state.guests != null && state.guests !== Number(guestsParam)) ||
+        (has('kids') && state.child != null && state.child !== (kidsParam === '1'));
 
       if (contextMismatch) {
         sessionStorage.removeItem(STORAGE_KEY);
@@ -169,14 +205,27 @@ function BookingContent() {
         return;
       }
 
-      if (state.step && state.step !== 'confirmed') setStep(state.step);
-      if (state.selectedRoom) setSelectedRoom(state.selectedRoom);
+      if (!has('checkin') && state.checkin) setCheckin(state.checkin);
+      if (!has('checkout') && state.checkout) setCheckout(state.checkout);
+      if (!has('guests') && typeof state.guests === 'number') setGuests(clampAdults(state.guests));
+      if (!has('kids') && typeof state.child === 'boolean') setChild(state.child);
+
+      // Estado salvo antes das acomodações por categoria (ADR-0014) não tem `categoryId`:
+      // volta para a busca em vez de abrir o formulário com uma oferta que não existe mais.
+      // Vindo da página do quarto com ?category=, a escolha nova vence a salva antes.
+      const restored = restoreOffer(state.selectedRoom);
+      const offer =
+        restored && (!categoryParam || restored.categoryId === categoryParam) ? restored : null;
+      if (offer) {
+        setSelectedRoom(offer);
+        if (state.step && state.step !== 'confirmed') setStep(state.step);
+      }
       if (state.guestName) setGuestName(state.guestName);
       if (state.guestEmail) setGuestEmail(state.guestEmail);
       if (state.guestPhone) setGuestPhone(state.guestPhone);
       if (state.wantsHydro) setWantsHydro(state.wantsHydro);
-    } catch {
-      // ignore corrupt data
+    } catch (err) {
+      console.debug('[reservar] estado salvo ilegível:', err);
     }
   }, []);
 
@@ -184,7 +233,7 @@ function BookingContent() {
   function saveBookingState(
     overrides?: Partial<{
       step: string;
-      selectedRoom: AvailableRoom | null;
+      selectedRoom: AccommodationOffer | null;
       guestName: string;
       guestEmail: string;
       guestPhone: string;
@@ -204,18 +253,19 @@ function BookingContent() {
           checkin,
           checkout,
           guests,
+          child,
         })
       );
-    } catch {
-      // storage full or unavailable
+    } catch (err) {
+      console.debug('[reservar] sessionStorage indisponível:', err);
     }
   }
 
   function clearBookingState() {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.debug('[reservar] sessionStorage indisponível:', err);
     }
   }
 
@@ -229,7 +279,6 @@ function BookingContent() {
         )
       : 0;
 
-  // Fetch availability when dates change
   const today = getTodayBR();
   // Datas parciais/inválidas durante digitação geram Invalid Date; toISOString() lançaria RangeError.
   const checkinTime = checkin ? new Date(checkin + 'T12:00:00').getTime() : NaN;
@@ -253,37 +302,32 @@ function BookingContent() {
         arrival_date: checkin,
         departure_date: checkout,
         adults: String(guests),
-        kids: '0',
+        kids: child ? '1' : '0',
       });
       const res = await fetch(`/api/availability?${params}`, { signal: controller.signal });
       if (!res.ok) {
         setApiError(true);
-        setRooms([]);
+        setGroups([]);
         setLoading(false);
         return;
       }
-      const data = await res.json();
-      const availableRooms = ((data.rooms ?? []) as AvailableRoom[]).filter(
-        (room) => room.available
-      );
-      const target = highlightedRoom;
-      if (target) {
-        const idx = availableRooms.findIndex((r) => r.cmsSlug === target);
-        if (idx > 0) {
-          const match = availableRooms[idx] as AvailableRoom;
-          availableRooms.splice(idx, 1);
-          availableRooms.unshift(match);
-        }
+      const data = (await res.json()) as { groups?: OfferGroup[] };
+      const list = [...(data.groups ?? [])];
+      // Grupo vindo da página do quarto (?room=) aparece primeiro.
+      const idx = highlightedRoom ? list.findIndex((g) => g.slug === highlightedRoom) : -1;
+      if (idx > 0) {
+        const [match] = list.splice(idx, 1);
+        if (match) list.unshift(match);
       }
-      setRooms(availableRooms);
-      trackAvailabilityViewed(availableRooms.length);
+      setGroups(list);
+      trackAvailabilityViewed(list.reduce((total, g) => total + g.options.length, 0));
     } catch (err) {
       // Abort é fluxo normal (busca substituída), não erro.
       if (err instanceof DOMException && err.name === 'AbortError') return;
       // Falha aqui é clique pago perdido: precisa deixar rastro.
       console.error('Falha ao buscar disponibilidade:', err);
       setApiError(true);
-      setRooms([]);
+      setGroups([]);
     }
     if (!controller.signal.aborted) setLoading(false);
   }
@@ -294,30 +338,25 @@ function BookingContent() {
     }
   }, [checkinParam, checkoutParam]);
 
-  // Auto-select room when navigating from room detail page with ?room=slug&step=details
+  // Vindo da página do quarto com ?category=ID&step=details: abre direto o formulário.
   useEffect(() => {
-    if (roomParam && stepParam === 'details' && rooms.length > 0 && !selectedRoom) {
-      const match = rooms.find((r) => r.cmsSlug === roomParam);
-      if (match) {
-        handleSelectRoom(match);
-      }
-    }
-  }, [rooms, roomParam, stepParam]);
+    if (!categoryParam || stepParam !== 'details' || selectedRoom) return;
+    const match = groups
+      .flatMap((g) => g.options)
+      .find((option) => option.categoryId === categoryParam);
+    if (match) handleSelectRoom(match);
+  }, [groups, categoryParam, stepParam]);
 
   function handleSearch() {
     if (checkout <= checkin) return;
     fetchAvailability();
   }
 
-  function handleSelectRoom(room: AvailableRoom) {
-    trackRoomSelected({
-      room_slug: room.cmsSlug,
-      room_name: room.cmsName,
-      price: room.price,
-    });
+  function handleSelectRoom(room: AccommodationOffer) {
+    trackRoomSelected({ room_slug: room.group, room_name: room.name, price: room.price });
     trackCheckoutStarted({
-      room_slug: room.cmsSlug,
-      room_name: room.cmsName,
+      room_slug: room.group,
+      room_name: room.name,
       value: room.price,
       nights,
     });
@@ -352,15 +391,15 @@ function BookingContent() {
           'Idempotency-Key': idempotencyKeyRef.current,
         },
         body: JSON.stringify({
-          guestName,
-          guestEmail,
-          guestPhone,
+          guestName: trimmedName,
+          guestEmail: trimmedEmail,
+          guestPhone: trimmedPhone,
           checkin,
           checkout,
-          categoryId: selectedRoom.category_id,
-          rateplanId: selectedRoom.rateplan_id,
+          categoryId: selectedRoom.categoryId,
+          rateplanId: selectedRoom.rateplanId,
           adults: guests,
-          kids: 0,
+          kids: child ? 1 : 0,
           totalPrice: selectedRoom.price,
           ...(wantsHydro && { notes: 'Solicita hidromassagem (sujeito a disponibilidade)' }),
           attribution: getAttribution(),
@@ -380,11 +419,11 @@ function BookingContent() {
       setBookingId(String(data.booking_id));
       trackReservationCreated({
         booking_id: String(data.booking_id),
-        room_name: selectedRoom.cmsName,
+        room_name: selectedRoom.name,
         value: selectedRoom.price,
         nights,
         adults: guests,
-        room_slug: selectedRoom.cmsSlug,
+        room_slug: selectedRoom.group,
         checkin,
         checkout,
       });
@@ -393,8 +432,8 @@ function BookingContent() {
         window.dataLayer.push({
           event: 'purchase',
           booking_id: String(data.booking_id),
-          room_name: selectedRoom.cmsName,
-          room_slug: selectedRoom.cmsSlug,
+          room_name: selectedRoom.name,
+          room_slug: selectedRoom.group,
           checkin,
           checkout,
           nights,
@@ -409,7 +448,8 @@ function BookingContent() {
       setStep('confirmed');
       clearBookingState();
       window.scrollTo(0, 0);
-    } catch {
+    } catch (err) {
+      console.error('[reservar] reserva falhou:', err);
       setError('Falha na comunicação com o servidor. Tente novamente ou ligue (31) 3881-8049.');
       setIsSubmitting(false);
     }
@@ -431,9 +471,9 @@ function BookingContent() {
     const nextSteps = [
       `Email de confirmação enviado para ${guestEmail}`,
       ...(guestPhone ? [`O hotel confirmará pelo WhatsApp para ${guestPhone}`] : []),
-      'Nenhum pagamento agora — você paga no hotel, no check-in',
-      'Apresente-se na recepção no check-in a partir das 14h com documento',
-      'Cancelamento gratuito até 48h antes do check-in',
+      PAYMENT_POLICY,
+      `Apresente-se na recepção no check-in a partir das ${CHECKIN_TIME} com documento`,
+      CANCELLATION_POLICY,
     ];
 
     return (
@@ -463,35 +503,25 @@ function BookingContent() {
 
           {/* Reservation detail card */}
           <div className="mt-8 rounded-xl border border-white/[0.08] bg-white/[0.04] p-6">
-            {/* Header row: room photo + name + meta */}
             <div className="flex gap-4">
-              <div className="relative h-20 w-[120px] shrink-0 overflow-hidden rounded-lg">
-                <Image
-                  src={selectedRoom.cmsImage || '/images/rooms/standard.jpg'}
-                  alt={selectedRoom.cmsName}
-                  fill
-                  className="object-cover"
-                  unoptimized={selectedRoom.cmsImage.startsWith('http')}
-                />
-              </div>
-              <div>
-                <h3 className="font-display text-lg font-bold text-white">
-                  {selectedRoom.cmsName}
-                </h3>
-                <p className="mt-1 text-sm text-white/50">
-                  Até {selectedRoom.capacity.adults} adulto
-                  {selectedRoom.capacity.adults !== 1 ? 's' : ''}
-                  {selectedRoom.capacity.kids > 0
-                    ? ` + ${selectedRoom.capacity.kids} criança${selectedRoom.capacity.kids !== 1 ? 's' : ''}`
-                    : ''}
-                </p>
-                {selectedRoom.cmsAmenities.length > 0 && (
-                  <p className="mt-0.5 text-xs text-white/40">
-                    {selectedRoom.cmsAmenities.slice(0, 4).join(' · ')}
-                  </p>
-                )}
+              <AccommodationPhoto
+                accommodation={selectedRoom}
+                sizes="120px"
+                className="h-20 w-[120px] shrink-0 rounded-lg"
+              />
+              <div className="min-w-0">
+                <h3 className="font-display text-lg font-bold text-white">{selectedRoom.name}</h3>
+                <div className="mt-2">
+                  <AccommodationFacts accommodation={selectedRoom} />
+                </div>
               </div>
             </div>
+
+            {selectedRoom.warning && (
+              <div className="mt-4">
+                <AccommodationWarning warning={selectedRoom.warning} />
+              </div>
+            )}
 
             {/* Detail rows */}
             <div className="mt-5 space-y-3 text-sm">
@@ -508,15 +538,16 @@ function BookingContent() {
                 <span className="font-medium text-white">{guestPhone || 'Não informado'}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between">
-                <span className="text-white/50">Adultos</span>
+                <span className="text-white/50">Hóspedes</span>
                 <span className="font-medium text-white">
-                  {guests} adulto{guests !== 1 ? 's' : ''}
+                  {guestsText(guests, child)}
+                  {child ? ` (até ${CHILD_MAX_AGE} anos, sem custo)` : ''}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between">
                 <span className="text-white/50">Check-in</span>
                 <span className="font-medium text-white">
-                  {formatDateWithDay(checkin)} &mdash; 14h
+                  {formatDateWithDay(checkin)} &mdash; {CHECKIN_TIME}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between">
@@ -612,6 +643,7 @@ function BookingContent() {
 
   // Step 2: Guest details
   if (step === 'details' && selectedRoom) {
+    const emailInvalid = !EMAIL_RE.test(guestEmail.trim());
     return (
       <main className="bg-brand-black pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-4">
@@ -638,18 +670,19 @@ function BookingContent() {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <span className="font-display text-sm font-bold text-white">
-                  {selectedRoom.cmsName}
+                  {selectedRoom.name}
                 </span>
                 <span className="text-xs text-white/50">
                   {' · '}
-                  {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')} →{' '}
-                  {new Date(checkout + 'T12:00:00').toLocaleDateString('pt-BR')} · {guests} hóspede
-                  {guests !== 1 ? 's' : ''}
+                  {formatDate(checkin)} → {formatDate(checkout)} · {guestsText(guests, child)}
                 </span>
               </div>
               <span className="shrink-0 font-display text-lg font-bold text-brand-gold">
                 R$ {selectedRoom.price.toLocaleString('pt-BR')}
               </span>
+            </div>
+            <div className="mt-3">
+              <AccommodationFacts accommodation={selectedRoom} />
             </div>
           </div>
 
@@ -701,17 +734,15 @@ function BookingContent() {
                       setTouched((prev) => ({ ...prev, email: true }));
                       saveBookingState({ guestEmail: e.target.value });
                     }}
-                    className={`w-full rounded-sm bg-white/[0.06] border px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40 ${touched.email && (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) ? 'border-red-500/60' : 'border-white/[0.12]'}`}
+                    className={`w-full rounded-sm bg-white/[0.06] border px-4 py-3 text-sm text-white outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 placeholder:text-white/40 ${touched.email && emailInvalid ? 'border-red-500/60' : 'border-white/[0.12]'}`}
                     placeholder="joao@email.com"
                   />
                   {touched.email && !guestEmail.trim() && (
                     <p className="mt-1 text-xs text-red-400">Informe seu email</p>
                   )}
-                  {touched.email &&
-                    guestEmail.trim() &&
-                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()) && (
-                      <p className="mt-1 text-xs text-red-400">Informe um email válido</p>
-                    )}
+                  {touched.email && guestEmail.trim() && emailInvalid && (
+                    <p className="mt-1 text-xs text-red-400">Informe um email válido</p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -742,7 +773,7 @@ function BookingContent() {
               </div>
 
               {/* Hydromassage upsell — only for Master rooms */}
-              {selectedRoom && selectedRoom.cmsName.toLowerCase().includes('master') && (
+              {selectedRoom.group === 'master' && (
                 <div className="mt-6 rounded-lg bg-white/[0.04] border border-white/[0.08] p-4">
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
@@ -774,10 +805,17 @@ function BookingContent() {
                 </div>
               )}
 
+              {/* O aviso fica colado no botão: é a última coisa lida antes de confirmar. */}
+              {selectedRoom.warning && (
+                <div className="mt-6">
+                  <AccommodationWarning warning={selectedRoom.warning} />
+                </div>
+              )}
+
               <p className="mt-6 text-center text-sm text-white/60">
-                Nenhum pagamento agora. Você paga no hotel, no check-in.
+                {PAYMENT_POLICY}
                 <br />
-                Cancelamento grátis até 48h antes.
+                {CANCELLATION_POLICY}
               </p>
 
               <div className="mt-4 flex gap-4">
@@ -795,12 +833,7 @@ function BookingContent() {
                   type="button"
                   onClick={() => {
                     setTouched({ name: true, email: true, phone: true });
-                    if (
-                      guestName.trim() &&
-                      guestEmail.trim() &&
-                      guestPhone.trim() &&
-                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())
-                    ) {
+                    if (guestName.trim() && !emailInvalid && guestPhone.trim()) {
                       handleConfirm();
                     }
                   }}
@@ -812,26 +845,22 @@ function BookingContent() {
               </div>
             </div>
             <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] p-6">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
-                <Image
-                  src={selectedRoom.cmsImage || '/images/rooms/standard.jpg'}
-                  alt={selectedRoom.cmsName}
-                  fill
-                  className="object-cover"
-                  unoptimized={selectedRoom.cmsImage.startsWith('http')}
-                />
-              </div>
+              <AccommodationPhoto
+                accommodation={selectedRoom}
+                sizes="(max-width: 1024px) 100vw, 33vw"
+                className="aspect-[4/3] rounded-sm"
+              />
               <h3 className="mt-4 font-display text-lg font-bold text-white">
-                {selectedRoom.cmsName}
+                {selectedRoom.name}
               </h3>
+              <div className="mt-3">
+                <AccommodationFacts accommodation={selectedRoom} />
+              </div>
               <div className="mt-3 space-y-1 text-sm text-white/70">
                 <div>
-                  {new Date(checkin + 'T12:00:00').toLocaleDateString('pt-BR')} →{' '}
-                  {new Date(checkout + 'T12:00:00').toLocaleDateString('pt-BR')}
+                  {formatDate(checkin)} → {formatDate(checkout)}
                 </div>
-                <div>
-                  {guests} hóspede{guests !== 1 ? 's' : ''}
-                </div>
+                <div>{guestsText(guests, child)}</div>
               </div>
               {wantsHydro && (
                 <div className="mt-2 text-xs text-brand-gold">
@@ -852,6 +881,8 @@ function BookingContent() {
       </main>
     );
   }
+
+  const totalOptions = groups.reduce((total, g) => total + g.options.length, 0);
 
   // Step 1: Search + Room selection
   return (
@@ -913,33 +944,46 @@ function BookingContent() {
             />
           </div>
           <div className="w-full">
-            <label
-              htmlFor="search-guests"
+            <span
+              id="search-guests-label"
               className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/70"
             >
-              Hóspedes
-            </label>
+              Adultos
+            </span>
             <div className="flex items-center gap-3 rounded-sm bg-white/[0.06] border border-white/[0.12] px-3 py-2">
               <button
                 type="button"
-                aria-label="Diminuir hóspedes"
-                onClick={() => setGuests(Math.max(1, guests - 1))}
+                aria-label="Diminuir adultos"
+                onClick={() => setGuests(clampAdults(guests - 1))}
                 className="font-bold text-white/50"
               >
                 -
               </button>
-              <span id="search-guests" className="w-6 text-center text-sm text-white">
+              <span
+                aria-labelledby="search-guests-label"
+                className="w-6 text-center text-sm text-white"
+              >
                 {guests}
               </span>
               <button
                 type="button"
-                aria-label="Aumentar hóspedes"
-                onClick={() => setGuests(Math.min(10, guests + 1))}
-                className="font-bold text-white/50"
+                aria-label="Aumentar adultos"
+                onClick={() => setGuests(clampAdults(guests + 1))}
+                disabled={guests >= MAX_ADULTS}
+                className="font-bold text-white/50 disabled:opacity-30"
               >
                 +
               </button>
             </div>
+            <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-white/70">
+              <input
+                type="checkbox"
+                checked={child}
+                onChange={(e) => setChild(e.target.checked)}
+                className="h-4 w-4 accent-brand-gold"
+              />
+              + 1 criança (até {CHILD_MAX_AGE} anos, sem custo)
+            </label>
           </div>
           <button
             type="button"
@@ -950,6 +994,10 @@ function BookingContent() {
             {loading ? 'Buscando...' : 'Buscar'}
           </button>
         </div>
+        <p className="mt-2 text-xs text-white/50">
+          Mais de {MAX_ADULTS} adultos ou mais de uma criança? Fale com a gente pelo WhatsApp ou
+          ligue (31) 3881-8049.
+        </p>
 
         {/* Contextual message when room is highlighted */}
         {highlightedRoom && !searched && (
@@ -1046,80 +1094,94 @@ function BookingContent() {
             </div>
           )}
 
-          {!loading && searched && !apiError && rooms.length === 0 && (
+          {!loading && searched && !apiError && totalOptions === 0 && (
             <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] py-12 text-center">
               <p className="text-lg text-white/70">
-                Nenhum quarto disponível para as datas selecionadas.
+                Nenhuma acomodação disponível para {guestsText(guests, child)} nessas datas.
               </p>
               <p className="mt-2 text-sm text-white/50">
-                Tente outras datas ou entre em contato: (31) 3881-8049
+                Tente outras datas ou fale com a gente: (31) 3881-8049
               </p>
             </div>
           )}
 
-          {!loading && rooms.length > 0 && (
-            <div className="space-y-6">
-              {rooms.map((room) => {
-                const isTarget = room.cmsSlug === highlightedRoom;
+          {!loading && totalOptions > 0 && (
+            <div className="space-y-10">
+              {groups.map((group) => {
+                const isTarget = group.slug === highlightedRoom;
                 return (
-                  <div
-                    key={room.cmsRoomId}
-                    className={`flex flex-col overflow-hidden rounded-sm border transition-colors hover:bg-white/[0.06] md:flex-row ${isTarget ? 'border-brand-gold/50 bg-white/[0.06] ring-1 ring-brand-gold/20' : 'border-white/[0.08] bg-white/[0.04]'}`}
-                  >
-                    <div className="relative aspect-[4/3] md:w-80 md:shrink-0">
-                      <Image
-                        src={room.cmsImage || '/images/rooms/standard.jpg'}
-                        alt={room.cmsName}
-                        fill
-                        className="object-cover"
-                        unoptimized={room.cmsImage.startsWith('http')}
-                      />
+                  <section key={group.slug} aria-labelledby={`group-${group.slug}`}>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <h2
+                        id={`group-${group.slug}`}
+                        className="font-display text-xl font-bold text-white"
+                      >
+                        {group.name}
+                      </h2>
                       {isTarget && (
-                        <span className="absolute top-2 left-2 rounded-full bg-brand-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-black">
+                        <span className="rounded-full bg-brand-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-black">
                           Selecionado
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-1 flex-col justify-between p-6">
-                      <div>
-                        <h3 className="font-display text-xl font-bold text-white">
-                          {room.cmsName}
-                        </h3>
-                        {room.cmsDescription && (
-                          <p className="mt-2 text-sm text-white/70">{room.cmsDescription}</p>
-                        )}
-                        {room.cmsAmenities.length > 0 && (
-                          <p className="mt-2 text-xs text-white/50">
-                            {room.cmsAmenities.slice(0, 4).join(' · ')}
-                          </p>
-                        )}
-                        <p className="mt-1 text-sm text-white/50">
-                          Até {room.capacity.adults} adulto{room.capacity.adults !== 1 ? 's' : ''}
-                          {room.capacity.kids > 0
-                            ? ` + ${room.capacity.kids} criança${room.capacity.kids !== 1 ? 's' : ''}`
-                            : ''}
-                        </p>
-                        <p className="mt-1 text-xs text-emerald-400">
-                          {room.allots} {room.allots !== 1 ? 'disponíveis' : 'disponível'}
-                        </p>
+                    {group.options.length === 0 ? (
+                      <p className="mt-3 rounded-sm border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white/50">
+                        Esgotado ou não comporta {guestsText(guests, child)} nessas datas.
+                      </p>
+                    ) : (
+                      <div className="mt-4 space-y-4">
+                        {group.options.map((option) => (
+                          <article
+                            key={option.categoryId}
+                            className={`flex flex-col overflow-hidden rounded-sm border transition-colors hover:bg-white/[0.06] md:flex-row ${isTarget ? 'border-brand-gold/50 bg-white/[0.06]' : 'border-white/[0.08] bg-white/[0.04]'}`}
+                          >
+                            <AccommodationPhoto
+                              accommodation={option}
+                              sizes="(max-width: 768px) 100vw, 320px"
+                              className="aspect-[4/3] md:w-72 md:shrink-0"
+                            />
+                            <div className="flex flex-1 flex-col justify-between gap-4 p-5">
+                              <div>
+                                <h3 className="font-display text-lg font-bold text-white">
+                                  {option.name}
+                                </h3>
+                                <div className="mt-2">
+                                  <AccommodationFacts accommodation={option} />
+                                </div>
+                                {option.warning && (
+                                  <div className="mt-3">
+                                    <AccommodationWarning warning={option.warning} />
+                                  </div>
+                                )}
+                                <p className="mt-2 text-xs text-emerald-400">
+                                  {option.allots}{' '}
+                                  {option.allots !== 1 ? 'disponíveis' : 'disponível'}
+                                </p>
+                              </div>
+                              <div className="flex items-end justify-between gap-4">
+                                <div>
+                                  <span className="font-display text-2xl font-bold text-white">
+                                    R$ {option.price.toLocaleString('pt-BR')}
+                                  </span>
+                                  <span className="text-sm text-white/50">
+                                    {' '}
+                                    / {nights} noite{nights !== 1 ? 's' : ''}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectRoom(option)}
+                                  className="rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
+                                >
+                                  Selecionar
+                                </button>
+                              </div>
+                            </div>
+                          </article>
+                        ))}
                       </div>
-                      <div className="mt-4 flex items-end justify-between">
-                        <div>
-                          <span className="font-display text-2xl font-bold text-white">
-                            R$ {room.price.toLocaleString('pt-BR')}
-                          </span>
-                          <span className="text-sm text-white/50"> / estadia</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleSelectRoom(room)}
-                          className="rounded-sm bg-brand-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
-                        >
-                          Selecionar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    )}
+                  </section>
                 );
               })}
             </div>

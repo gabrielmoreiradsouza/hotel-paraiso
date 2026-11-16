@@ -158,7 +158,7 @@ function RoomDetailModal({ room, onClose }: { room: RoomCardData; onClose: () =>
               <span className="font-display text-2xl font-bold text-gold-700">{room.price}</span>
               <span className="block text-xs text-beige-600">/ noite</span>
               <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
-                Cancele grátis até 48h
+                Cancele grátis até 1 dia antes
               </span>
             </div>
           </div>
@@ -267,7 +267,7 @@ function RoomCard({ room, onClick }: { room: RoomCardData; onClick: () => void }
             Reservar agora
           </a>
           <span className="mt-2 block text-center text-[10px] text-white/60 md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
-            Cancele grátis até 48h
+            Cancele grátis até 1 dia antes
           </span>
         </div>
       </div>

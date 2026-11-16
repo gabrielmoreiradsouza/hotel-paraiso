@@ -3,22 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Loader2 } from 'lucide-react';
-
-interface AvailabilityRoom {
-  cmsSlug: string;
-  name: string;
-  available: boolean;
-  price: number;
-}
-
-interface AvailabilityResponse {
-  rooms?: AvailabilityRoom[];
-  error?: string;
-}
+import { CHILD_MAX_AGE } from '@/lib/accommodations';
+import type { AccommodationOffer, OfferGroup } from '@/lib/offers';
+import { AccommodationFacts, AccommodationWarning } from '@/components/Accommodation/Accommodation';
 
 type CheckResult =
-  | { status: 'available'; roomName: string; nights: number; total: number }
-  | { status: 'unavailable'; roomName: string };
+  | { status: 'available'; nights: number; options: AccommodationOffer[] }
+  | { status: 'unavailable' };
 
 function getTodayBR(): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -34,6 +25,7 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [adults, setAdults] = useState('2');
+  const [child, setChild] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,29 +38,30 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
     };
   }, []);
 
-  // Minimum date is today (São Paulo timezone)
   const today = getTodayBR();
-  const minCheckout = checkin
-    ? new Date(new Date(checkin + 'T12:00:00').getTime() + 86400000).toISOString().slice(0, 10)
+  const checkinTime = checkin ? new Date(checkin + 'T12:00:00').getTime() : NaN;
+  const minCheckout = Number.isFinite(checkinTime)
+    ? new Date(checkinTime + 86400000).toISOString().slice(0, 10)
     : today;
+
+  function resetResult() {
+    setResult(null);
+    setError(null);
+  }
 
   async function handleCheck() {
     if (!checkin || !checkout) {
       setError('Selecione as datas de check-in e check-out.');
       return;
     }
-
-    // Validate checkout > checkin
     if (checkout <= checkin) {
       setError('A data de check-out deve ser posterior ao check-in.');
       return;
     }
 
     setLoading(true);
-    setResult(null);
-    setError(null);
+    resetResult();
 
-    // Abort any in-flight request
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -78,60 +71,54 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
         arrival_date: checkin,
         departure_date: checkout,
         adults,
+        kids: child ? '1' : '0',
       });
       const res = await fetch(`/api/availability?${params}`, { signal: controller.signal });
-
       if (!res.ok) {
         setError('Erro ao verificar. Tente novamente.');
         setLoading(false);
         return;
       }
 
-      const data: AvailabilityResponse = await res.json();
+      const data = (await res.json()) as { groups?: OfferGroup[] };
+      const options = data.groups?.find((g) => g.slug === roomSlug)?.options ?? [];
 
-      const match = data.rooms?.find((r) => r.cmsSlug === roomSlug);
-
-      if (match && match.available) {
+      if (options.length > 0) {
         const nights = Math.max(
           1,
           Math.round(
-            (new Date(checkout).getTime() - new Date(checkin).getTime()) / (1000 * 60 * 60 * 24)
+            (Date.parse(`${checkout}T12:00:00Z`) - Date.parse(`${checkin}T12:00:00Z`)) / 86_400_000
           )
         );
-        // API price is already the total for the stay, not per-night
-        setResult({
-          status: 'available',
-          roomName: match.name,
-          nights,
-          total: match.price,
-        });
+        setResult({ status: 'available', nights, options });
       } else {
-        setResult({
-          status: 'unavailable',
-          roomName: roomName,
-        });
+        setResult({ status: 'unavailable' });
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error('[room-booking] disponibilidade falhou:', err);
       setError('Erro ao verificar. Tente novamente.');
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
   }
 
-  function handleReserve() {
+  function bookingQuery(): string {
+    return `checkin=${checkin}&checkout=${checkout}&guests=${adults}&kids=${child ? 1 : 0}`;
+  }
+
+  function handleReserve(option: AccommodationOffer) {
     router.push(
-      `/reservar?room=${encodeURIComponent(roomSlug)}&checkin=${checkin}&checkout=${checkout}&guests=${adults}&step=details`
+      `/reservar?room=${encodeURIComponent(roomSlug)}&category=${option.categoryId}&${bookingQuery()}&step=details`
     );
   }
 
   function handleViewOthers() {
-    router.push(`/reservar?checkin=${checkin}&checkout=${checkout}&guests=${adults}`);
+    router.push(`/reservar?${bookingQuery()}`);
   }
 
   return (
     <div className="mt-8 rounded-xl border border-beige-200 bg-beige-50 p-6">
-      {/* Title */}
       <div className="mb-5 flex items-center gap-2">
         <Calendar className="h-5 w-5 text-brand-gold" />
         <h4 className="font-display text-lg font-bold text-brand-black">
@@ -139,9 +126,7 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
         </h4>
       </div>
 
-      {/* Fields row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Check-in */}
         <div>
           <label
             htmlFor={`bk-checkin-${roomSlug}`}
@@ -156,14 +141,12 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
             min={today}
             onChange={(e) => {
               setCheckin(e.target.value);
-              setResult(null);
-              setError(null);
+              resetResult();
             }}
             className="w-full rounded-md border border-beige-300 bg-white px-3 py-2.5 text-sm text-brand-black"
           />
         </div>
 
-        {/* Check-out */}
         <div>
           <label
             htmlFor={`bk-checkout-${roomSlug}`}
@@ -178,14 +161,12 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
             min={minCheckout}
             onChange={(e) => {
               setCheckout(e.target.value);
-              setResult(null);
-              setError(null);
+              resetResult();
             }}
             className="w-full rounded-md border border-beige-300 bg-white px-3 py-2.5 text-sm text-brand-black"
           />
         </div>
 
-        {/* Adults */}
         <div>
           <label
             htmlFor={`bk-adults-${roomSlug}`}
@@ -198,8 +179,7 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
             value={adults}
             onChange={(e) => {
               setAdults(e.target.value);
-              setResult(null);
-              setError(null);
+              resetResult();
             }}
             className="w-full rounded-md border border-beige-300 bg-white px-3 py-2.5 text-sm text-brand-black"
           >
@@ -207,10 +187,21 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
             <option value="2">2 adultos</option>
             <option value="3">3 adultos</option>
           </select>
+          <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-beige-800">
+            <input
+              type="checkbox"
+              checked={child}
+              onChange={(e) => {
+                setChild(e.target.checked);
+                resetResult();
+              }}
+              className="h-4 w-4 accent-brand-gold"
+            />
+            + 1 criança (até {CHILD_MAX_AGE} anos)
+          </label>
         </div>
       </div>
 
-      {/* Check button */}
       <button
         onClick={handleCheck}
         disabled={loading}
@@ -226,7 +217,6 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
         )}
       </button>
 
-      {/* Error */}
       {error && (
         <div className="mt-5" role="alert">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -235,23 +225,41 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
         </div>
       )}
 
-      {/* Result */}
       {result?.status === 'available' && (
-        <div className="mt-5">
-          <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
-            <p className="font-semibold text-emerald-800">
-              Disponível! {result.roomName} para {result.nights} noite{result.nights > 1 ? 's' : ''}
-            </p>
-            <p className="mt-1 text-sm text-emerald-700">
-              Total: <span className="font-bold">R$ {result.total.toLocaleString('pt-BR')}</span>
-            </p>
-          </div>
-          <button
-            onClick={handleReserve}
-            className="mt-4 w-full rounded-lg bg-brand-gold py-3.5 text-center font-bold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
-          >
-            Reservar agora — R$ {result.total.toLocaleString('pt-BR')}
-          </button>
+        <div className="mt-5 space-y-3" aria-live="polite">
+          <p className="font-semibold text-emerald-800">
+            Disponível para {result.nights} noite{result.nights > 1 ? 's' : ''}. Escolha a
+            acomodação:
+          </p>
+          {result.options.map((option) => (
+            <div
+              key={option.categoryId}
+              className="rounded-lg border border-beige-300 bg-white p-4"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-display font-bold text-brand-black">{option.name}</p>
+                  <div className="mt-2">
+                    <AccommodationFacts accommodation={option} tone="light" />
+                  </div>
+                </div>
+                <p className="font-display text-lg font-bold text-brand-black">
+                  R$ {option.price.toLocaleString('pt-BR')}
+                </p>
+              </div>
+              {option.warning && (
+                <div className="mt-3">
+                  <AccommodationWarning warning={option.warning} tone="light" />
+                </div>
+              )}
+              <button
+                onClick={() => handleReserve(option)}
+                className="mt-3 w-full rounded-lg bg-brand-gold py-3 text-center text-sm font-bold uppercase tracking-widest text-brand-black transition-colors hover:bg-gold-400"
+              >
+                Reservar {option.name}
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -259,7 +267,7 @@ export function RoomBookingInline({ roomSlug, roomName }: { roomSlug: string; ro
         <div className="mt-5">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <p className="font-semibold text-red-800">
-              {result.roomName} não está disponível para essas datas.
+              {roomName} não está disponível para essas datas e hóspedes.
             </p>
           </div>
           <button

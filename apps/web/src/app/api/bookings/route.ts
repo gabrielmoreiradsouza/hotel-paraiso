@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { BookingRequestSchema } from '@/lib/booking-request';
 import { isAdminAuthed } from '@/lib/admin-session';
 import { isRateLimited } from '@/lib/rate-limit';
 import { trackServerPurchase } from '@/lib/server-tracking';
@@ -8,6 +9,39 @@ import { getClientIp } from '@/lib/client-ip';
 import { acquire, buildIdempotencyKey, commit, release } from '@/lib/idempotency';
 import { storeAttribution, listAttributions } from '@/lib/attribution-store';
 import { formatAttributionLabel, readAbVariant, type Attribution } from '@hotel-paraiso/tracking';
+import {
+  CHILD_MAX_AGE,
+  canHost,
+  describeAccommodation,
+  getAccommodation,
+  type Accommodation,
+} from '@/lib/accommodations';
+import {
+  BOOKED_CATEGORY_MARKER,
+  CANCELLATION_POLICY,
+  CHECKIN_TIME,
+  CHECKOUT_TIME,
+  PAYMENT_POLICY,
+} from '@/lib/booking-policy';
+
+interface StayDetails {
+  guestName: string;
+  bookingId: string;
+  checkin: string;
+  checkout: string;
+  accommodation: Accommodation;
+  adults: number;
+  child: boolean;
+  total: number;
+  notes?: string | undefined;
+}
+
+function guestsLabel(adults: number, child: boolean): string {
+  const adultsText = `${adults} adulto${adults === 1 ? '' : 's'}`;
+  return child ? `${adultsText} + 1 criança (até ${CHILD_MAX_AGE} anos)` : adultsText;
+}
+
+const brl = (value: number) => value.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 
 const EVOLUTION_URL = (
   process.env['EVOLUTION_API_URL']?.trim() || 'https://evo.moreirads.cloud'
@@ -61,31 +95,32 @@ function formatDateBR(dateStr: string): string {
 }
 
 function sendWhatsAppConfirmation(
-  guestName: string,
+  stay: StayDetails,
   guestPhone: string | undefined,
-  checkin: string,
-  checkout: string,
-  bookingId: string,
-  notes?: string,
   originLabel?: string | null
 ) {
+  const { accommodation } = stay;
   // Mensagem pro hóspede (se tiver telefone)
   if (guestPhone) {
     const guestMsg = [
       `✅ *Reserva Confirmada — Hotel Paraíso*`,
       ``,
-      `Olá, *${guestName}*! Sua reserva foi registrada com sucesso.`,
+      `Olá, *${stay.guestName}*! Sua reserva foi registrada com sucesso.`,
       ``,
-      `📋 *Protocolo:* #HP-${bookingId}`,
-      `📅 *Check-in:* ${formatDateBR(checkin)} (a partir das 14h)`,
-      `📅 *Check-out:* ${formatDateBR(checkout)} (até 12h)`,
-      ...(notes ? [`📝 *Observação:* ${notes}`] : []),
+      `📋 *Protocolo:* #HP-${stay.bookingId}`,
+      `🛏️ *Acomodação:* ${accommodation.name} — ${describeAccommodation(accommodation)}`,
+      `👥 *Hóspedes:* ${guestsLabel(stay.adults, stay.child)}`,
+      `📅 *Check-in:* ${formatDateBR(stay.checkin)} (a partir das ${CHECKIN_TIME})`,
+      `📅 *Check-out:* ${formatDateBR(stay.checkout)} (até ${CHECKOUT_TIME})`,
+      `💰 *Total:* R$ ${brl(stay.total)}`,
+      ...(accommodation.warning ? [``, `ℹ️ ${accommodation.warning}`] : []),
+      ...(stay.notes ? [`📝 *Observação:* ${stay.notes}`] : []),
       ``,
       `📍 R. Pe. José Alvarenga, 50, Paraíso — Ponte Nova/MG`,
       `📞 (31) 3881-8049`,
       ``,
-      `💳 Nenhum pagamento agora — você paga no hotel, no check-in.`,
-      `Cancelamento gratuito até 48h antes do check-in.`,
+      `💳 ${PAYMENT_POLICY}`,
+      CANCELLATION_POLICY,
       ``,
       `Aguardamos você! 🏨`,
     ].join('\n');
@@ -96,31 +131,32 @@ function sendWhatsAppConfirmation(
   const hotelMsg = [
     `🔔 *Nova Reserva pelo Site*`,
     ``,
-    `👤 *Hóspede:* ${guestName}`,
+    `👤 *Hóspede:* ${stay.guestName}`,
     ...(guestPhone ? [`📱 *Telefone:* ${guestPhone}`] : []),
-    `📋 *Protocolo:* #HP-${bookingId}`,
-    `📅 *Check-in:* ${formatDateBR(checkin)}`,
-    `📅 *Check-out:* ${formatDateBR(checkout)}`,
+    `📋 *Protocolo:* #HP-${stay.bookingId}`,
+    `🛏️ *Acomodação:* ${accommodation.name} (${describeAccommodation(accommodation)})`,
+    `👥 *Hóspedes:* ${guestsLabel(stay.adults, stay.child)}`,
+    `📅 *Check-in:* ${formatDateBR(stay.checkin)}`,
+    `📅 *Check-out:* ${formatDateBR(stay.checkout)}`,
+    `💰 *Total:* R$ ${brl(stay.total)} — pagamento no hotel`,
     ...(originLabel ? [`📊 *Origem:* ${originLabel}`] : []),
-    ...(notes ? [`📝 *Obs:* ${notes}`] : []),
+    ...(stay.notes ? [`📝 *Obs:* ${stay.notes}`] : []),
     ``,
+    `⚠️ Alocar em UH de *${accommodation.name}* — foi o que o hóspede escolheu e viu.`,
     `Reserva criada via hotelparaiso.moreirads.cloud`,
   ].join('\n');
   sendEvolutionMessage(HOTEL_WHATSAPP, hotelMsg);
 }
 
-function sendConfirmationEmail(
-  guestName: string,
-  guestEmail: string,
-  checkin: string,
-  checkout: string,
-  bookingId: string,
-  notes?: string
-) {
+function sendConfirmationEmail(stay: StayDetails, guestEmail: string) {
   const resendKey = process.env['RESEND_API_KEY'];
   if (!resendKey || !guestEmail) return;
 
+  const { guestName, bookingId, checkin, checkout, notes, accommodation } = stay;
   const notesHtml = notes ? `<p><strong>Observação:</strong> ${escapeHtml(notes)}</p>` : '';
+  const warningHtml = accommodation.warning
+    ? `<p><strong>Sobre o quarto:</strong> ${escapeHtml(accommodation.warning)}</p>`
+    : '';
 
   fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -136,11 +172,15 @@ function sendConfirmationEmail(
         <h1>Olá, ${escapeHtml(guestName)}!</h1>
         <p>Sua reserva foi registrada com sucesso.</p>
         <p><strong>Protocolo:</strong> ${escapeHtml(bookingId)}</p>
-        <p><strong>Check-in:</strong> ${escapeHtml(formatDateBR(checkin))} (a partir das 14h)</p>
-        <p><strong>Check-out:</strong> ${escapeHtml(formatDateBR(checkout))} (até 12h)</p>
+        <p><strong>Acomodação:</strong> ${escapeHtml(accommodation.name)} — ${escapeHtml(describeAccommodation(accommodation))}</p>
+        <p><strong>Hóspedes:</strong> ${escapeHtml(guestsLabel(stay.adults, stay.child))}</p>
+        <p><strong>Check-in:</strong> ${escapeHtml(formatDateBR(checkin))} (a partir das ${CHECKIN_TIME})</p>
+        <p><strong>Check-out:</strong> ${escapeHtml(formatDateBR(checkout))} (até ${CHECKOUT_TIME})</p>
+        <p><strong>Total:</strong> R$ ${escapeHtml(brl(stay.total))}</p>
+        ${warningHtml}
         ${notesHtml}
-        <p><strong>Pagamento:</strong> Nenhum pagamento agora. Você paga no hotel, no check-in.</p>
-        <p>Cancelamento gratuito até 48h antes do check-in.</p>
+        <p><strong>Pagamento:</strong> ${escapeHtml(PAYMENT_POLICY)}</p>
+        <p>${escapeHtml(CANCELLATION_POLICY)}</p>
         <p>📍 R. Pe. José Alvarenga, 50, Paraíso — Ponte Nova/MG</p>
         <p>Para dúvidas, ligue (31) 3881-8049 ou fale pelo WhatsApp.</p>
         <p>Atenciosamente,<br>Hotel e Restaurante Paraíso</p>
@@ -159,7 +199,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
+    const parsed = BookingRequestSchema.safeParse(
+      await request.json().catch((error: unknown) => {
+        console.warn('[bookings] corpo não é JSON:', error);
+        return null;
+      })
+    );
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: issue?.message ?? 'Dados da reserva inválidos' },
+        { status: 422 }
+      );
+    }
     const {
       guestName,
       guestEmail,
@@ -168,55 +220,15 @@ export async function POST(request: Request) {
       checkout,
       categoryId,
       rateplanId,
-      adults,
-      kids,
-      notes: rawNotes,
+      adults: adultsNum,
+      kids: kidsNum,
+      notes,
       attribution: rawAttribution,
-      client_id: rawClientId,
-      session_id: rawSessionId,
-    } = body as {
-      guestName: string;
-      guestEmail: string;
-      guestPhone?: string;
-      checkin: string;
-      checkout: string;
-      categoryId?: number;
-      rateplanId?: number;
-      adults?: number;
-      kids?: number;
-      totalPrice?: number;
-      notes?: unknown;
-      attribution?: Attribution | null;
-      client_id?: string | null;
-      session_id?: string | null;
-    };
+      client_id: ga4ClientId,
+      session_id: ga4SessionId,
+    } = parsed.data;
 
-    const attribution =
-      rawAttribution && typeof rawAttribution === 'object' && rawAttribution.source
-        ? rawAttribution
-        : null;
-    const ga4ClientId =
-      typeof rawClientId === 'string' && rawClientId.length > 0 ? rawClientId : null;
-    const ga4SessionId =
-      typeof rawSessionId === 'string' && rawSessionId.length > 0 ? rawSessionId : null;
-
-    // Sanitise notes: must be a string, max 500 chars, or discard
-    const notes = typeof rawNotes === 'string' ? rawNotes.slice(0, 500) : undefined;
-
-    if (!guestName || !guestEmail || !checkin || !checkout) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 422 });
-    }
-
-    // Validate name length
-    if (guestName.length < 2 || guestName.length > 200) {
-      return NextResponse.json({ error: 'Nome inválido' }, { status: 422 });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(guestEmail)) {
-      return NextResponse.json({ error: 'Email inválido' }, { status: 422 });
-    }
+    const attribution = rawAttribution;
 
     // Validate dates
     const today = new Date().toISOString().slice(0, 10);
@@ -243,29 +255,32 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!categoryId || !rateplanId) {
-      return NextResponse.json(
-        { error: 'Selecione um quarto disponível antes de confirmar.' },
-        { status: 422 }
-      );
-    }
-
     // `categoryId`, `rateplanId`, `adults` e `kids` vêm do corpo do POST — são escolha
     // de quem chama, não fato verificado. Sem reconferir, dá para reservar categoria
     // indisponível, furar a ocupação, ou casar rate plan barato com categoria cara.
     // Sai quase sempre do cache de disponibilidade, então não custa cota da Artax.
-    const adultsNum = adults ?? 2;
-    const kidsNum = kids ?? 0;
+    const child = kidsNum === 1;
+
+    // A ficha do catálogo manda na ocupação (ADR-0014): a Artax aceita 3 no Duplo Solteiro
+    // Luxo e não conhece a regra da criança, então a conferência dela não basta.
+    const accommodation = getAccommodation(categoryId);
+    if (!accommodation || !canHost(accommodation, adultsNum, child)) {
+      return NextResponse.json(
+        { error: 'Esta acomodação não comporta essa quantidade de hóspedes. Faça uma nova busca.' },
+        { status: 409 }
+      );
+    }
 
     let offer: Awaited<ReturnType<typeof verifyOffer>>;
     try {
+      // A criança não vai à Artax (ocupação total 2 nos quartos "Casal"); segue no comentário.
       offer = await verifyOffer({
         checkin,
         checkout,
         categoryId,
         rateplanId,
         adults: adultsNum,
-        kids: kidsNum,
+        kids: 0,
       });
     } catch (error) {
       console.error('Falha ao revalidar disponibilidade:', error);
@@ -293,6 +308,8 @@ export async function POST(request: Request) {
       checkout,
       categoryId: offer.categoryId,
       rateplanId: offer.rateplanId,
+      adults: adultsNum,
+      kids: kidsNum,
     });
 
     const state = await acquire(idemKey);
@@ -315,7 +332,13 @@ export async function POST(request: Request) {
       const lastName = nameParts.slice(1).join(' ') || '';
 
       const attrLabel = attribution ? formatAttributionLabel(attribution) : null;
-      const commentParts = ['Reserva via site hotelparaiso.moreirads.cloud'];
+      const commentParts = [
+        'Reserva via site hotelparaiso.moreirads.cloud',
+        `${BOOKED_CATEGORY_MARKER} ${accommodation.name} (${describeAccommodation(accommodation)})`,
+        `Hóspedes: ${guestsLabel(adultsNum, child)}${child ? ' — criança sem custo' : ''}`,
+        'Sem cobrança antecipada: pagamento no hotel',
+      ];
+      if (accommodation.warning) commentParts.push('Hóspede viu o aviso de quarto compacto');
       if (attrLabel) commentParts.push(`Origem: ${attrLabel}`);
       if (notes) commentParts.push(notes);
 
@@ -335,15 +358,26 @@ export async function POST(request: Request) {
         room_units: {
           [String(offer.categoryId)]: {
             adults: adultsNum,
-            kids: kidsNum,
+            kids: 0,
             guests: [{ first_name: firstName, last_name: lastName }],
           },
         },
       });
 
       const bid = String(artaxData.booking_id);
-      sendConfirmationEmail(guestName, guestEmail, checkin, checkout, bid, notes);
-      sendWhatsAppConfirmation(guestName, guestPhone, checkin, checkout, bid, notes, attrLabel);
+      const stay: StayDetails = {
+        guestName,
+        bookingId: bid,
+        checkin,
+        checkout,
+        accommodation,
+        adults: adultsNum,
+        child,
+        total: offer.price,
+        notes,
+      };
+      sendConfirmationEmail(stay, guestEmail);
+      sendWhatsAppConfirmation(stay, guestPhone, attrLabel);
 
       // Teste A/B (ADR-0013): variante do cookie `hp_ab` gravada junto com a origem.
       const abVariant = readAbVariant(request.headers.get('cookie'));

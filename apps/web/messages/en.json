@@ -43,7 +43,7 @@
     "searching": "Checking hotel availability...",
     "apiError": "Error checking availability. Please try again.",
     "completeBooking": "Complete your reservation",
-    "cancel": "Free cancellation up to 48h before check-in",
+    "cancel": "Free cancellation up to 1 day before check-in",
     "upTo": "Up to {adults} adults"
   },
   "rooms": {
@@ -90,7 +90,7 @@
   "cta": {
     "title": "Book direct and save",
     "highlight": "No intermediary fees",
-    "subtitle": "Best price guaranteed. Breakfast included. Free cancellation up to 48h.",
+    "subtitle": "Best price guaranteed. Breakfast included. Free cancellation up to 1 day before.",
     "button": "Check availability"
   },
   "faq": {
@@ -101,7 +101,7 @@
     "breakfastQ": "Is breakfast included?",
     "breakfastA": "Yes, all room categories include a full breakfast served at the hotel restaurant.",
     "cancellationQ": "What is the cancellation policy?",
-    "cancellationA": "Free cancellation up to 48 hours before check-in date. After that, the first night will be charged.",
+    "cancellationA": "Free cancellation up to 1 day before arrival. Bookings made on the website are not charged in advance: payment is made at the hotel, at check-in.",
     "parkingQ": "Do you have parking?",
     "parkingA": "Yes, we offer secure parking for all guests.",
     "petsQ": "Can I bring my pet?",

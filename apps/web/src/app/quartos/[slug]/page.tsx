@@ -7,6 +7,12 @@ import { RoomPhotoGallery } from './RoomPhotoGallery';
 import { RoomBookingInline } from '@/components/RoomBooking/RoomBookingInline';
 import { getRoom, getRoomSlugs, getMediaUrl, type CmsRoom } from '@/lib/cms';
 import { getMinPrices } from '@/lib/min-prices';
+import { accommodationsOf, cleanGroupAmenities } from '@/lib/accommodations';
+import {
+  AccommodationFacts,
+  AccommodationPhoto,
+  AccommodationWarning,
+} from '@/components/Accommodation/Accommodation';
 
 export const revalidate = 3600;
 
@@ -35,7 +41,6 @@ const fallbackRooms: Record<
       'Wi-Fi de alta velocidade',
       'Ventilador de teto',
       'TV LED 32"',
-      'Frigobar',
       'Chuveiro quente',
       'Toalhas e roupas de cama',
       'Tomadas USB ao lado da cama',
@@ -58,7 +63,6 @@ const fallbackRooms: Record<
       'Wi-Fi de alta velocidade',
       'Ar-condicionado split silencioso',
       'TV LED 32"',
-      'Frigobar',
       'Chuveiro quente',
       'Toalhas e roupas de cama premium',
       'Mesa de trabalho',
@@ -220,6 +224,9 @@ export default async function RoomPage({ params }: Props) {
 
   if (!room) notFound();
 
+  room = { ...room, amenities: cleanGroupAmenities(slug, room.amenities) };
+  const options = accommodationsOf(slug);
+
   try {
     const artaxMin = (await getMinPrices())[slug];
     if (artaxMin) room = { ...room, price: `R$ ${artaxMin}` };
@@ -257,6 +264,43 @@ export default async function RoomPage({ params }: Props) {
 
           {/* Description */}
           <p className="mt-5 leading-relaxed text-[#444]">{room.longDescription}</p>
+
+          {/* Acomodações reais deste grupo (ADR-0014) — cama, clima e frigobar de cada uma */}
+          {options.length > 0 && (
+            <div className="mt-8">
+              <h2 className="font-display text-lg font-bold text-brand-black">
+                Opções de acomodação
+              </h2>
+              <div className="mt-4 space-y-3">
+                {options.map((option) => (
+                  <div
+                    key={option.categoryId}
+                    className="rounded-lg border border-beige-200 bg-beige-50 p-3"
+                  >
+                    <div className="flex gap-4">
+                      <AccommodationPhoto
+                        accommodation={option}
+                        sizes="112px"
+                        tone="light"
+                        className="h-20 w-28 shrink-0 rounded-md"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-display font-bold text-brand-black">{option.name}</p>
+                        <div className="mt-2">
+                          <AccommodationFacts accommodation={option} tone="light" />
+                        </div>
+                      </div>
+                    </div>
+                    {option.warning && (
+                      <div className="mt-3">
+                        <AccommodationWarning warning={option.warning} tone="light" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Amenities grid */}
           <div className="mt-8">

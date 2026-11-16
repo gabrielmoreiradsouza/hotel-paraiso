@@ -28,12 +28,13 @@ function readBookingSelection(): BookingSelection {
     const raw = sessionStorage.getItem('hp_booking_state');
     if (!raw) return {};
     const state = JSON.parse(raw) as {
-      selectedRoom?: { cmsSlug?: string; cmsName?: string; name?: string } | null;
+      selectedRoom?: { cmsSlug?: string; group?: string; cmsName?: string; name?: string } | null;
       checkin?: string;
       checkout?: string;
       guests?: number;
     };
     const room = state.selectedRoom;
+    const rawSlug = room?.cmsSlug ?? room?.group;
     // sessionStorage é editável pelo visitante: nome curto, datas em ordem, hóspedes plausíveis.
     const rawName = room?.cmsName || room?.name;
     const roomName = typeof rawName === 'string' ? rawName.trim().slice(0, 40) : '';
@@ -48,7 +49,7 @@ function readBookingSelection(): BookingSelection {
       (state.guests ?? 0) > 0 &&
       (state.guests ?? 0) <= 20;
     return {
-      ...(typeof room?.cmsSlug === 'string' && { slug: room.cmsSlug.slice(0, 40) }),
+      ...(typeof rawSlug === 'string' && { slug: rawSlug.slice(0, 40) }),
       ...(complete && {
         context: {
           roomName,
